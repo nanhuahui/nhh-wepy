@@ -11,9 +11,26 @@
 </style>
 
 <script>
+import md5 from 'md5'
 import wepy from 'wepy'
+import {
+  API_URL,
+  IMG_URL,
+  DEFAULT_UID,
+  API_SIGNATURE
+} from './config'
 import 'wepy-async-function'
 
+// 1001->发现栏小程序主入口;
+// 1005->顶部搜索框的搜索结果页;
+// 1006->发现栏小程序主入口搜索框的搜索结果页;
+// 1020->公众号 profile 页相关小程序列表;
+// 1023->安卓系统桌面图标;
+// 1053->搜一搜的结果页;
+// 1054->顶部搜索框小程序快捷入口;
+// 1089->微信聊天主界面下拉;
+// 1090->长按小程序右上角菜单唤出最近使用历史;
+const sceneArr = [1001, 1005, 1006, 1020, 1023, 1053, 1054, 1089, 1090]
 
 export default class extends wepy.app {
   config = {
@@ -64,40 +81,302 @@ export default class extends wepy.app {
   }
 
   globalData = {
-    userInfo: null
+    apiUrl: API_URL,
+    imgUrl: IMG_URL
   }
 
   constructor() {
     super()
+    this.use('promisify')
     this.use('requestfix')
-  }
+    // 拦截request请求
+    this.intercept('request', {
+      // 发出请求时的回调函数
+      config(cf) {
+        // 获取缓存的用户对象
+        let u = wepy.getStorageSync('user_nhh')
 
-  onLaunch() {
-    this.testAsync()
-  }
+        let uid = DEFAULT_UID
+        if ((cf.url === `${this.globalData.apiUrl}/shop/goods/goods.php?act=get_shop_goods` || cf.url === `${this.globalData.apiUrl}/store_index.php`) && wepy.getStorageSync('sellerId')) {
+          uid = wepy.getStorageSync('sellerId')
+        } else if (u) {
+          uid = u.user_id
+        }
+        let timestamp = Date.parse(new Date()) / 1000
+        let md5Str = md5(uid + '' + timestamp + API_SIGNATURE)
+        let param = {
+          // XDEBUG_SESSION_START: 15087,
+          uid: uid,
+          timestamp: timestamp,
+          sign: md5Str,
+          sess_id: wepy.getStorageSync('sessId')
+        }
+        // 对所有request请求中的OBJECT参数对象统一附加属性
+        Object.assign(cf.data, param)
+        if (cf.method === 'post') {
+          // post请求,参数使用qs转换
+          cf.header['Content-Type'] = 'application/x-www-form-urlencoded'
+        }
+        // 必须返回OBJECT参数对象，否则无法发送请求到服务端
+        return cf
+      },
 
-  sleep(s) {
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        resolve('promise resolved')
-      }, s * 1000)
+      // 请求成功后的回调函数
+      success(res) {
+        // 可以在这里对收到的响应数据对象进行加工处理
+        console.log('request success: ', res)
+        // 必须返回响应数据对象，否则后续无法对响应数据进行处理
+        return res
+      },
+
+      // 请求失败后的回调函数
+      fail(e) {
+        console.log('request fail: ', e)
+        // 必须返回响应数据对象，否则后续无法对响应数据进行处理
+        return e
+      },
+
+      // 请求完成时的回调函数(请求成功或失败都会被执行)
+      complete(res) {
+        console.log('request complete: ', res)
+        if (res.data.errcode === -2 || res.data.errcode === -3) {
+          wepy.showLoading({ title: '登录中...' })
+          // 用户不存在 或 重新登录
+          wepy.removeStorageSync('user_nhh')
+          wepy.removeStorageSync('store_nhh')
+          this.doWxLogin()
+        }
+      }
     })
   }
 
-  async testAsync() {
-    const data = await this.sleep(3)
-    console.log(data)
+  onLaunch() {}
+
+  onShow(options) {
+    // this.getCartNum()
+    console.log(716, options)
+    // 1.从参数判断
+    if (options.query.s) {
+      // 1.1:启动，或从后台进入前台显示，携带参数有s时去替换缓存中的
+      wepy.setStorageSync('sellerId', options.query.s)
+    } else if (options.query.seller_id) {
+      // 1.2:兼容参数传递前的seller_id
+      wepy.setStorageSync('sellerId', options.query.seller_id)
+    }
+    // 2.从场景值判断
+    if (options.scene === 1047 || options.scene === 1048 || options.scene === 1049) {
+      // 2.1:小程序码的三个场景入口:1047->扫描小程序码;1048->长按图片识别小程序码;1049->手机相册选取小程序码
+      let sceneParam = decodeURIComponent(options.query.scene)
+      let qrId = this.getQueryString('qr_id', sceneParam)
+      if (qrId) {
+        // 参数超过32字符后的处理
+        this.getQrScene(qrId)
+      } else {
+        let sceneSellerId = this.getQueryString('s', sceneParam)
+        if (sceneSellerId) {
+          // 使用小程序码传递的seller_id
+          wepy.setStorageSync('sellerId', sceneSellerId)
+        }
+      }
+    } else if (sceneArr.indexOf(options.scene) > -1) {
+      // 2.2:需要处理自己店铺(场景值及描述详见sceneArr)
+      let u = wepy.getStorageSync('user_nhh')
+      console.log('CURRENT SCENE INFO:', options.scene, u)
+      if (u.is_shop) {
+        wepy.setStorageSync('sellerId', u.user_id)
+      }
+    }
+    let self = this
+    // 应用启动,获得店铺名称和店主头像
+    wepy.request({
+      url: `${self.globalData.apiUrl}/store_index.php`,
+      data: {
+        uid: wepy.getStorageSync('sellerId')
+      }
+    }).then(({
+      data: {
+        errcode,
+        data,
+        msg
+      }
+    }) => {
+      console.info(errcode, msg, data)
+      if (errcode === 0) {
+        // 正常返回
+        let info = data.storeinfo
+        let detail = data.store_detail
+        let storeJson = {}
+        // 存储店铺头像,店铺名称,店铺二维码
+        storeJson.name = (detail.store_name && detail.store_name !== 'undefined') ? detail.store_name : ''
+        storeJson.qrcode = (detail.qrcode_img && detail.qrcode_img !== 'undefined') ? detail.qrcode_img : ''
+        storeJson.avatar = info ? info.avatar : ''
+        wepy.setStorageSync('store_nhh', storeJson)
+      } else {
+        // 接口返回错误
+        console.error(errcode, msg, data)
+      }
+    })
+    // 记录是否关闭汇商通知的新消息
+    if (!wepy.getStorageSync('closeMsg')) {
+      wepy.setStorage({
+        key: 'closeMsg',
+        data: false
+      })
+    }
   }
 
-  getUserInfo(cb) {
-    const that = this
-    if (this.globalData.userInfo) {
-      return this.globalData.userInfo
+  onHide() {
+    wepy.removeStorageSync('closeMsg')
+  }
+
+  /**
+   * 封装请求购物车商品数量
+   */
+  getCartNum() {
+    let self = this
+    // 首次进入页面，tabBar显示小圆点
+    self.request({
+      // uid: wx.getStorageSync('sellerId'),
+      url: `${self.globalData.API_URL}/flow.php`,
+      success: ({
+        data: {
+          errcode,
+          data,
+          msg
+        }
+      }) => {
+        if (errcode === 0) {
+          // 正常返回
+          let cartNum = data.total.real_goods_count
+          // cartNum需要转化成字符串
+          let cartNumStr = cartNum.toString()
+          wepy.setTabBarBadge({
+            index: 1,
+            text: cartNumStr
+          })
+          // cartNum为零时隐藏tabBar小圆点
+          if (!cartNum) {
+            wepy.hideTabBarRedDot({
+              index: 1
+            })
+          }
+        } else {
+          // 接口返回错误
+          console.error(errcode, msg, data)
+        }
+      },
+      fail: function() {}
+    })
+  }
+
+  /**
+   * 微信登录流程
+   */
+  async doWxLogin() {
+    console.log('登录请求')
+    let loginInfo = await wepy.login()
+    console.log('授权code:', loginInfo.code)
+    let wxUser = await wepy.getUserInfo()
+    console.log('授权用户:', wxUser)
+    // 存储微信的用户信息
+    wepy.setStorageSync('user_wx', wxUser)
+    if (wxUser) {
+      // 调用后台登录接口
+      let self = this
+      wepy.request({
+        url: `${self.globalData.apiUrl}/wx_app/login.php`,
+        data: {
+          code: loginInfo.code,
+          encrypted_data: wxUser.encryptedData,
+          iv: wxUser.iv,
+          raw_data: wxUser.rawData,
+          signature: wxUser.signature
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          console.log(data)
+          // 存储数据
+          wepy.setStorageSync('sessId', data.sess_id)
+          wepy.setStorageSync('user_nhh', data.user_info)
+          if (!wepy.getStorageSync('sellerId') && data.user_info.is_shop === '1') {
+            // 缓存中没有卖家ID且用户已开店时，存储卖家ID
+            wepy.setStorageSync('sellerId', data.user_info.user_id)
+          }
+
+          var pages = self.$pages // 获取加载的页面
+          var currentPage = pages[pages.length - 1] // 获取当前页面的对象
+          if (currentPage) {
+            var url = currentPage.route // 当前页面url
+            var options = currentPage.options // 如果要获取url中所带的参数可以查看options
+            // 组装地址和参数列表
+            var newPath = `/${url}`
+            if (Object.keys(options).length > 0) {
+              newPath += '?'
+              let i = 0
+              for (let p in options) {
+                newPath += (i > 0 ? '&' : '') + p + '=' + options[p]
+                i++
+              }
+            }
+            // 跳转对应页面
+            wepy.reLaunch({
+              url: newPath
+            })
+          } else {
+            // 跳转首页
+            // self.$switch('pages/index')
+          }
+        } else {
+          console.error('登录失败', msg)
+        }
+        wepy.hideLoading()
+      }).catch((error) => {
+        console.log('登录异常', error)
+        wepy.hideLoading()
+      })
     }
-    wepy.getUserInfo({
-      success(res) {
-        that.globalData.userInfo = res.userInfo
-        cb && cb(res.userInfo)
+  }
+
+  setTitle(title) {
+    wepy.setNavigationBarTitle({
+      title: title
+    })
+  }
+
+  getQueryString(name, path) {
+    var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i')
+    var r = path.substr(1).match(reg)
+    if (r != null) return unescape(r[2])
+    return null
+  }
+
+  getQrScene(id) {
+    console.log(id)
+    let self = this
+    self.request({
+      method: 'POST',
+      header: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      url: `${self.globalData.API_URL}/wx_app/get_qrcode.php?act=get_qr_scene`,
+      data: {
+        qr_id: id
+      },
+      success: ({
+        data: {
+          errcode,
+          data,
+          msg
+        }
+      }) => {
+        let sceneSellerId = this.getQueryString('s', data)
+        if (sceneSellerId) {
+          // 使用小程序码传递的seller_id
+          wepy.setStorageSync('sellerId', sceneSellerId)
+        }
+      },
+      fail: function(e) {
+        console.log('请求失败', e)
       }
     })
   }

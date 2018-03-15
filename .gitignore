@@ -3,3 +3,4 @@ dist
 .DB_store
 project.config.json
 package-lock.json
+src/config.js
