@@ -1,11 +1,11 @@
 <style lang="less">
 .container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
 }
 </style>
 
@@ -24,7 +24,41 @@ export default class extends wepy.app {
       navigationBarTextStyle: 'black',
       navigationBarTitleText: '',
       backgroundColor: '#efeff4',
-      backgroundTextStyle: 'dark'      
+      backgroundTextStyle: 'dark'
+    },
+    tabBar: {
+      color: '#888888',
+      selectedColor: '#b5b193',
+      borderStyle: 'white',
+      backgroundColor: '#f7f7f8',
+      list: [{
+        pagePath: 'pages/index',
+        iconPath: 'assets/icon/iconfont-shop.png',
+        selectedIconPath: 'assets/icon/iconfont-shop.png',
+        text: '特卖'
+      }, {
+        pagePath: 'pages/index',
+        iconPath: 'assets/icon/iconfont-cart.png',
+        selectedIconPath: 'assets/icon/iconfont-cart-active.png',
+        text: '购物车'
+      }, {
+        pagePath: 'pages/index',
+        iconPath: 'assets/icon/iconfont-sc.png',
+        selectedIconPath: 'assets/icon/iconfont-sc-active.png',
+        text: '我的收藏'
+      }, {
+        pagePath: 'pages/index',
+        iconPath: 'assets/icon/iconfont-my.png',
+        selectedIconPath: 'assets/icon/iconfont-my-active.png',
+        text: '我的'
+      }]
+    },
+    debug: false,
+    networkTimeout: {
+      request: 10000,
+      connectSocket: 10000,
+      uploadFile: 10000,
+      downloadFile: 10000
     }
   }
 
@@ -32,7 +66,7 @@ export default class extends wepy.app {
     userInfo: null
   }
 
-  constructor () {
+  constructor() {
     super()
     this.use('requestfix')
   }
@@ -41,7 +75,7 @@ export default class extends wepy.app {
     this.testAsync()
   }
 
-  sleep (s) {
+  sleep(s) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
         resolve('promise resolved')
@@ -49,7 +83,7 @@ export default class extends wepy.app {
     })
   }
 
-  async testAsync () {
+  async testAsync() {
     const data = await this.sleep(3)
     console.log(data)
   }
@@ -60,7 +94,7 @@ export default class extends wepy.app {
       return this.globalData.userInfo
     }
     wepy.getUserInfo({
-      success (res) {
+      success(res) {
         that.globalData.userInfo = res.userInfo
         cb && cb(res.userInfo)
       }
