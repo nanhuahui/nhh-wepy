@@ -4,3 +4,7 @@ dist
 project.config.json
 package-lock.json
 src/config.js
+
+.wepycache
+
+.wepycache

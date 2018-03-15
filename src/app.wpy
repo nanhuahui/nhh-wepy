@@ -35,7 +35,7 @@ const sceneArr = [1001, 1005, 1006, 1020, 1023, 1053, 1054, 1089, 1090]
 export default class extends wepy.app {
   config = {
     pages: [
-      'pages/index'
+      'pages/shopping/index'
     ],
     window: {
       navigationBarBackgroundColor: '#f7f7f8',
@@ -50,22 +50,22 @@ export default class extends wepy.app {
       borderStyle: 'white',
       backgroundColor: '#f7f7f8',
       list: [{
-        pagePath: 'pages/index',
+        pagePath: 'pages/shopping/index',
         iconPath: 'assets/icon/iconfont-shop.png',
         selectedIconPath: 'assets/icon/iconfont-shop.png',
         text: '特卖'
       }, {
-        pagePath: 'pages/index',
+        pagePath: 'pages/shopping/index',
         iconPath: 'assets/icon/iconfont-cart.png',
         selectedIconPath: 'assets/icon/iconfont-cart-active.png',
         text: '购物车'
       }, {
-        pagePath: 'pages/index',
+        pagePath: 'pages/shopping/index',
         iconPath: 'assets/icon/iconfont-sc.png',
         selectedIconPath: 'assets/icon/iconfont-sc-active.png',
         text: '我的收藏'
       }, {
-        pagePath: 'pages/index',
+        pagePath: 'pages/shopping/index',
         iconPath: 'assets/icon/iconfont-my.png',
         selectedIconPath: 'assets/icon/iconfont-my-active.png',
         text: '我的'
@@ -112,7 +112,7 @@ export default class extends wepy.app {
           sess_id: wepy.getStorageSync('sessId')
         }
         // 对所有request请求中的OBJECT参数对象统一附加属性
-        Object.assign(cf.data, param)
+        cf.data = Object.assign(cf.data || {}, param)
         if (cf.method === 'post') {
           // post请求,参数使用qs转换
           cf.header['Content-Type'] = 'application/x-www-form-urlencoded'
@@ -124,21 +124,21 @@ export default class extends wepy.app {
       // 请求成功后的回调函数
       success(res) {
         // 可以在这里对收到的响应数据对象进行加工处理
-        console.log('request success: ', res)
+        // console.log('request success: ', res)
         // 必须返回响应数据对象，否则后续无法对响应数据进行处理
         return res
       },
 
       // 请求失败后的回调函数
       fail(e) {
-        console.log('request fail: ', e)
+        // console.log('request fail: ', e)
         // 必须返回响应数据对象，否则后续无法对响应数据进行处理
         return e
       },
 
       // 请求完成时的回调函数(请求成功或失败都会被执行)
       complete(res) {
-        console.log('request complete: ', res)
+        // console.log('request complete: ', res)
         if (res.data.errcode === -2 || res.data.errcode === -3) {
           wepy.showLoading({ title: '登录中...' })
           // 用户不存在 或 重新登录
