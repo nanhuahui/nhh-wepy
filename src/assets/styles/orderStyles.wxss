@@ -1,0 +1,341 @@
+.mainContent {
+  background: #eee
+}
+
+.mainContent .table {
+  width: 100%;
+}
+
+.receiverInfor,
+.goodsDetail,
+.orderAccount,
+.fillNotice {
+  background: #fff;
+  padding: 40rpx 0 40rpx 40rpx;
+  margin-top: 10px;
+}
+
+.receiverInfor {
+  padding: 0 0 0 40rpx;
+  margin-top: 20rpx;
+}
+
+.receiverInfor {
+  position: relative;
+  text-align: left;
+}
+
+.subDetails {
+  text-align: left;
+  position: relative;
+}
+
+.title_p {
+  border-bottom: 1px solid #eee;
+  color: #3a3a3a;
+  padding-bottom: 10px
+}
+
+.inforShow .table-td {
+  line-height: 28px;
+}
+
+.lastTd {
+  width: 30px;
+}
+
+.imgDetails {
+  width: 90px;
+}
+
+.subDetails p {
+  font-size: 28rpx;
+  line-height: 48rpx;
+  height: 96rpx;
+}
+
+.imgDetails image {
+  width: 80px;
+  border: 1px solid #eee;
+}
+
+.choiceProv {
+  width: 80%;
+  height: 34px;
+  line-height: 34px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+  color: #555;
+  padding-left: 12px;
+  overflow: hidden;
+}
+
+input {
+  font-family: '微软雅黑'
+}
+
+.goodsQuantity {
+  color: #aaa;
+  position: absolute;
+  right: 40rpx;
+  bottom: 14rpx;
+}
+
+.orderAccount .table .table-td {
+  text-align: right;
+  line-height: 28px;
+  color: #777;
+}
+
+.orderAccount .table .td text {
+  display: inline-block;
+  width: 50px;
+  text-align: left;
+}
+
+.fillNotice p {
+  color: #e4663a;
+}
+
+.placeOrder {
+  padding: 20px;
+  text-align: center;
+}
+
+.placeOrder input {
+  height: 38px;
+  width: 100%;
+}
+
+.goodsDetail .table .table-td {
+  padding: 4px 0 7px;
+  border-bottom: 1px solid #eee;
+}
+
+.goodsDetail .table .table-tr:last-child .table-td {
+  border: none
+}
+
+.radio {
+  position: relative;
+}
+
+.radio navigator {
+  position: absolute;
+  padding-left: 30px;
+  top: 0;
+}
+
+
+/*地址修改信息*/
+
+.addressDetails h6 {
+  font-weight: bold;
+}
+
+.addFillIn .table .table-tr {
+  height: 92rpx !important;
+}
+
+.addFillIn .table-tr .table-td {
+  box-sizing: border-box;
+  padding: 10rpx 0;
+  font-size: 28rpx;
+  height: 92rpx;
+}
+
+.addFillIn .table-tr .table-td:first-child {
+  width: 130rpx;
+}
+
+.addFillIn input {
+  width: 100%;
+}
+
+
+/*过渡效果*/
+
+.slide-fade-enter-active {
+  transition: all .3s ease;
+}
+
+.slide-fade-leave-active {
+  transition: all .0s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+
+.slide-fade-enter,
+.slide-fade-leave-active {
+  transform: translateY(10px);
+  opacity: 0;
+}
+
+
+/*提交订单成功页面*/
+
+.orderInfor {
+  padding: 10px;
+  background: #fff;
+  margin-top: 10px;
+}
+
+.orderInfor .table .table-td {
+  padding: 5px 0;
+}
+
+.payment .list {
+  margin: 0;
+}
+
+.payment .list .list-item {
+  height: 34px;
+  line-height: 40px;
+}
+
+.selectSign {
+  color: #2ecc71;
+  position: absolute;
+  right: 15px;
+  top: 0
+}
+
+.totalMoney text {
+  color: #ed3366;
+}
+
+
+/*错误提示*/
+
+.errWarning {
+  margin: 60px auto 20px;
+  background: #fefcf0;
+  padding: 30px 0 40px 0;
+  border: 1px dotted #f5beb3;
+  border-radius: 10px;
+  text-align: center;
+  color: #ed3366;
+}
+
+.errWarning p {
+  font-size: 20px;
+  margin-top: 10px;
+}
+
+.errWarning navigator {
+  padding: 5px 10px;
+  display: inline-block;
+  border-radius: 4px;
+  margin-top: 15px;
+  color: #ed3366;
+}
+
+.errWarning .icon-yzg-information {
+  font-size: 40px;
+}
+
+.couponUse {
+  position: relative;
+  padding: 24rpx !important
+}
+
+.couponUse text {
+  position: absolute;
+  right: 24rpx;
+  bottom: 24rpx;
+}
+
+
+/* 优惠券 */
+
+.bonusList {
+  padding: 30rpx 30rpx 70rpx;
+  position: fixed;
+  width: 100%;
+  top: 30px;
+  height: 100%;
+  overflow: scroll;
+  background: #e5e8f1;
+}
+
+.bonusList .list .list-item {
+  background: url('/static/images/usingCoupon.png');
+  background-size: 100%;
+  color: #c8975c;
+  margin: 5px 0;
+}
+
+.bonusList .unused {
+  background: url('/static/images/unusedCoupon.png');
+  color: #999
+}
+
+.bonusList .unused .col-xs-4:before {
+  background: #999
+}
+
+.bonusList .col-xs-4 {
+  font-size: 72rpx;
+  padding-left: 56rpx;
+  padding-top: 28rpx;
+  position: relative;
+  width: 42%;
+}
+
+.bonusList .col-xs-4:before {
+  position: absolute;
+  content: '';
+  width: 1px;
+  height: 86%;
+  background: #c8975c;
+  top: 24rpx;
+  right: 0
+}
+
+.moneySymbol {
+  font-size: 28rpx;
+  font-style: normal;
+}
+
+.bonusList .col-xs-8 {
+  text-align: right;
+  padding: 36rpx 56rpx 36rpx 36rpx;
+  width: 58%;
+}
+
+.bonusList .col-xs-8 p {
+  font-size: 28rpx;
+}
+
+.bonusList .col-xs-8 text {
+  font-size: 24rpx;
+  padding-top: 12rpx;
+  display: block;
+  opacity: 0.7
+}
+
+
+/* 动画 */
+
+.bonusListAniLeft {
+  animation: flyLeft 0.3s;
+  -moz-animation: flyLeft 0.3s;
+  /* Firefox */
+  -webkit-animation: flyLeft 0.3s;
+  /* Safari 和 Chrome */
+  -o-animation: flyLeft 0.3s;
+  /* Opera */
+}
+
+.bonusListAniRight {
+  animation: flyRight 0.3s;
+  -moz-animation: flyRight 0.3s;
+  /* Firefox */
+  -webkit-animation: flyRight 0.3s;
+  /* Safari 和 Chrome */
+  -o-animation: flyRight 0.3s;
+  left: 200%;
+}
+
+.bonusOriginal {
+  display: none;
+}
