@@ -1,9 +1,10 @@
 <style lang="less">
-@import '../../assets/styles/weui.wxss';
+@import '../../assets/styles/index.wxss';
 </style>
 
 <template>
   <view height="100%" wx:if="{{loadComplete}}">
+    <!-- 头部 -->
     <view class="index-title">
       <view class="shop-name" wx:if="{{storeInfo}}">
         <view class="contact_img" bindtap="calling" data-tel="4006226777">
@@ -30,6 +31,18 @@
         </view>
       </view>
     </view>
+
+    <!-- 轮播图 -->
+    <swiper style="height:410rpx;" wx:if="{{turnsInfo.length > 0}}"
+      indicator-dots="true" autoplay="true" interval="4500" duration="1000" circular="true">
+      <block wx:for="{{turnsInfo}}" wx:key="id">
+        <swiper-item>
+          <navigator url="{{item.turns_link}}" style="height: 100%;">
+            <image class="slide-img" src="{{img_domain + item.banner}}" mode="scaleToFill"/>
+          </navigator>
+        </swiper-item>
+      </block>
+    </swiper>
   </view>
 </template>
 
@@ -60,6 +73,7 @@
       shopperChoose: [], // 店主精选
       avaterImg: '', // 头像
       sevenActive: {},
+      turnsInfo: [],
       scroll_top: 0,
       recommendList: [], // 个性推荐总转载
       recommendListShow: [], // 要展示的个性推荐数据
