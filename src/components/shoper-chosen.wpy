@@ -1,0 +1,84 @@
+<style lang="less">
+  .shoper_see_more{
+    height: 80rpx;
+    line-height: 80rpx;
+    text-align: center;
+    background: #fff;
+    border-top: 1px solid #eee
+  }
+  .shoper_best_goods .goods-lists {
+    background-color: #fff;
+  }
+  .shoper_best_goods .goods-lists .goods-brief{
+    font-weight: bold;
+    font-size: 24rpx;
+    height: 28rpx;
+    margin-bottom: 7rpx;
+    line-height: 28rpx;
+  }
+  .shoper_best_goods .goods-lists .goods-price {
+    font-size: 28rpx;
+    color: #ef0021;
+  }
+</style>
+
+<template>
+  <view class="shoper_best_goods" wx:if="{{shoperGoods.length > 0}}">
+    <navigator url="../../uploadGoods/upperGoodsList/upperGoodsList">
+      <view class="shoper_header">
+        <view class="h1 c3">
+          店主精选
+        </view>
+        <text class="h7 c2">小店每日为您精挑细选更多好货<text class="iconfont-yzg icon-yzg-arrow" style="font-size: 24rpx;"></text></text>
+      </view>
+      <view class="shoperBanner">
+        <image wx:if="{{storeInfo.shop_banner === 'default'}}" src="{{imgUrl}}/share/banner_6.jpg" mode="widthFix"></image>
+        <image wx:else src="{{storeInfo.shop_banner ? imgDomain + storeInfo.shop_banner : ''}}" mode="widthFix"></image>
+      </view>
+    </navigator>
+    <!-- 楼层 -->
+    <view class="goods-lists clearfix" style="margin-top:10rpx;">
+      <view class="sub-goods_list" wx:for="{{shoperGoods}}" wx:for-item="g" wx:key="g.goods_id" bindtap="redirectToGoods" data-id="{{g.upc_id}}">
+        <view class="goods-img" style="text-align:center;">
+          <image src="{{g.master_img ? imgDomain + g.master_img:'{{imgUrl}}/no_picture.jpg'}}" mode="aspectFit" style="height:100%;"></image>
+        </view>
+        <view class="goods-price">
+          ¥{{g.shop_price}}
+          <text class="goods-price_origin">¥{{g.market_price}}</text>
+        </view>
+        <view class="goods-brief">
+          {{g.goods_brief}}
+        </view>
+        <view class="goods-title" style="height:38rpx;">
+          {{g.goods_name}}
+        </view>
+      </view>
+    </view>
+    <navigator class="shoper_see_more h5 c11" url="../../uploadGoods/upperGoodsList/upperGoodsList">
+      查看更多<text class="iconfont-yzg icon-yzg-arrow" style="font-size: 24rpx;"></text>
+    </navigator>
+    <!-- 楼层end -->
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class shoperChosen extends wepy.component {
+  props = {
+    storeInfo: Object,
+    shoperGoods: [],
+    imgDomain: Object,
+    imgUrl: Object
+  }
+  data = {}
+  methods = {
+    // 点击事件
+    redirectToGoods(e) {
+      let id = e.currentTarget.dataset.item.id
+      this.$parent.$navigate('../../uploadGoods/goodsInfo/goodsInfo', {upc_id: id})
+    }
+  }
+  onLoad() {}
+}
+</script>

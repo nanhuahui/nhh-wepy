@@ -1,0 +1,46 @@
+<style lang="less">
+</style>
+
+<template>
+  <view class="index-title">
+    <view class="shop-name" wx:if="{{storeInfo}}">
+      <view class="contact_img" bindtap="calling" data-tel="4006226777">
+        <image src="{{imgUrl}}/lxkf_top.png"></image>
+        <text style="color: #fff;">客服</text>
+      </view>
+      <view class="contact_img" style="left:110rpx;" bindtap="calling" data-tel="{{storeInfo.mobile}}">
+        <image src="{{imgUrl}}/lxdz_top.png"></image>
+        <text>店主</text>
+      </view>
+      <view class="user-img">
+        <image src="{{storeInfo.avatar}}"></image>
+      </view>
+      <navigator url="/pages/shopping/searchGoods/searchGoods" class="search-icon">
+        <image src="{{imgUrl}}/search_top.png"></image>
+        <text>搜索</text>
+      </navigator>
+    </view>
+    <view class="unshop-name" wx:if="{{!storeInfo}}">南华汇商城</view>
+    <view class="shop-detail" wx:if="{{storeInfo}}">
+      <view class="shop-info">
+        <text class="nhh-store_name">{{storeDetail.store_name?storeDetail.store_name:'南华汇商城'}}</text>
+        <text class="info">{{storeInfo.signature ? storeInfo.signature : '终于等到了主人的莅临~'}}</text>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class indexHeader extends wepy.component {
+  props = {
+    storeInfo: Object,
+    storeDetail: Object,
+    imgUrl: Object
+  }
+  data = {}
+  methods = {}
+  onLoad() {}
+}
+</script>

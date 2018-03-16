@@ -1,0 +1,54 @@
+<style lang="less">
+  .category{
+    background: #fff;
+    padding-bottom: 18rpx;
+    margin: 0 0 10rpx;
+  }
+  .category view{
+    text-align: center;
+    padding: 24rpx 0;
+  }
+  .category view text{
+    margin-top: -9rpx;
+    display:block;
+  }
+  .category view image{
+    width: 56rpx;
+    height: 56rpx;
+  }
+  .col-xs-3 {
+    width: 25%;
+  }
+</style>
+
+<template>
+  <view class="row category" style="overflow: hidden;margin: 0;">
+    <view class="col-xs-3" wx:for="{{categoryList}}" wx:key="index" data-item="{{item}}" bindtap="toCategory">
+      <image src="{{item.img ? item.img : imgUrl + '/no_picture.jpg'}}" mode="widthFix"></image>
+      <text class="c3 h7">{{item.name}}</text>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class indexCategory extends wepy.component {
+  props = {
+    categoryList: Object,
+    imgUrl: Object
+  }
+  data = {}
+  methods = {
+    // 菜单点击事件
+    toCategory(e) {
+      let cid = e.currentTarget.dataset.item.id
+      this.$parent.$navigate('../category/category', {cid: cid})
+      // this.$parent.$navigate({
+      //   url: `../category/category?cid=${cid}`
+      // })
+    }
+  }
+  onLoad() {}
+}
+</script>

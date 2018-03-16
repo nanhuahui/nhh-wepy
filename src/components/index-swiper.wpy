@@ -1,0 +1,29 @@
+<style lang="less">
+</style>
+
+<template>
+  <swiper style="height:410rpx;" wx:if="{{turnsInfo.length > 0}}"
+    indicator-dots="true" autoplay="true" interval="4500" duration="1000" circular="true">
+    <block wx:for="{{turnsInfo}}" wx:key="id">
+      <swiper-item>
+        <navigator url="{{item.turns_link}}" style="height: 100%;">
+          <image class="slide-img" src="{{imgDomain + item.banner}}" mode="scaleToFill"/>
+        </navigator>
+      </swiper-item>
+    </block>
+  </swiper>
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class indexSwiper extends wepy.component {
+  props = {
+    turnsInfo: Object,
+    imgDomain: Object
+  }
+  data = {}
+  methods = {}
+  onLoad() {}
+}
+</script>
