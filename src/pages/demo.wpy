@@ -17,7 +17,7 @@
 </style>
 <template>
   <view class="container">
-    <view class="userinfo" @tap="handleViewTap">
+    <!-- <view class="userinfo" @tap="handleViewTap">
       <image class="userinfo-avatar" src="{{ userInfo.avatarUrl }}" background-size="cover"/>
       <view class="userinfo-nickname">{{ userInfo.nickName }}</view>
     </view>
@@ -73,36 +73,36 @@
       <list></list>
     </panel>
 
-    <toast />
+    <toast /> -->
   </view>
 </template>
 
 <script>
   import wepy from 'wepy'
-  import Panel from '@/components/panel' // alias example
-  import Counter from 'counter' // alias example
-  import List from '../components/list' // aliasFields example
-  import moduleA from 'module-a' // aliasFields ignore module example
-  import Group from '../components/group'
-  import Toast from 'wepy-com-toast'
-  import testMixin from '../mixins/test'
+  // import Panel from '@/components/panel' // alias example
+  // import Counter from 'counter' // alias example
+  // import List from '../components/list' // aliasFields example
+  // import moduleA from 'module-a' // aliasFields ignore module example
+  // import Group from '../components/group'
+  // import Toast from 'wepy-com-toast'
+  // import testMixin from '../mixins/test'
 
-  console.log('moduleA ignored: ', moduleA) // => moduleA ignored: {}
+  // console.log('moduleA ignored: ', moduleA) // => moduleA ignored: {}
 
   export default class Demo extends wepy.page {
     config = {
       navigationBarTitleText: 'test'
     }
     components = {
-      panel: Panel,
-      counter1: Counter,
-      counter2: Counter,
-      list: List,
-      group: Group,
-      toast: Toast
+      // panel: Panel,
+      // counter1: Counter,
+      // counter2: Counter,
+      // list: List,
+      // group: Group,
+      // toast: Toast
     }
 
-    mixins = [testMixin]
+    // mixins = [testMixin]
 
     data = {
       mynum: 20,
