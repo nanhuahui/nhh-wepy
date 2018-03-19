@@ -1,0 +1,715 @@
+<template>
+  <view class="goodsMain" wx:if="{{goodsInfo}}">
+    <!--主图轮播图-->
+    <swiper indicator-dots="true" autoplay="{{true}}" interval="3500">
+      <swiper-item wx:if="{{false}}">
+        <video style="width: 320px;" src="{{videoUrl}}"></video>
+        <view class="maskShade maskShade_left"></view>
+        <view class="maskShade maskShade_right"></view>
+      </swiper-item>
+      <swiper-item wx:for="{{goodsImg}}" wx:for-item="img" wx:key="goods_img">
+        <image src="{{img.goods_img}}" class="slide-image" width="355" mode="widthFix"/>
+      </swiper-item>
+    </swiper>
+    <!--标题价格规格-->
+    <view class="titlePrice">
+      <text class="goodsTitle">
+        {{goodsInfo.goods_name}}
+      </text>
+      <view class="shop_price">
+        <text class="redColor">{{goodUpc.shop_price}}</text>
+        <text class="marketPrice">{{goodUpc.market_price}}</text>
+        <view class="goodNum clearfix" style="display:none">
+          <text class="add" bindtap="numChange" data-type="del">-</text>
+          <input type="text" value="{{goodNumber}}" name="number" />
+          <text class="delete" bindtap="numChange" data-type="add" style="cursor:pointer">+</text>
+        </view>
+      </view>
+      <view class="shoucang">
+        <view bindtap="addToCollection">
+          <icon class="iconfont-yzg icon-yzg-shouc_no {{isCollect ? 'yishoucang' : 'icon-yzg-shouc_no'}}" />
+        </view>
+        <text style="color: rgb(51, 51, 51); font-size: 12px; display: block; margin-top: -10px;">收藏</text>
+      </view>
+    </view>
+    <view class="back_home">
+      <image bindtap="navigate" data-url="../index/index" data-tab="true"  style="width:30px;height:30px;" src="{{imgUrl}}/back_home.png" />
+    </view>
+    <!-- <view class="timeSale clearfix">
+      <view class="limit" style="padding: 0px; width: 20%;">
+        限时促销
+      </view>
+      <view class="time-count_down" style="padding: 0px;">
+      </view>
+    </view> -->
+    <view class="info_goods clearfix">
+      <view>
+        <image src="{{imgUrl}}/zpbz.png"></image>
+        <view class="info_tit">正品保证</view>
+      </view>
+      <view>
+        <image src="{{imgUrl}}/qqzc.png"></image>
+        <view class="info_tit">全球直采</view>
+      </view>
+      <view>
+        <image src="{{imgUrl}}/gjjx.png"></image>
+        <view class="info_tit">国际精选</view>
+      </view>
+      <view>
+        <image src="{{imgUrl}}/jsfh.png"></image>
+        <view class="info_tit">极速发货</view>
+      </view>
+    </view>
+    <!--商品详情-->
+    <!-- <view class="{{scroll_top > 522 ? 'fixTop goodsTxt' : 'goodsTxt'}}">
+      <text class="goodsTxt_tit">商品详情</text>
+      <text class="goodsTxt_tit">服务体系</text>
+      <view class="blackLine"></view>
+    </view> -->
+    <view class="tab-content">
+      <view class="goodCont goodsBrief">
+        <view wx:if="{{false}}">
+          <video id="goodsVideo" src="{{videoUrl}}" style="width:100%;" controls></video>
+        </view>
+        <import src="../../utils/wxParse/wxParse.wxml" />
+        <template is="wxParse" data="{{wxParseData:article.nodes}}" />
+      </view>
+      <view class="goodCont serviceSystem">
+        <image src="{{imgUrl}}/service_system.jpg" mode="widthFix"></image>
+      </view>
+    </view>
+    <view class="fixed-contact_pic" wx:if="{{contactImg}}">
+      <view class="fixed-wechat_png">
+        <image src="/assets/images/weChat.jpg"></image>
+        <view class="dial_phone" bindtap="calling" data-tel="4006226777"></view>
+        <text class="close" bindtap="closeContact"></text>
+      </view>
+    </view>
+    <view id="contact_pic_mask"></view>
+    <!--底部导航-->
+    <view class="fixedFooter clearfix">
+      <view class="leftIcon">
+        <view class="kefu" bindtap="contact" data-url="" data-tab="true">
+          <image style="width: 20px;height:20px;margin-top: 5px;" src="{{imgUrl}}/lxkf.png" />
+          <text style="color:#333;font-size:10px;display: block;margin-top:-6px;">客服</text>
+        </view>
+        <view bindtap="navigate" data-url="../cart/cart" data-tab="true" ><!-- class="iconfont-yzg icon-yzg-msnui-cart" -->
+          <view class="cartNumber" wx:if="{{cartCount>0}}">{{cartCount}}</view>
+          <image style="width: 20px;height:20px;margin-top: 5px;" src="{{imgUrl}}/shop_c.png" />
+          <text style="color:#333;font-size:10px;display: block;margin-top:-6px;">购物车</text>
+        </view>
+      </view>
+      <view class="animationBall" style="left: {{x}}px; top: {{y}}px;" wx:if="{{showBall}}"></view>
+      <view class="addToCart" bindtap="addToCart" data-type='0'>
+        <view class="iconfont-yzg icon-yzg-msnui-cart"></view>
+        <text>加入购物车</text>
+      </view>
+    </view>
+
+    <!-- 分享小程序码浮层 -->
+    <import src="../../../templates/qrPatch-layer/qrPatch-layer" />
+    <template is="qrPatchLayer" data="{{bottom: 90, shareImgArr: shareImgs, shareTextArr: shareText, qrShareShow, sellerIdTemp, shareLink, shareLinkParam, composeSize, imgUrl}}" />
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import WxParse from '../../utils/wxParse/wxParse'
+import {composeImageForGoods, composeTextForGoods} from '../../utils/data'
+
+let w = wepy.getSystemInfoSync().screenWidth
+let h = wepy.getSystemInfoSync().screenHeight
+export default class Goods extends wepy.page {
+  config = {
+    navigationBarTitleText: ''
+  }
+  components = {}
+  data = {
+    id: null,
+    uid: null,
+    from: null,
+    imgUrl: null,
+    currentPageRoute: null,
+    goodsInfo: null, // 商品信息
+    goodUpc: null, // 商品upc信息
+    goodsImg: [],
+    goodNumber: 1, // 购买数量
+    isCollect: false, // 是否收藏
+    cartCount: 0, // 购物车数量
+    x: 260,
+    y: 10,
+    cartAnimation: {},
+    contactImg: false,
+    pageTitle: '',
+    scroll_top: 0,
+    qrShareShow: false,
+    composeSize: {qr: [ w * 0.64, h - w / 2.5, w / 3, w / 3 ]},
+    shareImgs: composeImageForGoods,
+    shareText: composeTextForGoods,
+    shareLink: null,
+    shareLinkParam: null,
+    showQuickIcon: 'default'  // 快捷按钮是否打开
+  }
+
+  computed = {}
+
+  methods = {}
+
+  onLoad(options) {
+    console.log(options)
+    let self = this
+    let pages = self.getCurrentPages() // 获取加载的页面
+    let currentPage = pages[pages.length - 1] // 获取当前页面的对象
+    let url = currentPage.route // 当前页面url
+    self.currentPageRoute = url
+
+    setTimeout(function() {
+      self.showQuickIcon = 'show'
+      self.$apply()
+      setTimeout(function() {
+        self.showQuickIcon = 'hide'
+        self.$apply()
+      }, 0)
+    }, 500)
+
+    console.log('这是路径', url)
+    // 普通分享识别参数
+    if (options.gid || options.g) {
+      // 兼容修改参数传递修改前的gid和uid
+      let gid = options.g ? options.g : (options.gid ? options.gid : '')
+      let uid = options.u ? options.u : (options.uid ? options.uid : '')
+
+      self.$apply(() => {
+        self.id = gid
+        self.uid = uid
+        self.from = options.f === 'd' ? 'distribution' : ''
+      })
+      self.loadGood()
+    }
+    // 扫码二维码识别参数
+    if (options.scene) {
+      // options 中的 scene 需要使用 decodeURIComponent 才能获取到生成二维码时传入的 scene
+      let scene = decodeURIComponent(options.scene)
+      console.log(108, scene)
+      let qrId = self.$parent.getQueryString('qr_id', scene)
+      if (qrId) {
+        // 参数超过32字符后的处理
+        self.getQrScene(qrId)
+      } else {
+        self.$apply(() => {
+          self.id = self.$parent.getQueryString('g', scene)
+          self.uid = self.$parent.getQueryString('u', scene)
+        })
+        self.loadGood()
+      }
+    }
+
+    // 头部组件初始化,完成方法传递
+    // $header.init();
+  }
+
+  onShow() {}
+
+  onShareAppMessage(options) {
+    if (options.from === 'button') {
+      // 来自页面内转发按钮
+      console.log(options.target)
+    }
+    let storeName = wepy.getStorageSync('store_nhh') ? wepy.getStorageSync('store_nhh').name : ''
+    let imgUrl = this.data.goodsImg[0] ? this.data.goodsImg[0].goods_thumb : ''
+    console.log(this.data.shareLink + this.data.shareLinkParam)
+    return {
+      title: this.data.pageTitle + '_' + storeName,
+      path: this.data.shareLink + this.data.shareLinkParam,
+      imageUrl: imgUrl,
+      success: function(res) {
+        // 转发成功
+        console.log('success', res)
+      },
+      fail: function(res) {
+        // 转发失败
+        console.log('fail', res)
+      }
+    }
+  }
+
+  /**
+   * 获取商品数据
+   */
+  loadGood() {
+    wepy.showLoading({title: '加载中'})
+    let self = this
+    // 请求数据
+    wepy.request({
+      url: `${self.$parent.globalData.apiUrl}/goods.php`,
+      data: {
+        id: self.id
+      }
+    }).then(({data: {errcode, data, msg}}) => {
+      wepy.hideLoading()
+      if (errcode === 0) {
+        // 判断是否在参加拼团活动，在参加就跳转到该商品的拼团商品详情页面
+        if (data.is_pt === 1) {
+          self.$navigate(`pages/shopping/spellGroupGoods/spellGroupGoods/gid=${self.data.g}&groupId=${data.group_id}`)
+        }
+        console.log('商品数据', data)
+        /* 二维码分享合成图片赋值 */
+        self.shareImgs[0].src = data.goods_img.length > 0 ? data.goods_img[0].goods_img : `${self.$parent.globalData.imgUrl}/no_picture.jpg`
+        self.shareText[1].text = data.upc.shop_price
+        self.shareText[2].text = '市场价' + data.upc.market_price
+        self.shareText[3].text = data.goods.goods_name
+
+        /**
+         * 消费商专区商品 名片显示个人头像及个人微信名
+         */
+        if (self.from === 'distribution') {
+          self.shareText[0].text = wepy.getStorageSync('user_wx').nickName + '向您推荐了'
+          self.shareImgs[3].src = wepy.getStorageSync('user_wx').avatarUrl
+        } else {
+          self.shareText[0].text = wepy.getStorageSync('store_nhh') ? wepy.getStorageSync('store_nhh').name : '南华汇商城' + '向您推荐了'
+          self.shareImgs[3].src = wepy.getStorageSync('store_nhh').avatar ? wepy.getStorageSync('store_nhh').avatar : wepy.getStorageSync('user_wx').avatarUrl
+        }
+
+        // 后台会传递空标签过来
+        data.goods_tab.find((value, index) => {
+          // 剔除无效标签
+          if (!value) {
+            data.goods_tab.splice(index, 1)
+          }
+        })
+        // 赋值操作
+        let goodsTab = data.goods_tab
+        if (goodsTab.length > 0) {
+          let line = 0
+          var reg = new RegExp('[\\u4E00-\\u9FFF]+', 'g')
+          for (let t in goodsTab) {
+            if (goodsTab[t]) {
+              let x = w * (t % 3) / 3
+              line += x === 0 ? 1 : 0
+              let bgWidth = 40
+              for (let i = 0; i < goodsTab[t].length; i++) {
+                bgWidth += reg.test(goodsTab[t][i]) ? 16 : 16 / 2
+              }
+              self.shareText.push({
+                ruler: [20 + x, w / 2 + line * 20, 16],
+                style: '#464120',
+                align: 'left',
+                text: goodsTab[t], // 商品主标题
+                bg: {
+                  w: bgWidth,
+                  h: 42,
+                  c: '#E0DAC2'
+                }
+              })
+            }
+          }
+        } else {
+          // 没有标签,相应元素上移
+          self.shareImgs[2].y -= 30
+          self.shareImgs[3].y -= 30
+          self.composeSize.qr[1] -= 30
+          self.shareText.find((value, index) => {
+            value.ruler[1] -= 30
+          })
+        }
+        // 组装分享的路径
+        let user = wepy.getStorageSync('user_nhh')
+        let shareLinkV = 'pages/shopping/goods/goods'
+        let param = `?g=${self.data.id}&u=${user.user_id}`
+        if (wepy.getStorageSync('sellerId')) {
+          // 从缓存中获取卖家ID进行组装
+          let sid = wepy.getStorageSync('sellerId')
+          param += `&s=${sid}`
+        }
+        // 消费商商品的标记
+        if (self.from === 'distribution') {
+          param += `&f=d`
+        }
+        self.$apply(() => {
+          self.imgUrl = self.$parent.globalData.imgUrl
+          self.goodsImg = data.goods_img
+          self.goodsInfo = data.goods
+          self.goodUpc = data.upc
+          self.cartCount = data.content
+          self.activityTime = data.activity_time ? data.activity_time : null
+          self.isCollect = data.is_collect
+          self.pageTitle = data.page_title
+          self.shareImgs = self.data.shareImgs
+          self.shareText = self.data.shareText
+          self.shareLink = shareLinkV
+          self.shareLinkParam = param
+          self.sellerIdTemp = wepy.getStorageSync('sellerId')
+        })
+        wepy.setNavigationBarTitle({ title: self.pageTitle })
+        /**
+        * WxParse.wxParse(bindName , type, data, target,imagePadding)
+        * 1.bindName绑定的数据名(必填)
+        * 2.type可以为html或者md(必填)
+        * 3.data为传入的具体数据(必填)
+        * 4.target为Page对象,一般为this(必填)
+        * 5.imagePadding为当图片自适应是左右的单一padding(默认为0,可选)
+        */
+        WxParse.wxParse('article', 'html', data.goods.goods_desc_m, self, 5)
+        if (data.goods.video_url) {
+          // 转换视频地址
+          self.changeVedioUrl(data.goods.video_url)
+        }
+        self.$apply()
+      } else if (errcode !== -2 && errcode !== -3) {
+        // $wuxDialog.alert({title: '提示', content: msg, onConfirm(e) {}})
+        // console.error(msg)
+      }
+    })
+  }
+}
+</script>
+
+<style lang="less">
+.goodsMain {
+  background: #fff;
+  font-family: '微软雅黑';
+  color: #333;
+  padding-bottom: 40px;
+}
+
+.titlePrice {
+  padding: 15px;
+  position: relative;
+}
+
+.shop_price {
+  position: relative;
+}
+
+.redColor {
+  color: #ed3366;
+  font-size: 24px;
+}
+
+.goodsTitle {
+  display: block;
+  margin-right:50px;
+  padding-bottom: 10px;
+}
+
+.marketPrice {
+  color: #999;
+  text-decoration: line-through;
+  padding-left: 10px;
+  font-size: 14px;
+}
+
+.goodNum {
+  position: absolute;
+  right: 15px;
+  width: 95px;
+  top: 0;
+}
+
+.goodNum input {
+  width: 40px;
+  float: left;
+  text-align: center;
+  color: #aaa;
+  font-size: 12px;
+}
+
+.goodNum text {
+  float: left;
+  width: 24px;
+  height: 24px;
+  line-height: 22px;
+  text-align: center;
+  border-radius: 50%;
+  border: 1px solid #bbb;
+}
+
+.info_goods {
+  text-align: center;
+  background: #fff;
+  border-top: 5px solid #f8f8f8;
+  border-bottom: 5px solid #f8f8f8;
+  height: 50px;
+  padding: 15px 0 5px 0;
+  line-height: 1.5;
+}
+.info_goods>view {
+  width: 25%;
+  display: inline-block;
+  text-align: center;
+  font-size: 14px;
+}
+.info_tit{
+  display: block;
+}
+.info_goods image {
+  margin-bottom: -2px;
+  width: 17px;
+  height: 17px;
+}
+.back_home {
+  width: 30px;
+  height: 30px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1;
+}
+.shoucang{
+  position: absolute;
+  right: 15px;
+  top: 40px;
+  width: 36px;
+  border-left: 1px solid #eee;
+  text-align: right;
+}
+.timeSale{
+  display: flex;
+}
+.time-count_down{
+  flex:1;
+}
+
+
+
+
+
+
+
+
+
+
+.icon-yzg-shouc_no{
+  font-size:22px;
+  color:#333;
+}
+.yishoucang{
+  color:#ed3366;
+  font-weight:bold;
+}
+.yishoucang:before {
+  content: "\E675";
+}
+.goodsTxt{
+  display: flex;
+  height:auto;
+  background: #fff;
+  position: relative;
+  padding: 10px 0;
+}
+.goodsTxt>text{
+  flex:1;
+  text-align:center;
+}
+.blackLine{
+  position: absolute;
+  width: 18px;
+  height: 3px;
+  background: #333;
+  bottom: 0px;
+  left: 25%;
+  margin-left: -9px
+}
+.goodsBrief{padding: 0 30rpx}
+.goodsBrief iframe,.serviceSystem iframe{width:100%;}
+.wxParse-p{
+  padding:0 10px;
+}
+.wxParse-p image{width:100% !important;}
+.serviceSystem{text-align:center;margin-top:20px;}
+
+
+
+
+
+
+
+.goodsDet {
+  padding: 15px;
+  font-size: 14px;
+}
+
+.detTitle {
+  color: #ed3366;
+  padding: 20rpx 0;
+  display: block;
+  border-bottom: 1px dotted #aaa;
+  margin-bottom: 30rpx;
+}
+
+.goodsDet image {
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+}
+
+.fixedFooter {
+  position: fixed;
+  width: 100%;
+  height: 96rpx;
+  background: #fff;
+  bottom: -4rpx;
+  color: #fff;
+}
+
+.fixedFooter .addToCart {
+  position: relative;
+  left: 46%;
+  width: 55%;
+  background: #c61134;
+  height: 96rpx;
+  line-height: 85rpx;
+  text-align: center;
+  /*top: 12rpx;*/
+}
+
+.addToCart > view {
+  display: inline-block;
+}
+
+.addToCart text {
+  display: inline-block;
+  font-size: 27rpx;
+  margin: -30rpx 0 0 10rpx;
+}
+
+.fixedFooter .leftIcon {
+  width: 46%;
+  position: absolute;
+  left: 0;
+  /*top: 12rpx;*/
+  color: #444;
+  padding-left: 16rpx;
+}
+
+.leftIcon > view {
+  width: 150rpx;
+  height: 48px;
+  float: left;
+  text-align: center;
+  /*line-height: 96rpx;*/
+  margin: 3rpx;
+}
+
+.leftIcon .kefu{
+  border-right:1px solid #eee;
+}
+
+.fixedFooter .iconfont-yzg {
+  font-size: 20px;
+}
+
+.goodsMain swiper {
+  height: 320px;
+}
+
+.goodsMain swiper image {
+  margin: 10px auto;
+  display: block;
+  height:320px;
+}
+
+.goodsMain swiper video {
+  margin: 10px auto;
+  display: block;
+}
+
+.leftIcon view{
+  position:relative
+}
+.leftIcon .cartNumber{
+  position: absolute;
+  top: 0;
+  right: 40rpx;
+  font-size: 24rpx;
+  color: #fff;
+  display: block;
+  width: 30rpx;
+  height: 30rpx;
+  background: #ed3366;
+  border-radius: 50%;
+  line-height: 30rpx;
+}
+.animationBall {
+  background: #ed3366;
+  height: 28rpx;
+  width: 28rpx;
+  border-radius: 14rpx;
+  position: absolute;
+}
+.maskShade{ position:absolute; width:35%; height:100%; top: 2px; bottom:40px;}
+.maskShade:before{position: absolute; content: ''; width: 100%; height: 30%;}
+.maskShade_left{left: 0}
+.maskShade_right{right: 0}
+.maskShade_left:before{ top: 0; left: 100%; height: 50%}
+.maskShade_right:before{ bottom: 0; right: 100%}
+.wxParse-p{
+  padding: 15rpx 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.wxParse-p text{display:none}
+
+/* 客服弹窗 */
+.fixed-contact_pic{
+  position: fixed;
+  z-index: 101;
+  max-width:640px;
+  width:100%;
+  height:100%;
+  top: 0;
+  background-color: rgba(0,0,0,0.5);
+}
+.fixed-contact_pic .fixed-wechat_png{
+  position: relative;
+  text-align: center;
+  top: 50%;
+  margin-top: -234px;
+}
+.fixed-contact_pic .fixed-wechat_png .close{
+  display: block;
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  background: transparent;
+  top: -15px;right: 47%;
+  margin-right: -135px;
+}
+.dial_phone{
+  position: absolute;
+  width: 100%;
+  height: 50px;
+  bottom: 20px;
+  display: block;
+}
+.top_back_container .title-con_link{
+  height:44px;
+  line-height:44px;
+  position: relative;
+}
+.fixed-contact_pic .fixed-wechat_png image{
+    width: 280px;
+    height:350px;
+}
+@media screen and (max-width:330px) {
+  .fixed-contact_pic .fixed-wechat_png image{
+      height: 350px;
+      width: 220px;
+  }
+  .fixed-contact_pic .fixed-wechat_png {
+      margin-top:-220px;
+  }
+  .fixed-contact_pic .fixed-wechat_png .close{
+      margin-right: -108px;
+      top: 3px;
+  }
+}
+.fixTop{position:fixed; top:0; width:100% }
+.wxParse-div {
+  padding:15rpx 0;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+}
+</style>
