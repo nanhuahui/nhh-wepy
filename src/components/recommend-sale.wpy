@@ -1,0 +1,267 @@
+<style lang="less">
+/*个性推荐样式*/
+.recommend{background: #fff}
+/*个性推荐单品样式*/
+/*.single_box .single_good:nth-child{
+  border:0;
+}*/
+.single_good{
+  border-top:10rpx solid #eee;
+  clear:both;
+  margin:0;
+}
+.bigImg{padding:0;}
+.collect_con{
+    padding:0 30rpx;
+}
+.collect_con>text{
+  margin-bottom:20rpx;
+}
+.collect_con .buyNum{
+    float:right;
+}
+.collect_con .buyNum text{
+  display: inline-block;
+}
+.collect_con .collect_tit>text:last-child{
+    font-weight: bold;
+}
+.single_topic{
+    font-weight:bold;
+    height:42rpx;
+    overflow:hidden;
+    color:black;
+}
+.buy_single,.single_topic,.single_des{margin-bottom:20rpx;}
+.single_des{
+    color:#888888;
+    height:36rpx;
+    overflow: hidden;
+    font-size: 24rpx;
+}
+.weishou{
+    display: inline-block;
+    vertical-align: middle;
+    background: url(http://wxassets.xf66.com/no-collect.png) no-repeat left center;
+    background-size: 28rpx;
+    padding-left: 40rpx;
+}
+.shoucang_img{
+    display: inline-block;
+    vertical-align: middle;
+    background: url(http://wxassets.xf66.com/shouchang.png) no-repeat left center;
+    background-size: 28rpx;
+    padding-left: 40rpx;
+}
+.buy_single .rec_shop_price{
+    color:#E63C3E;
+    font-size: 36rpx;
+    font-weight: bold;
+    display:inline-block;
+}
+.buy_single .rec_market_price{
+    text-decoration: line-through;
+    font-size:24rpx;
+    margin-left:20rpx;
+    color:#888888;
+    display:inline-block;
+}
+.clearfix ::after {
+  clear:both;
+  content:'';
+  width:0;
+  height:0;
+  visibility:hidden;
+}
+
+.buy_single a{
+    display: inline-block;
+    padding:10rpx 60rpx;
+    background: #333333;
+    color:#F5F5F5;
+    font-size:24rpx;
+    border-radius: 4rpx;
+    /*margin-top:-5px;*/
+    float:right;
+}
+/*神器*/
+/* 15款神器样式 */
+.fenlei{
+    border-top:10rpx solid #eee;
+    padding-top:20rpx;
+}
+.fenlei .fenlei_tit{
+    margin:0;
+    padding-left:30rpx;
+}
+.fenlei .fenlei_tit:first-child{
+    font-weight: bold;
+    margin-bottom: 20rpx;
+}
+.fenlei .fenlei_tit .gaoliang{
+    color:#E63C3E;
+}
+.fenlei .fenlei_tit>text{
+  display:inline-block;
+}
+.details .col-xs-4{
+    padding-top:40rpx;
+}
+.details{padding-bottom:60rpx;}
+.addCart_tuijian{
+    width:174rpx;
+    height:44rpx;
+    border:2rpx solid #333;
+    border-radius: 8rpx;
+    margin:0 auto;
+    margin-top:20rpx;
+}
+.addCart_tuijian .cart_price{
+    display: inline-block;
+    width:92rpx;
+    font-size:28rpx;
+    text-align:center;
+}
+.addCart_tuijian .cart_icon{
+    display: inline-block;
+    float:right;
+    background: #333;
+    width:68rpx;
+    height: 44rpx;
+    text-align:center;
+    border-top-right-radius:6rpx;
+    border-bottom-right-radius:8rpx;
+}
+</style>
+
+<template>
+  <view class="shoper_best_goods recommend clearfix"
+    wx:if="{{recommendList && recommendList.length>0}}">
+    <scroll-view scroll-y="true" height="100%" bindscrolltolower="loadMoreRecommend" bindscroll="scroll" scroll-y="true" lower-threshold="100" style="display: block;">
+      <view class="shoper_header" style="border-bottom:1px solid #eee">
+        <view class="h1 c3">个性推荐</view>
+      </view>
+      <view class="person_recommend"
+        wx:for="{{recommendListShow}}"
+        wx:for-item="recommend"
+        wx:key="id">
+        <!-- banner图 -->
+        <view class="banner_swipe"
+          wx:if="{{recommend.special_list && recommend.special_list.length>0}}">
+          <navigator url="../todaySpecial/todaySpecial?id={{recommend.special_list[0].special_id}}">
+            <image style="width:100%;" src="{{recommend.special_list[0].banner ? (img_domain + recommend.special_list[0].banner) : ''}}"  mode="widthFix"></image>
+            <!-- 轮播图 -->
+            <!-- 引用自定义组件 -->
+            <!-- <scroll-area list="{{recommend.special_list}}" cell-width="178">
+              <block wx:for="{{recommend.special_list}}" wx:key="id"> -->
+                <!-- 商品 -->
+                <!-- <view slot="goodsInfo_{{index}}">
+                  <goods-block width="176" height="244" name="{{item.goods_name}}" desc="{{item.goods_brief}}"
+                    shop-price="{{item.shop_price}}" market-price="{{item.market_price}}"
+                    ellipsis="{{true}}" reverse="{{true}}" img="{{item.master_img}}"
+                    url="../todaySpecial/todaySpecial?id={{recommend.special_list[0].special_id}}"/>
+                </view>
+              </block> -->
+              <!-- 查看更多 -->
+              <!-- <view slot="seeMore">
+                <navigator url="../todaySpecial/todaySpecial?id={{recommend.special_list[0].special_id}}"
+                  class="cell" style="position:relative;border-right: 0;">
+                  <view style="width: 166px;height: 224px;"></view>
+                  <view class="see_more">
+                    <image src="{{imgUrl}}/more.jpg" mode="widthFix"></image>
+                    <text>查看更多</text>
+                    <text class="eng_more">See More</text>
+                  </view>
+                </navigator>
+              </view>
+            </scroll-area> -->
+          </navigator>
+        </view>
+        <!-- 单品 -->
+        <view class="single_box"
+          wx:if="{{recommend.goods_big && recommend.goods_big.length>0}}">
+          <view class="row single_good" wx:for="{{recommend.goods_big}}" wx:for-item="goodsBig" wx:key="id">
+            <navigator url="../goods/goods?gid={{goodsBig.upc_id}}">
+              <view class="col-xs-12 text-center bigImg">
+                <image style="width:100%" src="{{goodsBig.master_img}}" mode="widthFix"></image>
+              </view>
+            </navigator>
+            <view class="collect_con">
+              <view class="collect_tit">
+                <a data-collect="{{goodsBig.is_collect}}" class="{{isCollect ? 'shoucang_img' : 'weishou'}}" @tap.stop="addToCollection{{goodsBig.goods_id}}">
+                  <text style="font-size:28rpx;">收藏</text>
+                </a>
+                <view class="buyNum">
+                  <text>{{goodsBig.buy}}人</text><text>已购买</text>
+                </view>
+              </view>
+              <navigator url="../goods/goods?gid={{goodsBig.upc_id}}">
+                <view class="single_topic">{{goodsBig.goods_name}}</view>
+                <view class="single_des">{{goodsBig.goods_brief}}</view>
+                <view class="buy_single">
+                  <text class="rec_shop_price">{{goodsBig.shop_price}}</text>
+                  <text class="rec_market_price">{{goodsBig.market_price}}</text>
+                  <a href="javascript:;">购买</a>
+                </view>
+            </navigator>
+            </view>
+          </view>
+        </view>
+        <!-- 推荐商品 -->
+        <view class="tuijian" wx:if="{{recommend.goods_list && recommend.goods_list.length>0}}">
+          <view class="row fenlei" style="margin:0;">
+            <view class="col-xs-8">
+              <view class="fenlei_tit">
+                <text class="gaoliang">{{recommend.goods_list[0].count}}</text><text>款商品</text>
+                <text class="gaoliang">{{recommend.goods_list[0].goods_min_price}}</text><text>元起售</text>
+              </view>
+            </view>
+            <view class="col-xs-4" style="text-align:right;margin-left:-30rpx">
+              <navigator url="../category/category?id={{recommend.goods_list[0].cat_id}}">
+                <text>更多<text class="iconfont-yzg icon-yzg-arrow" style="font-size: 24rpx;"></text></text>
+              </navigator>
+            </view>
+          </view>
+          <view class="row details" style="margin:0;">
+            <view class="col-xs-4" wx:for="{{recommend.goods_list}}" wx:for-item="value" wx:key="id">
+              <navigator url="../goods/goods?gid={{value.upc_id}}">
+                <image style="width:100%" src="{{value.master_img}}" mode="widthFix"></image>
+              </navigator>
+              <view class="addCart_tuijian">
+                <text class="cart_price">{{value.shop_price}}</text>
+                <a class="cart_icon" bindtap="addToCart" data-gid="{{value.goods_id}}" data-uid="{{value.upc_id}}">
+                  <image style="width:28rpx;height:28rpx;" src="{{imgUrl}}/dz_gwc_n.png"></image>
+                </a>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class recommendSale extends wepy.component {
+  props = {
+    recommendList: [], // 个性推荐总转载
+    recommendListShow: [], // 要展示的个性推荐数据
+    catId: [],            // 本次加载分类列表id
+    pageNum: 0,            // 个性推荐页码
+    showLoading: false,
+    img_domain: null,
+    isCollect: false
+  }
+  data = {}
+  methods = {
+    // 点击事件
+    redirectToGoods(e) {
+      let id = e.currentTarget.dataset.item.id
+      this.$parent.$navigate('../../uploadGoods/goodsInfo/goodsInfo', {upc_id: id})
+    }
+  }
+  onLoad() {}
+}
+</script>

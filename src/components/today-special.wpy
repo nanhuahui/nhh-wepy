@@ -1,0 +1,88 @@
+<style lang="less">
+  .today_special .goods-banner_pic {
+  margin-bottom: -7px;
+}
+.choose-con navigator {
+  display: inline-block;
+  border-bottom: 0.043rem solid #eee;
+  width: 95%;
+  margin-left: 2.5%;
+  padding: 0.427rem 0 0.27rem 0;
+}
+
+.choose-con div:first-child image {
+  margin-left: -0.427rem;
+}
+
+.choose_img image {
+  width: 2.987rem;
+  height: 2.987rem;
+}
+
+.choose-txt {
+  margin-top: 0.27rem;
+  margin-left: -1.707rem;
+}
+
+.choose-txt>text {
+  display: block;
+  padding-top: 0.213rem;
+  height: 1.28rem;
+  overflow: hidden;
+}
+
+.choose-txt>text:first-child {
+  font-weight: bold;
+}
+
+.choose-txt>text:last-child {
+  font-size: 24rpx;
+}
+
+.numberText {
+  color: #DF2322;
+}
+.good_arrows {
+  width: 0.512rem;
+  height: 0.512rem;
+  margin-top: 1.28rem;
+  margin-left: 0.853rem;
+}  
+</style>
+
+<template>
+  <view class="special" wx:if="{{special}}">
+    <!--间隔线-->
+    <view class="separate"></view>
+    <view class="shoper_header" style="border-bottom: 2rpx solid #eee;">
+      <view class="h1 c3">今日精选</view>
+      <text class="h7 c2" style="font-size:24rpx;">好货清单</text>
+    </view>   
+    <view class="choose-con" style="background: #fff" wx:for="{{special}}" wx:key="{{id}}">
+      <navigator url="../todaySpecial/todaySpecial?id={{item.id}}">
+        <view class="col-xs-4 text-left choose_img">
+          <image src="{{item.banner_new ? imgDomain + item.banner_new : ''}}"/>
+        </view>
+        <view class="col-xs-8 choose-txt text-left">
+          <text>{{item.special_name}}</text>
+          <text>相关产品<text class="numberText">{{item.goods_num}}</text>款,<text class="numberText">{{item.goods_price}}</text>元起售</text>
+        </view>
+        <image class="good_arrows" src="{{imgUrl}}/jiantou.png" mode="widthFix"/>
+      </navigator>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class todaySpecial extends wepy.component {
+  props = {
+    special: [],
+    imgDomain: Object,
+    imgUrl: Object
+  }
+  data = {}
+  onLoad() {}
+}
+</script>

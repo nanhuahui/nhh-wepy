@@ -15,6 +15,9 @@
 
     <!-- 店主精选 -->
     <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="shoperChosen"></shoperChosen>
+
+    <!-- 今日精选 -->
+    <todaySpecial :special.sync="special" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="tadaySpecial"></todaySpecial>
   </view>
 </template>
 
@@ -24,6 +27,7 @@ import header from '../../components/index-header'
 import swiper from '../../components/index-swiper'
 import category from '../../components/index-category'
 import shoperChosen from '../../components/shoper-chosen'
+import todaySpecial from '../../components/today-special'
 
 export default class Index extends wepy.page {
   config = {
@@ -33,7 +37,8 @@ export default class Index extends wepy.page {
     header,
     swiper,
     category,
-    shoperChosen
+    shoperChosen,
+    todaySpecial
   }
   data = {
     imgUrl: '',
@@ -138,6 +143,7 @@ export default class Index extends wepy.page {
         self.sellerIdTemp = wepy.getStorageSync('sellerId')
         self.ptList = data.pt_list
         self.ptTotalNum = data.pt_total_num
+        self.special = data.special
         // self.groupGoodsNumber = groupGoodsNumber
       })
     }).catch((error) => {
