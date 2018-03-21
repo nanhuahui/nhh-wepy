@@ -1,0 +1,433 @@
+<template>
+  <view class="weui-search-bar">
+  	<view class="search-bar-form">
+  		<view class="weui-search-bar__box">
+  			<icon class="weui-icon-search_in-box" type="search" size="14"></icon>
+  			<input type="text" class="weui-search-bar__input"
+  				placeholder="请输入搜索内容" value="{{inputVal}}" focus="{{inputFocus}}"
+  				confirm-type="search" bindinput="inputTyping" bindconfirm="searchGood"/>
+  			<view class="weui-icon-clear" wx:if="{{inputVal.length > 0}}" bindtap="clearInput">
+  				<icon type="clear" size="14"></icon>
+  			</view>
+  		</view>
+  		<label class="weui-search-bar__label" hidden="{{inputShowed}}" bindtap="showInput">
+  			<icon class="weui-icon-search" type="search" size="14" style="margin-bottom: -6px;"></icon>
+  			<view class="weui-search-bar__text">请输入搜索内容</view>
+  		</label>
+  	</view>
+  	<view class="weui-search-bar__cancel-btn" hidden="{{!inputShowed}}" bindtap="hideInput">取消</view>
+  </view>
+
+  <view class="col-xs-12 search-box" wx:if="{{showHistory}}">
+  	<view class="search-history">
+  		<view class="search-history_title">历史搜索
+  			<icon class="iconfont-yzg icon-yzg-shanchu" bindtap="delHis"></icon>
+  		</view>
+  		<view class="search-history_content" wx:if="{{searchHisList.length>0}}">
+  			<view class="list">
+  				<view class="list-item" wx:for="{{searchHisList}}" wx:key="*this">
+  					<view bindtap="searchGood" data-objcont="{{item.text}}">{{item.text}}</view>
+  				</view>
+  			</view>
+  		</view>
+  	</view>
+  </view>
+
+  <!--搜索结果展示-->
+  <scroll-view scroll-y="true" class="recommend-goods" style="height: 91%;"
+    bindscrolltolower="loadMore" scroll-y="true" lower-threshold="100">
+  	<view class="goods-lists clearfix" style="overflow: hidden;">
+  		<navigator wx:for="{{goods_list}}" wx:key="*this" class="sub-goods_list collect_list">
+  			<navigator url="/pages/shopping/goods?gid={{item.upc_id}}">
+  				<view class="goods-img">
+  					<image src="{{item.img_url ? item.img_url : (imgUrl + '/no_picture.jpg')}}" mode="widthFix"></image>
+  				</view>
+  			</navigator>
+  			<view class="goods-price">{{item.shop_price}}</view>
+  			<view class="goods-title">{{item.goods_name}}</view>
+  		</navigator>
+  	</view>
+  	<view class="weui-loadmore" wx:if="{{showLoading}}">
+  		<icon class="weui-loading"></icon>
+  		<text class="weui-loadmore__tips">正在加载</text>
+  	</view>
+  	<view class="weui-loadmore weui-loadmore_line" wx:if="{{pagenum===-1}}">
+  		<text class="weui-loadmore__tips">暂无数据</text>
+  	</view>
+  </scroll-view>
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class SearchGoods extends wepy.page {
+  config = {
+    navigationBarTitleText: '搜索'
+  }
+  components = {}
+
+  data = {
+    imgUrl: null,
+    searchHisList: [], // 历史搜索数据
+    showHistory: false,
+    showLoading: false,
+    inputShowed: false,
+    inputVal: '',
+    goods_list: [],
+    pagenum: 0
+  }
+
+  computed = {}
+
+  methods = {
+    showInput: function() {
+      this.$apply(() => {
+        this.inputShowed = true
+        this.inputFocus = true
+      })
+    },
+    inputTyping: function(e) {
+      this.inputVal = e.detail.value
+      this.$apply()
+    },
+    hideInput: function() {
+      this.$apply(() => {
+        this.inputVal = ''
+        this.inputShowed = false
+        this.showHistory = true
+        this.pagenum = 0
+      })
+    },
+    clearInput: function() {
+      this.$apply(() => {
+        this.inputVal = ''
+        this.showHistory = true
+        this.pagenum = 0
+      })
+    }
+  }
+
+  events = {}
+
+  onLoad() {
+    this.imgUrl = this.$parent.globalData.imgUrl
+    this.$apply()
+  }
+  onShow() {
+    if (wepy.getStorageSync('searchHis')) {
+      this.$apply(() => {
+        this.searchHisList = JSON.parse(wepy.getStorageSync('searchHis'))
+        this.showHistory = true
+      })
+    }
+  }
+
+  searchGood(e) {
+    console.log(e)
+    let objCont
+    if (e.type === 'confirm') { // 点搜索按钮搜索
+      objCont = e.detail.value
+    } else { // 点击历史搜索
+      objCont = e.currentTarget.dataset.objcont
+    }
+    if (objCont === '') { // 搜索词为空
+      wepy.showModal({
+        title: '提示',
+        content: '请输入您想搜索的商品',
+        showCancel: false
+      }).then((res) => {
+        if (res.confirm) {
+          console.log('用户点击确定')
+        } else if (res.cancel) {
+          console.log('用户点击取消')
+        }
+      })
+      return
+    }
+    this.hisSearch() // 保存搜索历史
+    // 去搜索
+    this.$apply(() => {
+      this.inputVal = objCont
+      this.goods_list = []
+      this.pagenum = 0
+      this.showHistory = false
+      this.inputShowed = true
+    })
+    this.loadMore()
+  }
+  loadMore() {
+    let self = this
+    if (self.pagenum === -1) {
+      // 分页条码为负均不加载
+      return
+    }
+    let num = self.pagenum + 1
+    self.$apply(() => {
+      self.pagenum = num
+      self.showLoading = true
+    })
+    wepy.request({
+      url: `${self.$parent.globalData.apiUrl}/search.php`,
+      data: {
+        keywords: self.inputVal,
+        page: self.pagenum
+      }
+    }).then(({data: {errcode, data, msg}}) => {
+      if (errcode === 0) {
+        if (data.goods_list.length === 0 || data.pager.page_count < self.data.pagenum) {
+          // 返回数据长度为0时,设置页码为-1
+          self.$apply(() => {
+            self.pagenum = -1
+            self.showLoading = false
+          })
+          return
+        }
+        // 数据组装
+        let list = self.goods_list
+        for (var i = 0; i < data.goods_list.length; i++) {
+          list.push(data.goods_list[i])
+        }
+        // 赋值
+        self.$apply(() => {
+          self.goods_list = list
+          self.showLoading = false
+        })
+      } else {
+        wepy.showModal({
+          title: '提示',
+          content: msg,
+          showCancel: false
+        }).then((res) => {
+          if (res.confirm) {
+            console.log('用户点击确定')
+          } else if (res.cancel) {
+            console.log('用户点击取消')
+          }
+        })
+      }
+    })
+  }
+  /*
+   * 添加历史搜索记录
+   */
+  hisSearch() {
+    let self = this
+    let addHis = true
+    if (!self.inputVal) {
+      return
+    }
+    let timestamp = new Date().getTime()
+    if (wepy.getStorageSync('searchHis') === '') { // 如果没有搜索记录 则时间赋值
+      self.searchHisList = []
+      self.searchHisList.push({text: self.inputVal, time: timestamp})
+      wepy.setStorageSync({
+        key: 'searchHis',
+        data: JSON.stringify(self.searchHisList)
+      })
+      self.$apply()
+    } else {
+      self.searchHisList = JSON.parse(wepy.getStorageSync('searchHis'))
+      for (let i = 0; i < self.searchHisList.length; i++) {
+        if (self.searchHisList[i].text === self.inputVal) {
+          self.searchHisList[i].time = timestamp
+          addHis = false // 如果存在则不执行以下插入操作
+          continue
+        }
+      }
+      self.searchHisList = self.searchHisList
+      if (addHis) {
+        self.searchHisList.push({text: self.inputVal, time: timestamp})
+      }
+      self.searchHisList = self.listSortBy(self.searchHisList, 'time', 'desc')
+      wepy.setStorageSync({
+        key: 'searchHis',
+        data: JSON.stringify(self.searchHisList)
+      })
+      self.$apply()
+    }
+  }
+  /*
+   * 对历史记录进行时间排序 并控制数量
+   */
+  listSortBy(arr, field, order) { // 按时间排序
+    let refer = []
+    let result = []
+    let index
+    for (var i = 0; i < arr.length; i++) {
+      refer[i] = arr[i][field] + ':' + i
+    }
+    refer.sort()
+    if (order === 'desc') refer.reverse()
+    for (i = 0; i < refer.length; i++) {
+      index = refer[i].split(':')[1]
+      result[i] = arr[index]
+    }
+    while (result.length > 10) { // 控制历史记录承载数量 最多为10 否则删除
+      result.splice('10', 1)
+    }
+    return result
+  }
+  /*
+   * 清空历史记录
+   */
+  delHis() {
+    let self = this
+    wepy.showModal({
+      title: '提示',
+      content: '确定清空搜索历史记录吗'
+    }).then((res) => {
+      if (res.confirm) {
+        wepy.removeStorage({
+          key: 'searchHis',
+          success: function(res) {
+            console.log(res.data)
+          }
+        })
+        self.searchHisList = []
+        self.$apply()
+      } else if (res.cancel) {
+        // 取消confirm
+      }
+    })
+  }
+}
+</script>
+
+<style lang="less">
+@import '../../assets/styles/store.wxss';
+
+.search-box {
+  box-sizing: border-box;
+  padding: 0 30rpx 0;
+  font-size: 14px;
+  z-index: 99;
+}
+
+.search-box .search-bar {
+  padding-top: 10px;
+}
+
+.search-box .search-history_title {
+  height: 30px;
+  line-height: 30px;
+  margin-top: 10px;
+  /*border-bottom: 1px solid #ddd;*/
+}
+
+.search-history_title {
+  position: relative;
+}
+
+.search-history_title .iconfont-yzg {
+  font-size: 22px;
+  position: absolute;
+  right: 0;
+}
+
+.search-box .search-history_content {
+  padding: 4px 0;
+}
+
+.search-box .search-history_content .list .list-item {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1px solid #f1f1f1;
+  border-radius: 20px;
+  margin: 6px 10px;
+  background: #f8f8f8;
+}
+
+.search-bar-form {
+  position: relative;
+  -webkit-box-flex: 1;
+  -webkit-flex: auto;
+  flex: auto;
+  border-radius: 5px;
+  background: #FFFFFF;
+  border: 1rpx solid #E6E6EA;
+}
+
+.searchbar-result{
+    margin-top: 0;
+    font-size: 14px;
+}
+.searchbar-result:before{
+    display: none;
+}
+.weui-cell{
+    padding: 12px 15px 12px 35px;
+}
+
+.search-box .search-bar {
+  padding-top: 10px;
+}
+
+.search-box .search-history_content {
+  padding: 4px 0;
+}
+
+.goods-lists {
+  background: #efeff4 !important;
+}
+
+.goods-lists .goods-price {
+  font-size: 14px;
+  padding: 14rpx 28rpx 18rpx;
+  color: #ef0021;
+}
+
+.goods-lists .sub-goods_list {
+  float: left;
+  width: 50%;
+  background: #fff;
+  position: relative;
+  border: 1px solid #f1f1f1;
+  border-bottom: none;
+  border-left: none;
+}
+
+.recommend-goods {
+  background: #efeff4 !important;
+}
+
+.recommend-goods image {
+  margin-bottom: -10rpx;
+  width: 100%;
+  -webkit-background-size: cover;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.goods-img image {
+  border: 1px solid #f1f1f1;
+  border-top: none;
+}
+
+.weui-loadmore {
+  width: 65%;
+  /*margin: 70rpx auto;*/
+  line-height: 75rpx;
+  font-size: 14px;
+  text-align: center;
+}
+
+.weui-loadmore_line {
+  border-top: 1px solid #e5e5e5;
+}
+
+.weui-loadmore__tips {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.weui-loadmore_line .weui-loadmore__tips {
+  position: relative;
+  top: -42rpx;
+  padding: 0 26rpx;
+  color: #999;
+  font-size: 14px;
+  height: 22px;
+  line-height: 22px;
+}
+</style>

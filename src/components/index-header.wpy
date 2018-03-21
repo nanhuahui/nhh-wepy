@@ -15,7 +15,7 @@
       <view class="user-img">
         <image src="{{storeInfo.avatar}}"></image>
       </view>
-      <navigator url="/pages/shopping/searchGoods/searchGoods" class="search-icon">
+      <navigator url="/pages/shopping/searchGoods" class="search-icon">
         <image src="{{imgUrl}}/search_top.png"></image>
         <text>搜索</text>
       </navigator>
@@ -40,7 +40,19 @@ export default class indexHeader extends wepy.component {
     imgUrl: Object
   }
   data = {}
-  methods = {}
+  methods = {
+    calling(e) {
+      wepy.makePhoneCall({
+        phoneNumber: e.currentTarget.dataset.tel,
+        success: function () {
+          console.log('拨打电话成功！')
+        },
+        fail: function () {
+          console.log('拨打电话失败！')
+        }
+      })
+    }
+  }
   onLoad() {}
 }
 </script>

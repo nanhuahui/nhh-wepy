@@ -140,7 +140,7 @@
 <template>
   <view class="hot-sale_box">
     <!--间隔线-->
-    <view class="separate"></view>  
+    <view class="separate"></view>
     <!--标题-->
     <view class="hot-sale_title">
       <text>今日特卖</text>
@@ -176,7 +176,7 @@ import wepy from 'wepy'
 
 export default class specialSale extends wepy.component {
   props = {
-  	active: [],
+    active: [],
     imgDomain: Object
   }
   data = {}

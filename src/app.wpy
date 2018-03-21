@@ -31,7 +31,8 @@ export default class extends wepy.app {
   config = {
     pages: [
       'pages/shopping/index',
-      'pages/shopping/goods'
+      'pages/shopping/goods',
+      'pages/shopping/searchGoods'
     ],
     window: {
       navigationBarBackgroundColor: '#f7f7f8',
@@ -149,7 +150,7 @@ export default class extends wepy.app {
   onLaunch() {}
 
   onShow(options) {
-    // this.getCartNum()
+    this.getCartNum()
     console.log(716, options)
     // 1.从参数判断
     if (options.query.s) {
@@ -205,6 +206,8 @@ export default class extends wepy.app {
         // 接口返回错误
         console.error(errcode, msg, data)
       }
+    }).catch((error) => {
+      console.log('获得店铺名称和店主头像异常', error)
     })
     // 记录是否关闭汇商通知的新消息
     if (!wepy.getStorageSync('closeMsg')) {
@@ -225,31 +228,30 @@ export default class extends wepy.app {
   getCartNum() {
     let self = this
     // 首次进入页面，tabBar显示小圆点
-    self.request({
-      // uid: wx.getStorageSync('sellerId'),
-      url: `${self.globalData.API_URL}/flow.php`,
-      success: ({ data: { errcode, data, msg } }) => {
-        if (errcode === 0) {
-          // 正常返回
-          let cartNum = data.total.real_goods_count
-          // cartNum需要转化成字符串
-          let cartNumStr = cartNum.toString()
-          wepy.setTabBarBadge({
-            index: 1,
-            text: cartNumStr
+    wepy.request({
+      url: `${self.globalData.apiUrl}/flow.php`
+    }).then(({ data: { errcode, data, msg } }) => {
+      if (errcode === 0) {
+        // 正常返回
+        let cartNum = data.total.real_goods_count
+        // cartNum需要转化成字符串
+        let cartNumStr = cartNum.toString()
+        wepy.setTabBarBadge({
+          index: 1,
+          text: cartNumStr
+        })
+        // cartNum为零时隐藏tabBar小圆点
+        if (!cartNum) {
+          wepy.hideTabBarRedDot({
+            index: 1
           })
-          // cartNum为零时隐藏tabBar小圆点
-          if (!cartNum) {
-            wepy.hideTabBarRedDot({
-              index: 1
-            })
-          }
-        } else {
-          // 接口返回错误
-          console.error(errcode, msg, data)
         }
-      },
-      fail: function() {}
+      } else {
+        // 接口返回错误
+        console.error(errcode, msg, data)
+      }
+    }).catch((error) => {
+      console.log('获得购物车商品数量异常', error)
     })
   }
 
