@@ -412,6 +412,7 @@ image.goods-banner_pic {
 .goods-lists .goods-price .promote {
   font-size: 28rpx;
   color: #ef0021;
+  padding-right: 10rpx;
 }
 
 .goods-lists .goods-price .goods-price_origin {
