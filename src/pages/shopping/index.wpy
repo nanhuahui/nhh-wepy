@@ -18,6 +18,9 @@
 
     <!-- 今日精选 -->
     <todaySpecial :special.sync="special" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="tadaySpecial"></todaySpecial>
+
+    <!-- 个性推荐 -->
+    <recommendSale :recommendList.sync="recommendList" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" :recommendListShow.sync="recommendListShow" :catId.sync="catId" :pageNum.sync="pageNum" :isCollect.sync="isCollect" componentId="recommendSale"></recommendSale>
   </view>
 </template>
 
@@ -28,6 +31,7 @@ import swiper from '../../components/index-swiper'
 import category from '../../components/index-category'
 import shoperChosen from '../../components/shoper-chosen'
 import todaySpecial from '../../components/today-special'
+import recommendSale from '../../components/recommend-sale'
 
 export default class Index extends wepy.page {
   config = {
@@ -38,7 +42,8 @@ export default class Index extends wepy.page {
     swiper,
     category,
     shoperChosen,
-    todaySpecial
+    todaySpecial,
+    recommendSale
   }
   data = {
     imgUrl: '',
@@ -90,6 +95,7 @@ export default class Index extends wepy.page {
     this.$apply()
     // 加载数据
     this.loadData()
+    this.loadRecommend()
   }
 
   loadData() {
@@ -162,6 +168,56 @@ export default class Index extends wepy.page {
     }).catch((error) => {
       console.log('获取消费商数据失败！', error)
     })
+  }
+  // 个性推荐
+  loadRecommend() {
+    let self = this
+    wepy.request({
+      url: `${self.$parent.globalData.apiUrl}/store_index.php?step=get_category_goods`,
+      method: 'POST',
+      header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      data: {
+        rec_cat_id: self.data.catId,
+        page: self.data.pageNum
+      }
+    }).then(({data: {errcode, data, msg}}) => {
+      console.log('个性推荐', errcode, data, msg)
+      if (errcode === 0) {
+        let list = this.data.recommendListShow
+        let recList = this.data.recommendList
+        list.push(data.rec_goods_list_test_yy[0])
+        for (var i = 0; i < data.rec_goods_list_test_yy.length; i++) {
+          recList.push(data.rec_goods_list_test_yy[i])
+        }
+        self.$apply(() => {
+          self.catId = data.cat_id
+          self.recommendListShow = list
+          self.recommendList = recList
+        })
+      } else {
+        console.error(msg)
+      }
+    }).catch((error) => {
+      console.log('获取分类菜单失败！', error)
+    })
+  }
+  // 加载更多个性推荐
+  onReachBottom() {
+    let self = this
+    // Do something when page reach bottom.
+    let index = this.data.recommendListShow.length
+    if (index < this.data.recommendList.length) {
+      let listMore = this.data.recommendListShow
+      listMore.push(this.data.recommendList[index])
+      self.$apply()
+    } else {
+      let num = this.data.pageNum++
+      self.$apply(() => {
+        self.pageNum = num
+        self.hidden = false
+      })
+      self.loadRecommend()
+    }
   }
 }
 </script>

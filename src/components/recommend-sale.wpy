@@ -149,7 +149,7 @@
         <view class="banner_swipe"
           wx:if="{{recommend.special_list && recommend.special_list.length>0}}">
           <navigator url="../todaySpecial/todaySpecial?id={{recommend.special_list[0].special_id}}">
-            <image style="width:100%;" src="{{recommend.special_list[0].banner ? (img_domain + recommend.special_list[0].banner) : ''}}"  mode="widthFix"></image>
+            <image style="width:100%;" src="{{recommend.special_list[0].banner ? (imgDomain + recommend.special_list[0].banner) : ''}}"  mode="widthFix"></image>
             <!-- 轮播图 -->
             <!-- 引用自定义组件 -->
             <!-- <scroll-area list="{{recommend.special_list}}" cell-width="178">
@@ -188,7 +188,7 @@
             </navigator>
             <view class="collect_con">
               <view class="collect_tit">
-                <a data-collect="{{goodsBig.is_collect}}" class="{{isCollect ? 'shoucang_img' : 'weishou'}}" @tap.stop="addToCollection{{goodsBig.goods_id}}">
+                <a data-collect="{{goodsBig.is_collect}}" class="{{isCollect ? 'shoucang_img' : 'weishou'}}" catchtap="addToCollection" data-id="{{goodsBig.goods_id}}">
                   <text style="font-size:28rpx;">收藏</text>
                 </a>
                 <view class="buyNum">
@@ -249,18 +249,15 @@ export default class recommendSale extends wepy.component {
     recommendList: [], // 个性推荐总转载
     recommendListShow: [], // 要展示的个性推荐数据
     catId: [],            // 本次加载分类列表id
-    pageNum: 0,            // 个性推荐页码
-    showLoading: false,
-    img_domain: null,
-    isCollect: false
+    pageNum: Number,            // 个性推荐页码
+    showLoading: Boolean,
+    imgDomain: Object,
+    imgUrl: Object,
+    isCollect: Boolean
   }
   data = {}
   methods = {
     // 点击事件
-    redirectToGoods(e) {
-      let id = e.currentTarget.dataset.item.id
-      this.$parent.$navigate('../../uploadGoods/goodsInfo/goodsInfo', {upc_id: id})
-    }
   }
   onLoad() {}
 }

@@ -12,6 +12,7 @@
 
 .choose-con div:first-child image {
   margin-left: -0.427rem;
+  
 }
 
 .choose_img image {
