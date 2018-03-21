@@ -16,6 +16,9 @@
     <!-- 店主精选 -->
     <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="shoperChosen"></shoperChosen>
 
+    <!-- 消费商专区 -->
+    <coustomerGoods :sevenActive.sync="sevenActive" :img_domain.sync="img_domain" :loadComplete.sync="loadComplete"></coustomerGoods>
+    
     <!-- 今日特卖 -->
     <specialSale :active.sync="active" :imgDomain.sync="img_domain" componentId="specialSale"></specialSale>
 
@@ -36,6 +39,7 @@ import shoperChosen from '../../components/shoper-chosen'
 import todaySpecial from '../../components/today-special'
 import recommendSale from '../../components/recommend-sale'
 import specialSale from '../../components/special-sale'
+import coustomerGoods from '../../components/coustomer-goods'
 
 export default class Index extends wepy.page {
   config = {
@@ -48,7 +52,8 @@ export default class Index extends wepy.page {
     shoperChosen,
     todaySpecial,
     recommendSale,
-    specialSale
+    specialSale,
+    coustomerGoods
   }
   data = {
     imgUrl: '',

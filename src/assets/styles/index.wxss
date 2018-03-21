@@ -1,3 +1,5 @@
+@import "./weSwiper.wxss";
+
 page {
   font-family: '微软雅黑';
   color: #333;
@@ -554,31 +556,6 @@ image.goods-banner_pic {
   right: 12%;
 }
 
-.consumerActivity {
-  background: #fff;
-  margin-top: 10rpx;
-  padding-bottom: 48rpx;
-}
-
-.consumerActivity image {
-  width: 100%;
-  background-size: 100%;
-}
-
-.consumerActivity .list {
-  padding: 0 38rpx;
-}
-
-.consumerActivity .list .list-item {
-  text-align: center;
-  padding: 0 5px;
-}
-
-.consumerActivity .list .list-item image {
-  width: 60%;
-  display: block;
-  margin: 0 auto;
-}
 .sortImg .chosenAvater image{
   width:50rpx;
   height:50rpx;
@@ -808,36 +785,6 @@ image.goods-banner_pic {
   top: 6px;
   text-align: center;
   line-height: 12px;
-}
-
-/*消费商专区*/
-.consumerActivity {
-  background: #fff;
-  margin-top: 0.2167rem;
-  padding-bottom: 1rem
-}
-
-.consumerActivity image {
-  width: 100%;
-  background-size: 100%
-}
-
-.consumerActivity .consumer_list {
-  padding: 0 0.8rem; width:85%; margin: 0 auto
-}
-.consumer_list span{
-  display: block;
-  padding-top: 10rpx;
-  margin-bottom: -10rpx
-}
-.consumerActivity .consumer_list view {
-  text-align: center;
-}
-
-.consumerActivity .consumer_list view image {
-  width: 60%; height:130rpx;
-  display: block;
-  margin: 0 auto
 }
 
 /*拍卖部分样式*/

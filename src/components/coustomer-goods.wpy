@@ -1,0 +1,66 @@
+<template>
+  <navigator wx:if="{{loadComplete && sevenActive}}" class="consumerActivity" url="./coustomGoods">
+    <image src="{{img_domain + sevenActive.banner}}" mode="widthFix" style="width:100%" />
+    <view class="consumer_list row">
+      <view class="col-xs-4">
+        <image src="{{img_domain + sevenActive.banner1}}" mode="widthFix"></image>
+        <span class="c3 h5">{{sevenActive.act_theme1}}</span>
+        <text class="c2 h7">{{sevenActive.act_brief1}}</text>
+      </view>
+      <view class="col-xs-4">
+        <image src="{{img_domain + sevenActive.banner2}}" mode="widthFix"></image>
+        <span class="c3 h5">{{sevenActive.act_theme2}}</span>
+        <text class="c2 h7">{{sevenActive.act_brief2}}</text>
+      </view>
+      <view class="col-xs-4">
+        <image src="{{img_domain + sevenActive.banner3}}" mode="widthFix"></image>
+        <span class="c3 h5">{{sevenActive.act_theme3}}</span>
+        <text class="c2 h7">{{sevenActive.act_brief3}}</text>
+      </view>
+    </view>
+  </navigator>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class coustomerGoods extends wepy.component {
+    props = {
+      sevenActive: Object,
+      img_domain: Object,
+      loadComplete: Boolean
+    }
+    data = {}
+    methods = {}
+    onLoad() {}
+  }
+</script>
+
+<style lang="less">
+.consumerActivity {
+  background: #fff;
+  margin-top: 10rpx;
+  padding-bottom: 48rpx;
+}
+.consumerActivity image {
+  width: 100%;
+  background-size: 100%;
+}
+.consumerActivity .consumer_list {
+  padding: 0 38rpx;
+  width:85%;
+  margin: 0 auto;
+}
+.consumer_list span{
+  display: block;
+  padding-top: 10rpx;
+  margin-bottom: -10rpx
+}
+.consumerActivity .consumer_list view {
+  text-align: center;
+}
+.consumerActivity .consumer_list view image {
+  width: 60%;
+  display: block;
+  margin: 0 auto
+}
+</style>
