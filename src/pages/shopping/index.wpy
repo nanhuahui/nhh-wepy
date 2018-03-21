@@ -121,10 +121,13 @@ export default class Index extends wepy.page {
       let self = this
       if (errcode === 0) {
         // 组装菜单
+        self.data.categoryArr = []
         for (let m of data.parent_cat) {
           // 组装菜单
           self.data.categoryArr.push({id: m.cat_id, name: m.cat_name, img: data.img_domain + m.cat_icon})
         }
+        self.categoryArr = self.data.categoryArr
+        self.$apply()
       } else {
         console.error(msg)
       }
