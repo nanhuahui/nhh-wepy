@@ -17,7 +17,7 @@
     <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="shoperChosen"></shoperChosen>
 
     <!-- 消费商专区 -->
-    <coustomerGoods :sevenActive.sync="sevenActive" :img_domain.sync="img_domain" :loadComplete.sync="loadComplete"></coustomerGoods>
+    <coustomerGoods :sevenActive.sync="sevenActive" :img_domain.sync="img_domain" :loadComplete.sync="loadComplete" componentId="coustomerGoods"></coustomerGoods>
 
     <!-- 今日特卖 -->
     <specialSale :active.sync="active" :imgDomain.sync="img_domain" componentId="specialSale"></specialSale>
@@ -26,7 +26,7 @@
     <todaySpecial :special.sync="special" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="tadaySpecial"></todaySpecial>
 
     <!-- 楼层 -->
-    <floorGoods :composeFloorArr.sync="composeFloorArr" :imgUrl.sync="imgUrl"></floorGoods>
+    <floorGoods :composeFloorArr.sync="composeFloorArr" :imgUrl.sync="imgUrl" componentId="floorGoods"></floorGoods>
 
     <!-- 个性推荐 -->
     <recommendSale :recommendList.sync="recommendList" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" :recommendListShow.sync="recommendListShow" :catId.sync="catId" :pageNum.sync="pageNum" :isCollect.sync="isCollect" componentId="recommendSale"></recommendSale>

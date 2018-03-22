@@ -74,6 +74,34 @@
       this.loadMore()
     }
     onShow() {}
+    onShareAppMessage(options) {
+      if (options.from === 'button') {
+        // 来自页面内转发按钮
+        console.log(options.target)
+      }
+      let user = wepy.getStorageSync('user_nhh')
+      let storeName = '又好又便宜 分享有钱赚'
+      let shareLink = `pages/shopping/coustomGoods?u=${user.user_id}`
+      if (wepy.getStorageSync('sellerId')) {
+        // 从缓存中获取卖家ID进行组装
+        let sid = wepy.getStorageSync('sellerId')
+        shareLink += `&s=${sid}`
+      }
+      console.log(shareLink)
+      return {
+        title: storeName,
+        path: shareLink,
+        // imageUrl: '自定义图片路径，可以是本地文件路径、代码包文件路径或者网络图片路径，支持PNG及JPG，不传入 imageUrl 则使用默认截图',
+        success: function(res) {
+          // 转发成功
+          console.log('success', res)
+        },
+        fail: function(res) {
+          // 转发失败
+          console.log('fail', res)
+        }
+      }
+    }
     methods = {
       scroll: function (event) {
         // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
