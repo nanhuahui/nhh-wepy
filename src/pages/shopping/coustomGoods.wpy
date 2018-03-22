@@ -1,0 +1,375 @@
+<template>
+<view height="100%">
+  <!-- 头部标签 -->
+  <view class="mescroll coustom_goods">
+    <scroll-view scroll-y="true" scroll-top="{{scrollTop}}"
+      bindscrolltolower="loadMore" bindscroll="scroll"
+      class="goods-lists data-list clearfix"
+      style="height: 100%;display: block;overflow: hidden;">
+      <image src="{{banner}}" mode="widthFix" style="width:100%"></image>
+      <view class="{{scrollTop > 185 ? 'menuBar clearfix fixTop' : 'menuBar clearfix'}}" style="overflow:hidden;">
+        <span class="{{sortType === 'defaultSort' ? 'sortCls' : ''}}" bindtap="sortByKey" data-key="defaultSort">默认排序</span>
+        <span class="{{sortType === 'profit' ? 'sortCls' : ''}}" bindtap="sortByKey" data-key="profit">利润最高</span>
+        <span class="{{sortType === 'popularity' ? 'sortCls' : ''}}" bindtap="sortByKey" data-key="popularity">人气最高</span>
+        <span class="{{sortType === 'blackLine' ? 'sortCls' : ''}}" bindtap="sortByKey" data-key="blackLine">销量最高</span>
+      </view>
+      <view class="list-item" wx:for="{{goods_list}}" wx:for-item="g" wx:key="g.upc_id">
+        <navigator url="./goods?gid={{g.upc_id}}&f=d">
+          <view class="goods-img">
+            <image src="{{g.img_url?g.img_url:imgUrl+'/no_picture.jpg'}}" mode="widthFix"></image>
+            <!-- <text class="vedio_icon" wx:if="{{g.video_url}}">
+              <image src="{{imgUrl}}/vedio_icon.png" mode="widthFix"></image>
+            </text> -->
+          </view>
+          <view class="goods-info">
+            <view class="goods-title">{{g.goods_name}}</view>
+            <view class="commissionPrice">
+              <view>
+                <image src="{{imgUrl}}/qian.png" ></image>
+                <text class="h5_b c3">{{g.shop_price}}<text class="market_price">市场价<text>{{g.market_price}}</text></text></text>
+              </view>
+              <view>
+                <image src="{{imgUrl}}/yong.png" ></image>
+                <text class="h13 c11">{{g.commission}}/<text class="h5" style="font-style:normal">单</text></text>
+              </view>
+            </view>
+            <view class="h7 c11 delivery">分享</view>
+          </view>
+        </navigator>
+      </view>
+      <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}" style="height:4.2em;">
+        <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+      </view>
+    </scroll-view>
+    <view class="body-view">
+      <loading hidden="{{hidden}}" bindchange="loadingChange">
+        加载中...
+      </loading>
+    </view>
+  </view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class coustomGoods extends wepy.page {
+    config = {
+      navigationBarTitleText: '消费商列表'
+    }
+    data = {
+      imgUrl: '',
+      cid: null,
+      goods_list: [],
+      hidden: true,
+      scrollTop: 0,
+      pageNum: 0,
+      sortType: 'defaultSort',
+      banner: null
+    }
+    onLoad() {
+      this.$apply(() => {
+        this.imgUrl = this.$parent.globalData.imgUrl
+      })
+      this.loadMore()
+    }
+    onShow() {}
+    methods = {
+      scroll: function (event) {
+        // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+        this.$apply(() => {
+          this.scrollTop = event.detail.scrollTop
+        })
+      }
+    }
+    /**
+     * [sortByKey 排序]
+     */
+    sortByKey(e) {
+      this.$apply(() => {
+        this.sortType = e.target.dataset.key
+        this.goods_list = []
+        this.pageNum = 0
+        this.scrollTop = 0
+      })
+      this.loadMore()
+    }
+    /*
+     * 加载更多
+     */
+    loadMore() {
+      let self = this
+      if (self.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
+        self.hidden = false
+      })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/distribution.php?act=goods`,
+        data: {
+          act_type: self.sortType,
+          page: self.pageNum
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          if (data.goods_list.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+              self.hidden = true
+            })
+            return
+          }
+          // 数据组装
+          var list = self.goods_list
+          for (var i = 0; i < data.goods_list.length; i++) {
+            list.push(data.goods_list[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.banner = data.banner ? data.banner : self.imgUrl + '/consumer_banner.gif'
+            self.goods_list = list
+            self.img_domain = data.img_domain ? data.img_domain : ''
+            self.hidden = true
+          })
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+@import '../../assets/styles/store.wxss';
+
+page {
+  font-family: "微软雅黑";
+  background-color: #f1f1f1;
+}
+
+/*分类样式*/
+
+.classify {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+}
+
+.classify_item {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+}
+
+.classify_item .theme {
+  flex: auto;
+  padding: 10rpx 30rpx 0;
+  border-bottom: 1rpx solid #eee;
+  height: 48rpx;
+  font-size: 28rpx;
+  line-height: 48rpx;
+  color: #ed3366;
+}
+
+.classify_item .item_grid {
+  display: -webkit-flex;
+  display: flex;
+  background: #fff;
+  flex-wrap: wrap;
+  padding-bottom: 16rpx;
+}
+
+.item_grid .context {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 25%;
+  padding-top: 16rpx;
+}
+
+.context image {
+  width: 76rpx;
+}
+
+.context text {
+  font-size: 22rpx;
+}
+
+/*vue*/
+
+.shop-bag {
+  text-align: right;
+}
+
+.shop-bag span {
+  font-size: 26px;
+}
+
+.sortMenu-ul li:last-child {
+  padding-right: 0 !important;
+  margin-right: 60px !important;
+}
+
+.mescroll {
+  position: fixed;
+  top: 88px;
+  bottom: 2px;
+  height: auto;
+  width: 100%;
+}
+
+/*展示上拉加载的数据列表*/
+
+.data-list {
+  display: none;
+}
+
+.data-list .pd-img {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  width: 80px;
+  height: 80px;
+}
+
+.data-list .pd-name {
+  font-size: 16px;
+  line-height: 20px;
+  height: 40px;
+  overflow: hidden;
+}
+
+.data-list .pd-price {
+  margin-top: 8px;
+  color: red;
+}
+
+.data-list .pd-sold {
+  font-size: 12px;
+  margin-top: 8px;
+  color: gray;
+}
+
+.coustom_goods .goods-lists .list-item{
+  float: none;
+}
+.coustom_goods .goods-lists .list-item navigator {
+  display: flex;
+  position: relative;
+  width: 100%;
+  margin-bottom: 10rpx; 
+}
+.coustom_goods .goods-lists .list-item navigator>view::before{
+  position: absolute;
+  content:'';
+  height: 1px;
+  bottom: 0;
+  background: #eee
+}
+.coustom_goods .goods-lists .list-item .delivery{
+  position: absolute;
+  right: 14rpx;
+  bottom: 18rpx;
+  width: 84rpx;
+  height: 38rpx;
+  line-height: 38rpx;
+  text-align: center;
+  background: #333;
+  border-radius: 4px;
+}
+.coustom_goods .goods-img{
+  width: 152rpx;
+  height: 152rpx;
+  padding: 20rpx;
+}
+.coustom_goods .goods-img image{
+  width: 152rpx;
+  height: 152rpx;
+}
+.coustom_goods .goods-img::before{
+  right: 0;
+  width: 140rpx;
+}
+.coustom_goods .goods-info{
+  flex:1;
+  position: relative;
+  padding: 20rpx;
+  padding-right: 0;
+  margin-right: 20rpx
+}
+.coustom_goods .goods-info::before{
+  left: 0;
+  width: 100%;
+}
+.coustom_goods{
+  top:0;
+}
+.menuBar{
+  border-bottom:1px solid #eee;
+}
+.menuBar span{
+  float:left;
+  width:25%;
+  text-align:center;
+  height:90rpx;
+  line-height:90rpx;
+  color:#666
+}
+.sortCls{
+  color:#333;
+  font-weight:bold;
+  position:relative;
+  animation: borderAni 3s;
+  border-bottom: 2px solid #333;
+}
+.fixTop{
+  top: 0; 
+  position: fixed;
+  max-width: 640px;
+  min-width: 320px;
+  width: 100%;
+  z-index: 101;
+  background: #fff
+}
+/*.menuBar .sortCls:after{position:absolute; content: ''; animation: borderAni 3s; background:#333; height:4px; bottom:-10rpx; left:0; right:0; margin: 0 auto; width:10px; display:block;}*/
+/*@keyframes borderAni
+{
+  from {border: none}
+  to {border-bottom: 2px solid #333}
+}*/
+.commissionPrice{
+  position: absolute;
+  bottom: 20rpx;
+  padding-left: 30rpx;
+}
+.commissionPrice .market_price{
+  font-size:10px; 
+  color:#999;
+  font-weight: normal;
+  padding-left:10px;
+}
+.commissionPrice .market_price text{
+  text-decoration: line-through;
+  font-style: normal;
+  margin-left: 2px;
+  font-size: 12px
+}
+.commissionPrice image{
+  width:18rpx;
+  height: 18rpx;
+  vertical-align:middle;
+  position: relative;
+  top: -1px;
+  padding-right: 8rpx
+}
+.commissionPrice view{
+  padding-bottom: 0;
+  height: 20px;
+  line-height: 20px;
+}
+
+</style>
