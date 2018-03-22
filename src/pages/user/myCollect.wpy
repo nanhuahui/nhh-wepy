@@ -1,0 +1,198 @@
+<template>
+  <scroll-view scroll-y="true" scroll-top="{{scrollTop}}" bindscrolltolower="loadMore" bindscroll="scroll" lower-threshold="0" class="scrollView">
+    <view class="goods-lists data-list clearfix" style="overflow:hidden;">
+      <view class="list-item sub-goods_list collect_list" wx:for="{{goods_list}}" wx:for-item="g" wx:key="g.upc_id" style="overflow:hidden;">
+        <navigator url="../shopping/goods?gid={{g.upc_id}}">
+          <view class="goods-img">
+            <image src="{{g.img_url?g.img_url:imgUrl+'/no_picture.jpg'}}" mode="widthFix"></image>
+          </view>
+        </navigator>
+        <view class="goods-price">{{g.shop_price}}</view>
+        <view class="goods-title">{{g.goods_name}}</view>
+        <view class="quitCollect">
+          <navigator @tap="quitColById" data-id="{{g.rec_id}}">取消收藏</navigator>
+          <navigator url="../shopping/goods?gid={{g.upc_id}}">去购买</navigator>
+        </view>
+      </view>
+    </view>
+    <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}" style="height:4.2em;">
+      <view class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</view>
+    </view>
+  </scroll-view>
+  <view class="body-view">
+    <loading hidden="{{hidden}}" @change="loadingChange">
+      加载中...
+    </loading>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class myCollect extends wepy.page {
+    config = {
+      navigationBarTitleText: ''
+    }
+    components = {}
+    data = {
+      imgUrl: '',
+      goods_list: [],
+      img_domain: '',
+      title_name: '',
+      scrollTop: 0,
+      pageNum: 0,
+      delId: '',
+      hidden: false
+    }
+    onLoad() {}
+    onShow() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.goods_list = []
+      this.pageNum = 0
+      this.$apply()
+      // 加载数据
+      this.loadMore()
+    }
+    methods = {
+      scroll: function (event) {
+        // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+        this.$apply(() => {
+          this.scrollTop = event.detail.scrollTop
+        })
+      },
+      async quitColById (e) {
+        let self = this
+        let objId = e.currentTarget.dataset.id
+        self.getId(objId)
+        let res = await wepy.showModal({
+          title: '提示',
+          content: '是否确定删除当前所收藏商品',
+          confirmText: '确定',
+          cancelText: '取消'
+        })
+        if (res.confirm) {
+          wepy.request({
+            url: `${self.$parent.globalData.apiUrl}/user.php?act=delete_collection`,
+            data: {
+              collection_id: objId
+            }
+          }).then(({data: {errcode, data, msg}}) => {
+            if (errcode === 0) {
+              self.goods_list.splice(self.delId, 1)
+              if (self.goods_list.length === 0) {
+                self.pageNum = -1
+              }
+              self.$apply()
+              wepy.showModal({
+                content: '删除收藏成功',
+                showCancel: false
+              })
+            } else {
+              wepy.showModal({
+                content: '删除收藏失败:' + msg,
+                showCancel: false
+              })
+            }
+          }).catch((error) => {
+            console.log('删除收藏失败！', error)
+          })
+        }
+      }
+    }
+    /*
+    * 加载更多
+    */
+    loadMore() {
+      let self = this
+      if (self.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
+        self.hidden = false
+      })
+      console.log('当前加载页码:' + self.pageNum)
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/user.php?act=collection_list`,
+        data: {
+          page: self.pageNum
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          console.log('查询结果为:', data)
+          if (data.goods_list.length === 0 || (data.pager.page_count < self.pageNum)) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+              self.hidden = true
+            })
+            return
+          }
+          // 数据组装
+          var list = self.goods_list
+          for (var i = 0; i < data.goods_list.length; i++) {
+            list.push(data.goods_list[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.goods_list = list
+            self.img_domain = data.img_domain
+            self.title_name = data.title_name
+            self.hidden = true
+          })
+          wepy.setNavigationBarTitle({ title: self.title_name })
+        } else {
+          console.error(msg)
+        }
+      }).catch((error) => {
+        console.log('获取我的收藏列表失败！', error)
+      })
+    }
+    getId (objId) {
+      let self = this
+      self.goods_list.forEach(function(item, index) {
+        if (item.rec_id === objId) {
+          self.$apply(() => {
+            self.delId = index
+          })
+        }
+      })
+    }
+  }
+</script>
+
+<style>
+@import '/assets/styles/store.wxss';
+.scrollView {
+  position: fixed;
+  top: 2px;
+  bottom: 2px;
+  border-top: 1px solid #f1f1f1;
+}
+.goods-lists .sub-goods_list {
+  border-top: none;
+  border-bottom: 1px solid #f1f1f1;
+}
+/*收藏*/
+.quitCollect {
+  height: 40px;
+}
+.quitCollect navigator{
+  box-sizing: border-box;
+  color:#d6244f;
+  text-align: center;
+  height:40px;
+  line-height: 40px;
+  display: inline-block;
+  width: 50%;
+  border-top:1px solid #eee;
+  cursor: pointer;
+  font-size: 14px;
+}
+.quitCollect navigator:first-child{
+  border-right:1px solid #eee;
+  color:#999;
+}
+</style>

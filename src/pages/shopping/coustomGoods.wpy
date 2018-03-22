@@ -160,7 +160,9 @@
           // 赋值
           self.$apply(() => {
             self.banner = data.banner ? data.banner : self.imgUrl + '/consumer_banner.gif'
-            self.goods_list = list
+            // self.goods_list = list
+            self.goods_list = []
+            self.pageNum = -1
             self.img_domain = data.img_domain ? data.img_domain : ''
             self.hidden = true
           })

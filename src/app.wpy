@@ -33,7 +33,8 @@ export default class extends wepy.app {
       'pages/shopping/index',
       'pages/shopping/goods',
       'pages/shopping/searchGoods',
-      'pages/shopping/coustomGoods'
+      'pages/shopping/coustomGoods',
+      'pages/user/myCollect'
     ],
     window: {
       navigationBarBackgroundColor: '#f7f7f8',
@@ -58,7 +59,7 @@ export default class extends wepy.app {
         selectedIconPath: 'assets/icon/iconfont-cart-active.png',
         text: '购物车'
       }, {
-        pagePath: 'pages/shopping/index',
+        pagePath: 'pages/user/myCollect',
         iconPath: 'assets/icon/iconfont-sc.png',
         selectedIconPath: 'assets/icon/iconfont-sc-active.png',
         text: '我的收藏'
