@@ -1,0 +1,880 @@
+<template>
+  <view class="index-title" style="padding-bottom: {{(userObj.is_shop||userObj.is_distribution)?'80rpx':'0rpx'}};">
+    <view class="shop-name">
+      <navigator wx:if="{{userObj.is_distribution === true}}" class="messageBtn" url="./messageList">
+        <view style="width:48rpx;text-align: center;">
+          <image class="messageImg" src="{{imgUrl}}/newIcon/my_xx_n.png" mode="widthFix"></image>
+          <image wx:if="{{userObj.unread_circular === 1}}" class="dot" src="{{imgUrl}}/tips_dot.png" mode="widthFix"></image>
+          <text>消息</text>
+        </view>
+      </navigator>
+      <navigator class="user-img" url="./accountManage" wx:if="{{userObj.is_shop||userObj.is_distribution}}">
+        <image src="{{headImg}}"></image>
+      </navigator>
+      <navigator class="set" url="./accountManage" wx:if="{{userObj.is_shop||userObj.is_distribution}}">
+        <image src="{{imgUrl}}/newIcon/set.png"></image>
+        <text>设置</text>
+      </navigator>
+    </view>
+    <view class="shop-detail">
+      <view class="shop-info">
+        <text class="nhh-store_name">{{userObj.info.nickname}}</text>
+        <text class="info_have" wx:if="{{userObj.storeinfo.signature}}">
+          {{userObj.storeinfo.signature}}
+        </text>
+        <text class="info" wx:else>终于等到了主人的莅临</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="ucenter ucenter_seller" wx:if="{{userObj.is_shop||userObj.is_distribution}}">
+    <view class="float_block">
+      <view class="month-income">
+        <navigator class="link" url="./sellerIncome">
+          <view class="income">
+            <text class="total_revenue">{{userObj.commission_total}}</text>
+            <text class="caption_text"> 元</text>
+          </view>
+          <view class="details">
+            <text>详情</text>
+            <text class="iconfont-yzg icon-yzg-arrow" style="position: static;"></text>
+          </view>
+          <image class="tip" src="{{imgUrl}}/newIcon/i.png"></image>
+        </navigator>
+      </view>
+      <view class="month-order">
+        <view class="item">
+          <text class="number_font" wx:if="{{userObj.month_self_support_total_amount}}">{{userObj.month_self_support_total_amount}}</text>
+          <text class="number_font" wx:else>0.00</text>
+          <text class="text_font">本月销售额</text>
+        </view>
+        <view class="item">
+          <text class="number_font">{{userObj.count_order}}</text>
+          <text class="text_font">本月订单数</text>
+        </view>
+        <view class="item">
+          <text class="number_font" wx:if="{{userObj.month_self_support_amount}}">{{userObj.month_self_support_amount}}</text>
+          <text class="number_font" wx:else>0.00</text>
+          <text class="text_font">本月收入</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="iconroom clearfix">
+      <view class="title">
+        <text>店铺管理</text>
+      </view>
+      <view class="clearfix">
+        <view class="col-xs-4">
+          <navigator class="feature" url="./sellerIncome">
+            <image src="{{imgUrl}}/newIcon/shouru.png"></image>
+            <text class="text_font">我的收入</text>
+          </navigator>
+        </view>
+        <view class="col-xs-4">
+          <navigator class="feature" url="./orderManage">
+            <image src="{{imgUrl}}/newIcon/dingdan.png"></image>
+            <text class="text_font">订单管理</text>
+          </navigator>
+        </view>
+        <view class="col-xs-4">
+          <navigator class="feature" url="./stroll">
+            <image src="{{imgUrl}}/newIcon/fenxiang.png"></image>
+            <text class="text_font">图文分享</text>
+          </navigator>
+        </view>
+        <view class="col-xs-4">
+          <navigator class="feature" url="./personnelsManage">
+            <image src="{{imgUrl}}/newIcon/userManage.png"></image>
+            <text class="text_font">客户管理</text>
+          </navigator>
+        </view>
+        <view class="col-xs-4">
+          <navigator class="feature" url="./myIncome">
+            <image src="{{imgUrl}}/newIcon/yongjin.png"></image>
+            <text class="text_font">佣金提现</text>
+          </navigator>
+        </view>
+        <!-- <view class="col-xs-4">
+          <navigator class="feature" url="./newReader">
+            <image src="{{imgUrl}}/newIcon/xinshoubidu.png"></image>
+            <text class="text_font">新手必读</text>
+          </navigator>
+        </view> -->
+        <view class="col-xs-4" v-if="{{userObj.is_shop}}">
+          <navigator class="feature" url="./posterShare">
+            <!--  url="/shopping/posterShare" -->
+            <image src="{{imgUrl}}/userCenShare.png"></image>
+            <text class="text_font">店铺分享</text>
+          </navigator>
+        </view>
+      </view>
+    </view>
+
+    <view class="separate"></view>
+    <!-- 店主管理 -->
+    <view class="iconroom clearfix" wx:if="{{userObj.is_shop}}" style="margin-top: 0;">
+      <navigator url="../uploadGoods/orderList" class="waitingSend" wx:if="{{userObj.order_unship_count && userObj.order_unship_count > 0}}">
+        <text class="word">待发货订单</text><text class="number">{{userObj.order_unship_count}}</text>
+      </navigator>
+        <view class="title">
+          <text style="float: left;">自营商品</text><text style="font-weight: bolder;color: #c8975c;float: left;padding-left: 10rpx;">(Beta 1.0）</text>
+          <navigator url="./storeInstruction" class="uploadStoreDet h5 c11">用户须知</navigator>
+        </view>
+        <view class="clearfix" style="padding-bottom:39rpx">
+          <view class="col-xs-3" style="width:25%;">
+            <navigator class="feature" url="../uploadGoods/uploadGood">
+              <image src="{{imgUrl}}/storeGoods/addGoods.png"></image>
+              <text class="text_font">添加商品</text>
+            </navigator>
+          </view>
+          <view class="col-xs-3" style="width:25%;">
+            <navigator class="feature" url="../uploadGoods/goodList">
+              <image src="{{imgUrl}}/storeGoods/goodsManage.png"></image>
+              <text class="text_font">商品管理</text>
+            </navigator>
+          </view>
+          <view class="col-xs-3" style="width:25%;">
+            <navigator class="feature" url="../uploadGoods/uploadBanner">
+              <image src="{{imgUrl}}/storeGoods/skin.png"></image>
+              <text class="text_font">图片更换</text>
+            </navigator>
+          </view>
+          <view class="col-xs-3" style="width:25%;">
+            <navigator class="feature" url="../uploadGoods/orderList">
+              <image src="{{imgUrl}}/storeGoods/orderManage.png"></image>
+              <text class="text_font">订单管理</text>
+            </navigator>
+          </view>
+        </view>
+      </view>
+    <!-- end -->
+  </view>
+  <!--间隔线-->
+  <view class="separate"></view>
+  <view class="ucenter_buyer">
+    <view class="my-order_lists">
+      <view class="all_list" bindtap="goOrder" data-act="0">
+        <view class="my_order">
+          <label>我的订单</label>
+        </view>
+        <view class="check-all_list">
+          <text style="font-size:12px;">查看全部订单</text>
+          <text class="iconfont-yzg icon-yzg-arrow"></text>
+        </view>
+      </view>
+      <view class="list_status">
+        <view class="list-item" catchtap="goOrder" data-act="1">
+          <image src="{{imgUrl}}/newIcon/daifukuan.png"></image>
+          <text class="text_font" bindlongpress="clearStorage">待付款</text>
+        </view>
+        <view class="list-item" catchtap="goOrder" data-act="2">
+          <image src="{{imgUrl}}/newIcon/daifahuo.png"></image>
+          <text class="text_font" bindlongpress="showSystemInfo">待发货</text>
+        </view>
+        <view class="list-item" catchtap="goOrder" data-act="3">
+          <image src="{{imgUrl}}/newIcon/daishouhuo.png"></image>
+          <text class="text_font">待收货</text>
+        </view>
+        <view class="list-item" catchtap="goOrder" data-act="4">
+          <image src="{{imgUrl}}/newIcon/shouhou.png"></image>
+          <text class="text_font" bindlongpress="showStorage">退款/售后</text>
+        </view>
+      </view>
+    </view>
+    <!--间隔线-->
+    <view class="separate"></view>
+    <view class="help-center">
+      <block>
+        <view class="arrow_position">
+          <image class="smallIcon" src="{{imgUrl}}/newIcon/dizhi.png"></image>
+          <navigator class="text_font link" url="./addressList">
+            <text>地址管理</text>
+            <label class="iconfont-yzg icon-yzg-arrow"></label>
+          </navigator>
+        </view>
+        <view class="arrow_position">
+          <!-- <image class="smallIcon" src="{{imgUrl}}/inviteUser.png" ></image> -->
+          <i class="iconfont-yzg icon-yzg-yaoqingkaidian" style="color:#bbb;position:absolute;left:30rpx"></i>
+          <!-- <image class="smallIcon" src="/assets/images/inviteUser.png" ></image> -->
+
+          <!-- <navigator class="text_font link" url="./nhhDetail"> -->
+          <navigator class="text_font link">
+            <text>邀请汇商</text>
+            <label class="iconfont-yzg icon-yzg-arrow"></label>
+          </navigator>
+        </view>
+        <view class="arrow_position">
+          <image class="smallIcon" src="{{imgUrl}}/newIcon/coupon.png"></image>
+          <navigator class="text_font link" url="./myCoupon">
+            <text>我的优惠券</text>
+            <label class="iconfont-yzg icon-yzg-arrow"></label>
+          </navigator>
+        </view>
+        <view class="arrow_position">
+          <image class="smallIcon" src="{{imgUrl}}/newIcon/auction.png"></image>
+          <navigator class="text_font link" url="./mySpellGroup">
+            <text>我的团购</text>
+            <label class="iconfont-yzg icon-yzg-arrow"></label>
+          </navigator>
+        </view>
+        <view class="arrow_position">
+          <image class="smallIcon" src="{{imgUrl}}/newIcon/auction.png"></image>
+          <navigator class="text_font link" url="./myAuction">
+            <text>我的拍卖</text>
+            <label class="iconfont-yzg icon-yzg-arrow"></label>
+          </navigator>
+        </view>
+        <view class="arrow_position contactSer">
+          <image class="smallIcon" src="{{imgUrl}}/newIcon/kefu.png"></image>
+          <navigator class="text_font link" bindtap="calling" data-tel="4006226777">
+            <text>联系客服</text>
+            <text class="tel">400-622-6777</text>
+          </navigator>
+        </view>
+      </block>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class myCollect extends wepy.page {
+    config = {
+      navigationBarTitleText: '用户中心',
+      enablePullDownRefresh: true
+    }
+    components = {}
+    data = {
+      imgUrl: null,
+      headImg: null,
+      userObj: null
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.$apply()
+      this.loadIncome()
+    }
+    onShow() {}
+    onPullDownRefresh() {
+      // 获取用户收入
+      this.loadIncome()
+    }
+    methods = {
+      showStorage() {
+        try {
+          var res = wepy.getStorageInfoSync()
+          wepy.showActionSheet({
+            itemList: res.keys,
+            success: function(as) {
+              let t = res.keys[as.tapIndex]
+              let c = wepy.getStorageSync(t)
+              wepy.showModal({
+                title: t,
+                content: `${JSON.stringify(c)}`
+              })
+            },
+            fail: function(res) {
+              console.log(res.errMsg)
+            }
+          })
+        } catch (e) {
+          wepy.showModal({
+            title: '提示',
+            content: '获取缓存失败'
+          })
+        }
+      },
+      clearStorage() {
+        wepy.showModal({
+          title: '确定要删除缓存对象吗？',
+          content: JSON.stringify(wepy.getStorageInfoSync().keys),
+          success: function(res) {
+            if (res.confirm) {
+              wepy.clearStorage()
+              wepy.clearStorageSync()
+            } else if (res.cancel) {
+              console.log('用户点击取消')
+            }
+          }
+        })
+      }
+    }
+    /**
+     * 获取用户数据
+     */
+    loadIncome() {
+      wepy.showLoading({ title: '加载中' })
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/user.php`,
+        data: {
+          act: 'default'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          console.log('用户数据', data)
+          let shopInfor = {'is_shop': data.is_shop, 'is_consumers': data.is_distribution}
+          // 追加数据至缓存
+          wepy.setStorageSync('user_nhh', Object.assign(wepy.getStorageSync('user_nhh'), shopInfor))
+          // 用户头像
+          let hi = data.storeinfo ? data.storeinfo.avatar : wepy.getStorageSync('user_wx').avatarUrl
+          self.$apply(() => {
+            self.userObj = data
+            self.headImg = hi
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    goOrder(e) {
+      this.$navigate(`../order/orderList?orderAct=${e.currentTarget.dataset.act}`)
+    }
+    calling(e) {
+      wepy.makePhoneCall({
+        phoneNumber: e.currentTarget.dataset.tel,
+        success() {
+          console.log('拨打电话成功！')
+        },
+        fail() {
+          console.log('拨打电话失败！')
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+/**user.wxss**/
+
+.index-title {
+  background: url(http://wxassets.xf66.com/index_bigbg.jpg) no-repeat center top;
+  background-size: 100%;
+  position: relative;
+  color: #fff;
+  z-index: 11;
+  width: 100%;
+}
+
+.index-title .unshop-name {
+  height: 44px;
+  line-height: 44px;
+  padding-top: 0;
+  text-align: center;
+  overflow: hidden;
+}
+
+.index-title .shop-name {
+  text-align: center;
+  overflow: hidden;
+  color: #fff;
+  padding: 11.5rpx 0 10rpx;
+  position: relative;
+}
+
+.index-title .shop-name .contact_img {
+  position: absolute;
+  left: 13rpx;
+  top: 13rpx;
+}
+
+.index-title .set {
+  position: absolute;
+  right: 30rpx;
+  top: 6rpx;
+  display: block;
+}
+
+.index-title .set image {
+  width: 48rpx;
+  height: 48rpx;
+  display: block;
+}
+
+/*消息按钮*/
+.index-title .messageBtn {
+  position:absolute;
+  top:6rpx;
+  left:0;
+  width:25%;
+  padding-left:30rpx;
+  text-align:left;
+  display:block;
+}
+.index-title .messageBtn .messageImg{
+  width:48rpx;
+}
+.index-title .messageBtn .dot{
+  position:absolute;
+  left:66rpx;
+  top:6rpx;
+  width:10rpx;
+  height:10rpx;
+}
+.index-title .messageBtn text{
+  font-size:20rpx;
+  font-weight:light;
+  color:#fff;
+  display:block;
+  margin-top:-14rpx;
+}
+/*消息按钮end*/
+
+.contact_img text, .set text {
+  font-size: 20rpx;
+  color: #fff;
+  position: relative;
+  top: -14rpx;
+}
+
+.contact_img image {
+  width: 47rpx;
+  height: 47rpx;
+  display: block;
+}
+
+.shop-name .contact_img .shoper_contact {
+  font-size: 11px;
+  border-radius: 10px;
+  background: #fff;
+  color: #ef0021;
+  padding: 0px 4px;
+  display: inline-block;
+  float: left;
+  margin-top: 7px;
+  margin-left: 7px;
+}
+
+.index-title .shop-detail {
+  color: #fff;
+  text-align: center;
+}
+
+.index-title .shop-detail .user-img {
+  float: left;
+  height: 36px;
+}
+
+@media screen and (min-width:400px) and (max-width: 420px) {
+  .index-title .shop-name .user-img {
+    padding-bottom: 4.5rpx;
+  }
+}
+
+.index-title .user-img image {
+  border-radius: 50%;
+  border: 1px solid #eee;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  vertical-align: middle;
+  width: 74rpx;
+  height: 74rpx;
+  background-color: #fff;
+}
+
+.index-title .shop-detail .shop-info {
+  position: relative;
+  padding-bottom: 13rpx;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+.index-title .search-icon {
+  position: absolute;
+  right: 18px;
+  top: 11.5rpx;
+  color: #777;
+}
+
+.index-title .search-icon .search_css {
+  color: #fff;
+  font-size: 18px;
+}
+
+.shop-info .nhh-store_name {
+  font-size: 28rpx;
+}
+
+.index-title .shop-detail .shop-info .info {
+  font-size: 20rpx;
+  display: block;
+  height: 18px;
+  overflow: hidden;
+  padding: 0 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.5;
+  margin-top: -5rpx;
+}
+.index-title .shop-detail .shop-info .info_have {
+  font-size: 20rpx;
+  display: block;
+  /*height: 18px;*/
+  overflow: hidden;
+  padding: 0 20px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.5;
+  margin-top:-15px;
+}
+.ucenter_seller .float_block {
+  width: 92%;
+  background: #fff;
+  position: absolute;
+  top: -75rpx;
+  z-index: 12;
+  margin: 0 15px;
+  box-shadow: 0px 0px 30rpx #999;
+}
+
+.ucenter_seller .float_block .month-income {
+  position: relative;
+}
+
+.month-income .link {
+  display: block;
+  background: #fff;
+}
+
+.month-income .income {
+  text-align: center;
+  padding: 14rpx 0;
+}
+
+.month-income .total_revenue {
+  font-size: 58rpx;
+  font-weight: bold;
+  color: #c7895c;
+}
+
+.month-income .details {
+  text-align: center;
+  color: #333;
+  padding-bottom: 30rpx;
+}
+
+.month-income .details text {
+  font-size: 20rpx;
+  font-weight: lighter;
+}
+
+.month-income .tip {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.iconroom .col-xs-4 i {
+  font-size: 28px;
+}
+
+.iconroom .icon-yzg-shouru, .iconroom .icon-yzg-sellerOrder,
+.iconroom .icon-yzg-goods_magage {
+  color: #d31947;
+}
+
+.iconroom .icon-yzg-share {
+  color: #e4663a;
+}
+
+.iconroom .icon-yzg-fenxiao, .iconroom .icon-yzg-user {
+  color: #84c10e;
+}
+
+.month-order {
+  display: flex;
+  text-align: center;
+  background: #fff;
+}
+
+.row.month-order {
+  margin: 0;
+}
+
+.month-order .item {
+  flex: 1;
+  font-size: 12px;
+}
+
+.month-order text {
+  display: block;
+}
+
+.month-order .number_font {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.month-order .text_font {
+  font-size: 24rpx;
+  color: #333;
+  padding: 16rpx 0;
+}
+
+.ucenter .iconroom {
+  margin: 10px 0 0;
+  background: #fff;
+}
+
+.iconroom .title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  padding: 39rpx 30rpx 10rpx;
+}
+
+.iconroom .title text {
+  padding-top: 0;
+}
+
+.iconroom .col-xs-4 {
+  float: left;
+  width: 33.33333333%;
+}
+
+.iconroom .feature {
+  text-align: center;
+  display: block;
+}
+
+.iconroom .feature image {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.iconroom text {
+  display: block;
+  padding-top: 20rpx;
+  font-size: 24rpx;
+  color: #333;
+}
+
+.iconroom .col-xs-4 {
+  padding: 28rpx 0 36rpx;
+}
+
+.iconroom .col-xs-4 img {
+  height: 1.024rem;
+}
+
+.help-center {
+  padding: 0 30rpx;
+  background-color: #fff;
+  font-size: 28rpx;
+}
+
+.help-center .arrow_position {
+  line-height: 80rpx;
+  position: relative;
+  background-size: 25px;
+  height: 82rpx;
+  overflow: hidden;
+  margin-left: -30rpx;
+  margin-right: -30rpx;
+  box-sizing: border-box;
+}
+
+.help-center .arrow_position .link {
+  color: #44484e;
+  display: block;
+  border-bottom: 1px solid #f4f4f4;
+  margin-left: 30rpx;
+  padding-right: 30rpx;
+  padding-left: 56rpx;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.help-center .contactSer .link {
+  border-bottom: none;
+}
+
+.contactSer .link {
+  position: relative;
+}
+
+.contactSer .link .tel {
+  float: right;
+}
+
+.arrow_position .smallIcon {
+  position: absolute;
+  top: 15rpx;
+  left: 23rpx;
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.link label {
+  float: right;
+}
+
+.ucenter .pay-money {
+  padding: 0;
+  margin: 10px 0 23px;
+}
+
+.ucenter .quit {
+  background: none;
+}
+
+.quit a {
+  display: block;
+  width: 100%;
+  text-align: center;
+  color: #e4663a;
+  border: 1px solid #e4663a;
+  border-radius: 4px;
+  font-size: 14px;
+  height: 42px;
+  line-height: 40px;
+  padding: 0;
+}
+
+.quit a:hover {
+  color: #c84a1e;
+}
+
+.set-shop img {
+  width: 100%;
+}
+
+.my-order_lists {
+  background: #fff;
+}
+
+.my-order_lists .all_list {
+  color: #333;
+  padding: 30rpx 30rpx 14rpx;
+  display: -webkit-flex;
+  display: flex;
+}
+
+.my-order_lists .all_list .my_order {
+  flex: 1;
+  font-weight: bold;
+}
+
+.my-order_lists .all_list .my_order label {
+  font-size: 28rpx;
+}
+
+.my-order_lists .all_list .check-all_list {
+  font-size: 20rpx;
+  font-weight: light;
+}
+
+.my-order_lists .all_list .check-all_list label {
+  font-size: 28rpx;
+}
+
+.my-order_lists .list_status {
+  text-align: center;
+  padding: 24rpx 0 36rpx;
+  font-size: 24rpx;
+  color: #333;
+  display: flex;
+}
+
+.my-order_lists .list_status .list-item {
+  flex: 1;
+}
+
+.my-order_lists .list_status .list-item image {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.my-order_lists .list_status .list-item text {
+  display: block;
+}
+
+.my-order_lists .list_status .list-item .text_font {
+  font-size: 24rpx;
+  color: #333;
+  margin-top: -6rpx;
+  display: block;
+}
+
+.ucenter_seller {
+  position: relative;
+  padding-top: 220rpx;
+  background: #fff;
+}
+
+.caption_text {
+  font-size: 24rpx;
+  color: #333;
+}
+
+/*间隔线*/
+
+.separate {
+  height: 10rpx;
+  background-color: #f8f8f8;
+}
+
+.clearfix:after, .clearfix:before {
+  display: table;
+  content: " ";
+}
+
+.text_font {
+  font-size: 24rpx;
+  color: #333;
+}
+.icon-yzg-yaoqingkaidian:before {
+  content: "\E692";
+}
+
+.waitingSend {
+  box-sizing: border-box;
+  height: 80rpx;
+  text-align:center;
+  font-size:28rpx;
+  border-bottom:1px solid #f1f1f1;
+  padding:18rpx 0
+}
+.waitingSend text {
+  display: inline-block;
+}
+.waitingSend .word {
+  height:36rpx;
+  line-height:36rpx;
+  padding-top: 2rpx;
+}
+@media screen and (min-width:360px) {
+  .waitingSend .word {
+    padding-top: 4rpx;
+  }
+}
+@media screen and (min-width:414px) {
+  .waitingSend .word {
+    padding-top: 6rpx;
+  }
+}
+.waitingSend .number{
+  width:36rpx;
+  height:36rpx;
+  padding-top: 0;
+  background:#e64340;
+  border-radius:50%;
+  line-height:36rpx;
+  text-align:center;
+  display:inline-block;
+  color:#fff;
+  font-weight:normal;
+  margin-left:8rpx;
+}
+</style>
