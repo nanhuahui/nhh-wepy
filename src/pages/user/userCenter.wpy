@@ -211,13 +211,13 @@
             <label class="iconfont-yzg icon-yzg-arrow"></label>
           </navigator>
         </view>
-        <view class="arrow_position">
+        <!-- <view class="arrow_position">
           <image class="smallIcon" src="{{imgUrl}}/newIcon/auction.png"></image>
           <navigator class="text_font link" url="./mySpellGroup">
             <text>我的团购</text>
             <label class="iconfont-yzg icon-yzg-arrow"></label>
           </navigator>
-        </view>
+        </view> -->
         <view class="arrow_position">
           <image class="smallIcon" src="{{imgUrl}}/newIcon/auction.png"></image>
           <navigator class="text_font link" url="./myAuction">

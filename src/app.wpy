@@ -35,8 +35,9 @@ export default class extends wepy.app {
       'pages/shopping/searchGoods',
       'pages/shopping/coustomGoods',
       'pages/shopping/todaySpecial',
+      'pages/user/userCenter',
       'pages/user/myCollect',
-      'pages/user/userCenter'
+      'pages/user/sellerIncome'
     ],
     window: {
       navigationBarBackgroundColor: '#f7f7f8',

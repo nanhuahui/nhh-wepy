@@ -1,0 +1,282 @@
+<template>
+  <view class="order-list_title">
+    <text bindtap="changeTab" data-url="distribution_union.php"
+    class="{{toggleApi === 'distribution_union' ? 'selectedCss' : ''}}">消费商收入</text>
+    <text bindtap="changeTab" data-url="lncome_union.php"
+    class="{{toggleApi === 'income_union' ? 'selectedCss' : ''}}">汇商收入</text>
+  </view>
+
+  <view class="fund-content distributionCon" wx:if="{{toggleApi==='distribution_union'}}">
+    <view wx:if="{{hasIncome}}">
+      <view class="weui-flex list-item distributionUnion" style="font-weight: bold;">
+        <view>日期：</view>
+        <view>分销佣金</view>
+      </view>
+      <view class="weui-flex list-item distributionUnion" style="font-weight: bold;">
+        <view>合计</view>
+        <view>￥{{incomeData.pay_commission_total ? incomeData.pay_commission_total : 0.00}}</view>
+      </view>
+      <view class="scrollView">
+        <scroll-view style="height: 100%;" scroll-y="true">
+          <view wx:for="{{monthIncome}}" wx:key="*this">
+            <view class="weui-flex list-item" style="font-weight:bold;padding-left: 30rpx;background-color: #efeff4;">
+              {{index}}
+            </view>
+            <view class="weui-flex list-item distributionUnion" wx:for="{{monthIncome[index]}}" wx:key="*this">
+              <view>{{item.add_time}}</view>
+              <view>￥{{item.pay_commission}}</view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+    <view class='noIncome' wx:else>
+      <text class="iconfont-yzg icon-yzg-kulian"></text>
+      <view class="tip">
+        <text>暂时没有收入</text>
+        <text>快去推广挣钱吧！！！！！</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="fund-content" wx:else>
+    <view wx:if="{{hasIncome}}">
+      <view class="weui-flex list-item incomeUnion">
+        <view style="font-weight: bold;">日期</view>
+        <view>佣金</view>
+        <view>推广奖励</view>
+        <view>团队奖励</view>
+      </view>
+      <view class="weui-flex list-item incomeUnion">
+        <view style="font-weight: bold;">合计</view>
+        <view>￥{{incomeData.pay_commission_total ? incomeData.pay_commission_total : 0.00}}</view>
+        <view>￥{{incomeData.shop_commission_total ? incomeData.shop_commission_total : 0.00}}</view>
+        <view>￥{{incomeData.team_commission_total ? incomeData.team_commission_total : 0.00}}</view>
+      </view>
+      <view class="scrollView">
+        <scroll-view style="height: 100%;" scroll-y="true">
+          <view wx:for="{{monthIncome}}" wx:key="*this">
+            <view class="weui-flex list-item" style="font-weight:bold;padding-left: 30rpx;background-color: #efeff4;">
+              {{index}}
+            </view>
+            <view class="weui-flex list-item incomeUnion" wx:for="{{monthIncome[index]}}" wx:key="*this">
+              <view>{{item.add_time}}</view>
+              <view>￥{{item.pay_commission}}</view>
+              <view>￥{{item.shop_commission}}</view>
+              <view>￥{{item.team_commission}}</view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+    <view class='noIncome' wx:else>
+      <text class="iconfont-yzg icon-yzg-kulian"></text>
+      <view class="tip">
+        <text>暂时没有收入</text>
+        <text>快去推广挣钱吧！！！！！</text>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class sellerIncome extends wepy.page {
+    config = {
+      navigationBarTitleText: '我的收入'
+    }
+    components = {}
+    data = {
+      incomeData: {},  // 初始化数据
+      monthIncome: {},  // 分月整理 筛选当月收入及初始显示
+      totalIncome: {},  // 根据月份保存全部收入
+      apiName: 'lncome_union.php', // 加载的接口名称
+      toggleApi: 'income_union',  // 判断加载哪个接口 用于切换类名
+      hasIncome: true  // 判断是否有收入
+    }
+    onLoad() {
+      // 如果已经开店则加载分销商接口 否则加载消费商接口
+      this.$apply(() => {
+        this.apiName = wepy.getStorageSync('user_nhh').is_shop ? 'lncome_union.php' : 'distribution_union.php'
+        this.toggleApi = wepy.getStorageSync('user_nhh').is_shop ? 'income_union' : 'distribution_union'
+      })
+      // 加载数据
+      this.loadIncome()
+    }
+    onShow() {}
+    methods = {}
+    changeTab(e) {
+      let url = e.currentTarget.dataset.url
+      this.$apply(() => {
+        this.toggleApi = url === 'lncome_union.php' ? 'income_union' : 'distribution_union'
+        this.apiName = url
+      })
+      // 加载数据
+      this.loadIncome()
+    }
+    /**
+     * 获取数据
+     */
+    loadIncome() {
+      wepy.showLoading({ title: '加载中' })
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/` + self.apiName
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          if (data.commission) {
+            self.$apply(() => {
+              self.hasIncome = true
+              self.totalIncome = {}
+              self.incomeData = data
+            })
+            self.eachMonthIncome()
+          } else {
+            self.$apply(() => {
+              self.hasIncome = false
+            })
+          }
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    /**
+      * 整理各月收入
+      */
+    eachMonthIncome () {
+      let self = this
+      let mouthTime = ''
+      let temp = {} // totalIncome
+      for (var o in self.incomeData.commission) {
+        mouthTime = o.substring(0, 7)  // 只获取月份
+        temp[mouthTime] = temp[mouthTime] ? temp[mouthTime] : []
+        temp[mouthTime].push(self.data.incomeData.commission[o])  // 填充当月数据
+      }
+      self.$apply(() => {
+        self.monthIncome = temp
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.order-list_title {
+  font-size: 14px;
+  padding: 10px 0;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.order-list_title text {
+  background: #fff;
+  cursor: pointer;
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  text-align: center;
+  color: #777;
+  height: 94rpx;
+  line-height: 94rpx;
+}
+
+.order-list_title text:first-child:before {
+  position: absolute;
+  content: '';
+  width: 1px;
+  height: 24px;
+  top: 24rpx;
+  right: 0;
+  background: #eee;
+}
+
+.fund-box .fund-content {
+  background: #fff;
+}
+
+.fund-box .fund-content .fund-title {
+  background: #eee;
+}
+
+.table .pay_commission {
+  font-weight: 600;
+}
+
+.table .commission {
+  text-align: right;
+}
+
+.noIncome {
+  text-align: center;
+  padding: 60rpx;
+  color: #d6244f;
+}
+
+.noIncome .iconfont-yzg {
+  font-size: 120rpx;
+}
+
+.noIncome .tip text {
+  padding: 20rpx;
+  line-height: 1.8;
+  text-align: center;
+  display: block;
+}
+
+.scrollView {
+  position: fixed;
+  top: 157px;
+  bottom: 2px;
+  height: auto;
+  width: 100%;
+}
+.list-item {
+  border-top:1px solid #ddd;
+  height:94rpx;
+  line-height:94rpx;
+  background-color: #fff;
+  text-align: left;
+}
+.list-item view {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+.list-item.distributionUnion view:nth-child(1){
+  flex: 3;
+  padding-left: 30rpx;
+}
+.list-item.distributionUnion view:nth-child(2){
+  flex: 2;
+  padding-right: 30rpx;
+  text-align: right;
+  font-weight: bold;
+}
+.list-item.incomeUnion view {
+  font-weight: bold;
+}
+.list-item.incomeUnion view:nth-child(1){
+  flex: 2;
+  padding-left: 20rpx;
+  font-weight: normal;
+}
+.list-item.incomeUnion view:nth-child(2){
+  flex: 1;
+}
+.list-item.incomeUnion view:nth-child(3){
+  flex: 1;
+}
+.list-item.incomeUnion view:nth-child(4){
+  flex: 1;
+}
+</style>
