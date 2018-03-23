@@ -60,7 +60,7 @@
       <text class="h7 c2" style="font-size:24rpx;">好货清单</text>
     </view>   
     <view class="choose-con" style="background: #fff" wx:for="{{special}}" wx:key="{{id}}">
-      <navigator url="../todaySpecial/todaySpecial?id={{item.id}}">
+      <navigator url="/pages/shopping/todaySpecial?id={{item.id}}">
         <view class="col-xs-4 text-left choose_img">
           <image src="{{item.banner_new ? imgDomain + item.banner_new : ''}}"/>
         </view>
@@ -78,12 +78,10 @@
 import wepy from 'wepy'
 
 export default class todaySpecial extends wepy.component {
-  props = {
-    special: [],
+  data = {
+    imgUrl: '',
     imgDomain: Object,
-    imgUrl: Object
+    special: []
   }
-  data = {}
-  onLoad() {}
 }
 </script>
