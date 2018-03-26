@@ -1,0 +1,277 @@
+<template>
+  <view class="order-list_title">
+    <text bindtap="toggleOrder" data-tab="{{0}}" class="{{activityTab===0 ? 'selectedCss' : ''}}">我的销售订单
+    </text>
+    <text bindtap="toggleOrder" data-tab="{{1}}" class="{{activityTab===1 ? 'selectedCss' : ''}}">团队销售订单
+    </text>
+  </view>
+
+  <view class="fund-content" wx:if="{{activityTab===0}}">
+    <view class="weui-flex list-item order_list" style="font-weight:bold;">
+      <view>订单号</view>
+      <view>用户名</view>
+      <view>商品金额</view>
+      <view>所得佣金</view>
+    </view>
+    <view class="scrollView">
+      <scroll-view style="height:100%;display:block;overflow:hidden;" scroll-y="true" scroll-top="{{scrollTop}}"
+        bindscrolltolower="loadMore" bindscroll="scroll" wx:if="{{order_list.length > 0}}">
+        <view class="weui-flex white list-item order_list" wx:for="{{order_list}}" wx:key="*this" bindtap="toOrdDetail" data-orderId="{{item.order_sn}}">
+          <view>{{item.order_sn}}</view>
+          <view>{{item.nickname ? item.nickname : item.user_name}}</view>
+          <view>￥{{item.goods_price}}</view>
+          <view>￥{{item.commission}}</view>
+        </view>
+        <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}">
+          <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无更多数据</text>
+        </view>
+      </scroll-view>
+      <view class="weui-loadmore weui-loadmore_line" wx:if="{{!order_list || order_list.length === 0}}">
+        <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="fund-content" wx:else>
+    <view class="weui-flex list-item order_info_team" style="font-weight:bold;">
+      <view>订单号</view>
+      <view>商品金额</view>
+      <view>所得分销商</view>
+      <view>我的佣金</view>
+    </view>
+    <view class="scrollView">
+      <scroll-view style="height:100%;" scroll-y="true" scroll-top="{{scrollTop}}"
+      bindscrolltolower="loadMore" bindscroll="scroll" wx:if="{{order_info_team.length > 0}}">
+        <view class="weui-flex white list-item order_info_team" wx:for="{{order_info_team}}" wx:key="*this">
+          <view>{{item.order_sn}}</view>
+          <view>￥{{item.goods_price}}</view>
+          <view>{{item.nickname ? item.nickname : item.user_name}}</view>
+          <view>￥{{item.commission}}</view>
+        </view>
+        <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}">
+          <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无更多数据</text>
+        </view>
+      </scroll-view>
+      <view class="weui-loadmore weui-loadmore_line" wx:if="{{!order_info_team || order_info_team.length === 0}}">
+        <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="body-view">
+    <loading hidden="{{hidden}}" bindchange="loadingChange">
+      加载中...
+    </loading>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class orderMange extends wepy.page {
+    config = {
+      navigationBarTitleText: '订单管理'
+    }
+    components = {}
+    data = {
+      activityTab: 0,
+      order_info_team: [],
+      order_list: [],
+      pageNum: 0,
+      scrollTop: 0,
+      hidden: true
+    }
+    onLoad() {
+      this.loadMore()
+    }
+    onShow() {}
+    methods = {
+      scroll: function (event) {
+        // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+        this.$apply(() => {
+          this.scrollTop = event.detail.scrollTop
+        })
+      }
+    }
+    toggleOrder (e) {
+      this.$apply(() => {
+        this.activityTab = e.currentTarget.dataset.tab
+        this.pageNum = 0
+        this.order_list = []
+        this.order_info_team = []
+      })
+      this.loadMore()
+    }
+    /**
+     * 获取数据
+     */
+    loadMore() {
+      let self = this
+      if (self.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
+        self.hidden = false
+      })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/order_union.php`,
+        data: {
+          page: self.pageNum
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          if (data.order_list.length === 0 || data.pager.page_count < self.data.pageNum) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+              self.hidden = true
+            })
+            return
+          }
+          // 数据组装
+          let list = self.order_list
+          for (var i = 0; i < data.order_list.length; i++) {
+            list.push(data.order_list[i])
+          }
+          let teamList = self.data.order_info_team
+          for (var l = 0; l < data.order_info_team.length; l++) {
+            teamList.push(data.order_info_team[l])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.order_list = list
+            self.order_info_team = teamList
+            self.hidden = true
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    /* 订单详情跳转 */
+    toOrdDetail (e) {
+      this.$navigate(`../order/orderInfo?id=${e.currentTarget.dataset.orderid}&&type=1`)
+    }
+  }
+</script>
+
+<style>
+.order-list_title {
+  padding-bottom: 20rpx;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.order-list_title text {
+  background: #fff;
+  cursor: pointer;
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  text-align: center;
+  color: #777;
+  height: 98rpx;
+  line-height: 98rpx;
+}
+
+.order-list_title text:first-child:before {
+  position: absolute;
+  content: '';
+  width: 1px;
+  height: 24px;
+  top: 24rpx;
+  right: 0;
+  background: #eee;
+}
+
+.fund-box .fund-content {
+  background: #fff;
+}
+
+.fund-box .fund-content .fund-title {
+  background: #eee;
+}
+
+.table .pay_commission {
+  font-weight: 600;
+}
+
+.table .commission {
+  text-align: right;
+}
+
+.noIncome {
+  text-align: center;
+  padding: 60rpx;
+  color: #d6244f;
+}
+
+.noIncome .iconfont-yzg {
+  font-size: 120rpx;
+}
+
+.noIncome .tip text {
+  padding: 20rpx;
+  line-height: 1.8;
+  text-align: center;
+  display: block;
+}
+
+.scrollView {
+  position: fixed;
+  top: 230rpx;
+  bottom: 2px;
+  height: auto;
+  width: 100%;
+  background-color: #fff;
+}
+.list-item {
+  border-top:1px solid #ddd;
+  height:98rpx;
+  line-height:98rpx;
+  background-color: #fff;
+  text-align: center;
+}
+.list-item view {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+  padding: 0 10rpx;
+}
+.list-item.order_list view:nth-child(1){
+ flex: 7;
+}
+.list-item.order_list view:nth-child(2){
+ flex: 5;
+}
+.list-item.order_list view:nth-child(3){
+ flex: 4;
+}
+.list-item.order_list view:nth-child(4){
+ flex: 4;
+}
+
+.list-item.order_info_team view:nth-child(1){
+ flex: 7;
+}
+.list-item.order_info_team view:nth-child(2){
+ flex: 4;
+}
+.list-item.order_info_team view:nth-child(3){
+ flex: 5;
+}
+.list-item.order_info_team view:nth-child(4){
+ flex: 4;
+}
+</style>
