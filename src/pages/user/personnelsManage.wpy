@@ -1,0 +1,634 @@
+<template>
+  <view class="order-list_title">
+    <text wx:if="{{isShop}}" bindtap="loadBigConsumer" class="{{activityTab===0?'selectedCss':''}}">我的汇商</text>
+    <text wx:if="{{isShop}}" bindtap="loadCustomer" class="{{activityTab===1?'selectedCss':''}}">我的客户</text>
+    <text wx:if="{{isDistribution}}" bindtap="loadConsumer" class="{{activityTab===2?'selectedCss':''}}">我的消费商</text>
+  </view>
+
+  <!-- 我的汇商 -->
+  <view wx:if="{{activityTab===0}}">
+    <view class="sell_amount">
+      <view class="members">
+        <text>共计：</text>
+        <text>{{bigConsumer.count_user}}人</text>
+      </view>
+      <view class="amount">
+        <text>团队销售额</text>
+        <text class="number">￥{{bigConsumer.goods_amount}}</text>
+      </view>
+    </view>
+    <view class="list_items fund-content">
+      <view class="weui-flex list-item bigConsumer" style="font-weight:bold;">
+        <view>成员</view>
+        <view>订单数</view>
+        <view>
+          销售额
+          <image src="{{imgUrl}}/storeGoods/{{sortFiled!=='amount_count'?'sortDefault.png':(sortType?'sortDown.png':'sortUp.png')}}"
+            class="sortImg" bindtap="sortFn" data-field="amount_count"></image>
+        </view>
+        <view>
+          我的佣金
+          <image src="{{imgUrl}}/storeGoods/{{sortFiled!=='commission'?'sortDefault.png':(sortType?'sortDown.png':'sortUp.png')}}"
+          class="sortImg" bindtap="sortFn" data-field="commission"></image>
+        </view>
+        <view>备注</view>
+      </view>
+      <view class="scrollView">
+        <scroll-view style="height: 100%;" scroll-y="true" wx:if="{{bigConsumer.user_list_distributer.length > 0}}">
+          <view class="weui-flex white list-item bigConsumer" wx:for="{{bigConsumer.user_list_distributer}}" wx:key="order_sn">
+            <view wx:if="{{item.remark}}">{{item.remark}}</view>
+            <view wx:elif="{{item.nickname}}">{{item.nickname}}</view>
+            <view wx:else="{{item.user_name}}">{{item.user_name}}</view>
+            <view class="">{{item.order_count ? item.order_count : '0'}}</view>
+            <view class="">￥{{item.amount_count ? item.amount_count : '0.00'}}</view>
+            <view class="">￥{{item.commission ? item.commission : '0.00'}}</view>
+            <view class="iconfont-yzg icon-yzg-beizhu" bindtap="remarkFn" data-sid="{{item.seller_id}}" data-name="{{item.remark?item.remark:(item.nickname?item.nickname:item.user_name)}}"></view>
+          </view>
+        </scroll-view>
+        <view class="weui-loadmore weui-loadmore_line" wx:if="{{!bigConsumer || bigConsumer.user_list_distributer.length === 0}}">
+          <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 我的客户 -->
+  <view wx:if="{{activityTab===1}}">
+    <view class="sell_amount">
+      <view class="members">
+        <text>共计：</text>
+        <text>{{customer.count_user}}人</text>
+      </view>
+      <view class="buy_amount">
+        <text>累计购物额:</text>
+        <text class="number">￥{{customer.goods_amount}}</text>
+      </view>
+      <view class="amount">
+        <text>获得佣金</text>
+        <text class="number">￥{{customer.total_commission}}</text>
+      </view>
+    </view>
+    <view class="list_items fund-content">
+      <view class="weui-flex list-item customer" style="font-weight:bold;">
+        <view>成员</view>
+        <view>购物订单数</view>
+        <view>
+          购物金额
+          <image src="{{imgUrl}}/storeGoods/{{sortFiled!=='amount_count'?'sortDefault.png':(sortType?'sortDown.png':'sortUp.png')}}"
+            class="sortImg" bindtap="sortFn" data-field="amount_count"></image>
+        </view>
+        <view>
+          我的佣金
+          <image src="{{imgUrl}}/storeGoods/{{sortFiled!=='commission'?'sortDefault.png':(sortType?'sortDown.png':'sortUp.png')}}"
+            class="sortImg" bindtap="sortFn" data-field="commission"></image>
+        </view>
+      </view>
+      <view class="scrollView">
+        <scroll-view style="height: 100%;" scroll-y="true" wx:if="{{customer.user_list_client.length > 0}}">
+          <view class="weui-flex white list-item customer" wx:for="{{customer.user_list_client}}" wx:key="order_sn">
+            <view wx:if="{{item.remark}}">{{item.remark}}</view>
+            <view wx:elif="{{item.nickname}}">{{item.nickname}}</view>
+            <view wx:else="{{item.user_name}}">{{item.user_name}}</view>
+            <view>{{item.order_count}}</view>
+            <view>￥{{item.amount_count}}</view>
+            <view>￥{{item.commission}}</view>
+          </view>
+        </scroll-view>
+        <view class="weui-loadmore weui-loadmore_line" wx:if="{{!customer || customer.user_list_client.length === 0}}">
+          <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 我的消费商 -->
+  <view class="team-order_list" wx:if="{{activityTab===2}}">
+    <view class="sell_amount">
+      <view class="members">
+        <text>共计：</text>
+        <text>{{consumer.total_user}}人</text>
+      </view>
+      <view class="buy_amount">
+        <text>累计购物额:</text>
+        <text class="number">￥{{consumer.total_price}}</text>
+      </view>
+      <view class="amount">
+        <text>获得佣金</text>
+        <text class="number">￥{{consumer.dis_amount}}</text>
+      </view>
+    </view>
+    <view class="list_items fund-content">
+      <view class="weui-flex list-item consumer" style="font-weight:bold;">
+        <view>级别</view>
+        <view>人数</view>
+        <view>有效订单数</view>
+        <view>购物额</view>
+      </view>
+      <view class="scrollView">
+        <scroll-view style="height: 100%;" scroll-y="true" wx:if="{{consumer.arr.length > 0}}">
+          <view class="weui-flex white list-item consumer" wx:for="{{consumer.arr}}" wx:key="order" bindtap="toConsumerDetail" data-type="{{item.grade}}">
+            <view>{{item.rank}}</view>
+            <view class="pay_commission">{{item.user}}</view>
+            <view class="pay_commission">{{item.order}}</view>
+            <view class="pay_commission">￥{{item.price}}</view>
+          </view>
+        </scroll-view>
+        <view class="weui-loadmore weui-loadmore_line" wx:if="{{!consumer || consumer.arr.length === 0}}">
+          <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class personnelsManage extends wepy.page {
+    config = {
+      navigationBarTitleText: '客户管理'
+    }
+    components = {}
+    data = {
+      imgUrl: '',
+      pageNum: 0,
+      activityTab: 0,
+      sortFiled: null,
+      sortType: null,
+      isShop: false,
+      isDistribution: false,
+      bigConsumer: {}, // 汇商数据
+      customer: {}, // 客户数据
+      consumer: {} // 消费商数据
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.$apply()
+      this.loadData()
+    }
+    onShow() {}
+    methods = {}
+    loadData() {
+      let self = this
+      // 发送请求
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/user.php`,
+        data: {
+          act: 'default'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          if (data.is_shop) {
+            // 已开店
+            self.loadBigConsumer()
+          } else if (!data.is_shop && data.is_distribution) {
+            // 未开店,只是消费商
+            self.loadConsumer()
+          }
+          // 赋值
+          self.$apply(() => {
+            self.isShop = data.is_shop
+            self.isDistribution = data.is_distribution
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    /*
+     * 获取汇商数据
+     */
+    loadBigConsumer(e, data) {
+      let self = this
+      self.$apply(() => {
+        self.activityTab = 0
+      })
+      // 加载数据
+      wepy.showLoading({ title: '加载中' })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/user_union.php`,
+        data: data || {}
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.bigConsumer = data
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    /*
+     * 获取客户数据
+     */
+    loadCustomer(e, data) {
+      let self = this
+      self.$apply(() => {
+        self.activityTab = 1
+      })
+      // 加载数据
+      wepy.showLoading({ title: '加载中' })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/client_union.php`,
+        data: data || {}
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.customer = data
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    /*
+     * 获取消费商数据
+     */
+    loadConsumer(e, data) {
+      let self = this
+      self.$apply(() => {
+        self.activityTab = 2
+      })
+      // 加载数据
+      wepy.showLoading({ title: '加载中' })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/distribution_user.php`,
+        data: data || {}
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.consumer = data
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    /*
+     * 排序
+     */
+    sortFn(e) {
+      let self = this
+      let field = e.currentTarget.dataset.field
+      self.$apply(() => {
+        self.sortFiled = field
+        self.sortType = field !== self.sortFiled ? false : !self.sortType
+      })
+      if (self.activityTab === 0) {
+        // 我的汇商排序
+        self.loadBigConsumer(null, {sort: self.sortFiled, order_by: self.sortType ? 'desc' : 'asc'})
+      } else if (self.activityTab === 1) {
+        // 我的客户排序
+        self.loadCustomer(null, {sort: self.sortFiled, order_by: self.sortType ? 'desc' : 'asc'})
+      }
+    }
+    /* 我的消费商查看详情跳转 */
+    toConsumerDetail (e) {
+      this.$navigate(`./consumerDetail?grade=${e.currentTarget.dataset.type}`)
+    }
+  }
+</script>
+
+<style lang="less">
+view{
+  margin: 0 auto;
+}
+
+.order-list_title {
+  padding-bottom: 20rpx;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.order-list_title text {
+  background: #fff;
+  cursor: pointer;
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  text-align: center;
+  color: #777;
+  position: relative;
+  height: 94rpx;
+  line-height: 94rpx;
+}
+
+.fund-box .fund-content {
+  background: #fff;
+}
+
+.fund-box .fund-content .fund-title {
+  background: #eee;
+}
+
+.sell_amount {
+  display: -webkit-flex;
+  display: flex;
+  padding: 6px 15px;
+  background: #fff;
+}
+
+.sell_amount text {
+  display: block;
+}
+
+.sell_amount .members {
+  flex: 1;
+}
+
+.sell_amount .buy_amount {
+  flex: 1;
+}
+
+.sell_amount .amount {
+  flex: 1;
+  text-align: right;
+}
+
+.sell_amount .amount .number {
+  color: #d6244f;
+}
+
+.list_items {
+  background: #fff;
+  margin-top: 4px;
+}
+
+.icon-yzg-paixu {
+  color: #ef0021 !important;
+  position: relative;
+}
+
+.icon-yzg-paixu:after {
+  content: '';
+  background: #fff;
+  width: 16px;
+  position: absolute;
+  left: 0px;
+  height: 20px;
+  opacity: 0.6;
+}
+
+.arrow_up:after {
+  content: '';
+  background: #fff;
+  width: 8px;
+  position: absolute;
+  left: 8px;
+  height: 20px;
+  opacity: 0.6;
+}
+
+.arrow_down:after {
+  content: '';
+  background: #fff;
+  width: 8px;
+  position: absolute;
+  left: 0;
+  height: 20px;
+  opacity: 0.6;
+}
+
+.arrow_up2:after {
+  content: '';
+  background: #fff;
+  width: 8px;
+  position: absolute;
+  left: 8px;
+  height: 20px;
+  opacity: 0.6;
+}
+
+.arrow_down2:after {
+  content: '';
+  background: #fff;
+  width: 8px;
+  position: absolute;
+  left: 0;
+  height: 20px;
+  opacity: 0.6;
+}
+
+.arrow_up3:after {
+  content: '';
+  background: #fff;
+  width: 8px;
+  position: absolute;
+  left: 8px;
+  height: 20px;
+  opacity: 0.6;
+}
+
+.arrow_down3:after {
+  content: '';
+  background: #fff;
+  width: 8px;
+  position: absolute;
+  left: 0;
+  height: 20px;
+  opacity: 0.6;
+}
+
+.service_provider_name {
+  width: 48px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  white-space: nowrap;
+}
+
+.icon-ajust-css {
+  font-size: 26px;
+}
+
+.white {
+  background: #fff;
+}
+
+.order-list_title {
+  display: -webkit-flex;
+  display: flex;
+  justify-content: center;
+}
+
+.order-list_title text {
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+  background: #fff;
+  position: relative;
+  height: 96rpx;
+  line-height: 96rpx;
+}
+
+.order-list_title text:before {
+  position: absolute;
+  content: '';
+  width: 1px;
+  height: 24px;
+  top: 24rpx;
+  right: 0;
+  background: #eee;
+}
+
+.time_filter {
+  font-size: 20px;
+}
+
+.order-list_title .weui-navbar__item.weui-bar__item_on {
+  background-color: #d6244f;
+  color: #fff;
+}
+
+.order-list_title .weui-navbar {
+  position: relative;
+  z-index: 1;
+}
+
+.bz-tg .bz-content .bz-title {
+  line-height: 2;
+  font-size: 14px;
+  text-align: center;
+}
+
+.bz-tg .bz-content .text-control {
+  margin: 10px 0 20px;
+  height: 44px;
+}
+
+.bz-tg .bz-content .btn-xg {
+  width: 100%;
+}
+
+.bz-close {
+  position: absolute;
+  right: 5px;
+  top: 0;
+  font-size: 20px;
+}
+
+.bz-tg {
+  position: fixed;
+  display: none;
+  width: 100%;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.8);
+  height: 100%;
+  z-index: 99999;
+}
+
+.bz-tg .bz-content {
+  border: 1px solid #666;
+  border-radius: 6px;
+  padding: 20px;
+  margin: 0 auto;
+  width: 300px;
+  position: relative;
+  top: 30%;
+  background: #fff;
+  text-align: center;
+}
+
+.reks {
+  width: 60px;
+}
+
+.service_provider {
+  display: block;
+  font-size: 12px;
+}
+
+.sortImg {
+  width: 16px;
+  height: 16px;
+  vertical-align: middle;
+}
+
+.scrollView {
+  position: fixed;
+  top: 172px;
+  bottom: 2px;
+  height: auto;
+  width: 100%;
+  background-color: #fff;
+}
+.table-td {
+  display: table-cell;
+  text-align: center;
+}
+.list-item {
+  border-top:1px solid #ddd;
+  height:94rpx;
+  line-height:94rpx;
+  background-color: #fff;
+  text-align: center;
+}
+.list-item view {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+.list-item.bigConsumer view:nth-child(1) {
+  flex:4;
+}
+.list-item.bigConsumer view:nth-child(2) {
+  flex:4;
+}
+.list-item.bigConsumer view:nth-child(3) {
+  flex:4;
+}
+.list-item.bigConsumer view:nth-child(4) {
+ flex:5;
+}
+.list-item.bigConsumer view:nth-child(5) {
+  flex:3;
+}
+
+.list-item.customer view:nth-child(1) {
+  flex:2;
+}
+.list-item.customer view:nth-child(2) {
+  flex:2;
+}
+.list-item.customer view:nth-child(3) {
+  flex:3;
+}
+.list-item.customer view:nth-child(4) {
+  flex:3;
+}
+
+.list-item.consumer view:nth-child(1) {
+  flex:1;
+}
+.list-item.consumer view:nth-child(2) {
+  flex:1;
+}
+.list-item.consumer view:nth-child(3) {
+  flex:1;
+}
+.list-item.consumer view:nth-child(4) {
+  flex:1;
+}
+</style>
