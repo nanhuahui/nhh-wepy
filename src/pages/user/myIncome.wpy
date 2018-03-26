@@ -1,0 +1,115 @@
+<template>
+  <scroll-view scroll-y="true" height="100%">
+    <view class="incomeCont">
+      <view>
+        <view class="list-item">
+          <view style="font-size: 28rpx;color: #c8975c;">佣金收入</view>
+          <view class="incomeShow">
+            <text style="color: #c8975c;">{{availableIncome.user_cash_available}}</text>
+            <navigator class="link" url="../commission/withdrawIndex">提现</navigator>
+          </view>
+        </view>
+        <view class="list-item">
+          <view style="font-size: 28rpx;color: #c8975c;">自营收入</view>
+          <view class="incomeShow">
+            <text style="color: #c8975c;">{{availableIncome.shop_cash_available ? availableIncome.shop_cash_available : '0.00'}}</text>
+            <navigator class="link" url="../uploadGoods/withdrawIndex">提现</navigator>
+          </view>
+        </view>
+      </view>
+      <view class="tips" style="color: #666;font-size: 24rpx;">用户每月从该月15日起到该月的29日可以对上月底之前的所有佣金进行提现。</view>
+    </view>
+  </scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class myIncome extends wepy.page {
+    config = {
+      navigationBarTitleText: '我的收入'
+    }
+    components = {}
+    data = {
+      availableIncome: {}
+    }
+    onLoad() {
+      this.getIncome()
+    }
+    onShow() {}
+    methods = {}
+    /**
+     * 获取数据
+     */
+    getIncome () {
+      let self = this
+      wepy.showLoading({ title: '加载中' })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/order/order_amount.php`,
+        data: {
+          act: 'commission_cash'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.availableIncome = data
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.incomeCont .list-item {
+  margin: 30rpx;
+  height: 274rpx;
+  background: url('http://wxassets.xf66.com/storeGoods/yj_bg.png') no-repeat;
+  background-size: 100%;
+  box-shadow: 2px 2px 20px #000;
+  border-radius: 5px;
+  padding: 30rpx;
+  box-sizing: border-box;
+}
+
+.incomeCont .list-item:last-child {
+  background: url('http://wxassets.xf66.com/storeGoods/zy_bg.png') no-repeat;
+  background-size: 100%;
+  box-sizing: border-box;
+}
+
+.incomeShow {
+  padding-top: 10px;
+  position: relative;
+}
+
+.incomeShow text {
+  font-size: 60rpx;
+}
+
+.incomeShow .link {
+  width: 50px;
+  height: 20px;
+  text-align: center;
+  line-height: 20px;
+  border-radius: 20px;
+  text-decoration: none;
+  border: 1px solid #c8975c;
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  top: 23px;
+  font-size: 24rpx;
+  color: #c8975c;
+}
+
+.incomeCont .tips {
+  padding: 15px;
+}
+</style>
