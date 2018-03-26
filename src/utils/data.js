@@ -1,9 +1,9 @@
 import wepy from 'wepy'
+import { STATIC_IMG_PATH } from '../config'
 
 let device = wepy.getSystemInfoSync()
 let w = device.windowWidth
 let h = device.windowHeight
-let staticImgPath = 'https://huahuishang.com/static/images'
 
 module.exports = {
   /*
@@ -11,7 +11,7 @@ module.exports = {
    */
   composeImageForIndex: [
     {
-      src: `${staticImgPath}/share/shopIndexBg.jpg`,
+      src: `${STATIC_IMG_PATH}/share/shopIndexBg.jpg`,
       width: w,
       height: h,
       x: 0,
@@ -49,14 +49,14 @@ module.exports = {
       y: 0,
       isCircular: false
     }, {
-      src: `${staticImgPath}/share/hot.png`,
+      src: `${STATIC_IMG_PATH}/share/hot.png`,
       width: 100,
       height: 100,
       x: 0,
       y: 0,
       isCircular: false
     }, {
-      src: `${staticImgPath}/share/qrBackground.png`,
+      src: `${STATIC_IMG_PATH}/share/qrBackground.png`,
       width: w / 3,
       height: w / 3,
       x: w - w / 3 - 10,
@@ -76,7 +76,7 @@ module.exports = {
    */
   composeTextForGoods: [
     {
-      ruler: [w / 5 , h * 0.66, 20],
+      ruler: [w / 5, h * 0.66, 20],
       style: '#000000',
       align: 'left',
       text: '' // 商品主标题
@@ -108,7 +108,7 @@ module.exports = {
    */
   placardPreImg(i) {
     return {
-      url: `${staticImgPath}/placard/${i}.jpg`,
+      url: `${STATIC_IMG_PATH}/placard/${i}.jpg`,
       title: ''
     }
   },
@@ -117,7 +117,7 @@ module.exports = {
    */
   placardDrawImg(i) {
     return [{
-      src: `${staticImgPath}/placard/${i}.jpg`,
+      src: `${STATIC_IMG_PATH}/placard/${i}.jpg`,
       width: w,
       height: h,
       x: 0,

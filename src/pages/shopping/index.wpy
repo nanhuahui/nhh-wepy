@@ -28,6 +28,12 @@
     <!-- 楼层 -->
     <floorGoods :composeFloorArr.sync="composeFloorArr" :imgUrl.sync="imgUrl" componentId="floorGoods"></floorGoods>
 
+    <!-- 分享小程序码浮层 -->
+    <qrPatchLayer bottom="4" isSlot="true"
+      :shareImgArr.sync="shopImg" :shareTextArr.sync="shopText" :shareLink.sync="shopLink"
+      :shareLinkParam.sync="shopLinkParam" :qrShareShow.sync="qrShareShow"
+      :composeSize.sync="composeSize" :imgUrl.sync="imgUrl"></qrPatchLayer>
+
     <!-- 个性推荐 -->
     <recommendSale :recommendList.sync="recommendList" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" :recommendListShow.sync="recommendListShow" :catId.sync="catId" :pageNum.sync="pageNum" :isCollect.sync="isCollect" componentId="recommendSale"></recommendSale>
   </view>
@@ -44,6 +50,7 @@ import recommendSale from '../../components/recommend-sale'
 import specialSale from '../../components/special-sale'
 import coustomerGoods from '../../components/coustomer-goods'
 import floorGoods from '../../components/floor-goods'
+import qrPatchLayer from '../../components/qrPatch-layer'
 
 export default class Index extends wepy.page {
   config = {
@@ -58,7 +65,8 @@ export default class Index extends wepy.page {
     recommendSale,
     specialSale,
     coustomerGoods,
-    floorGoods
+    floorGoods,
+    qrPatchLayer
   }
   data = {
     imgUrl: '',
@@ -103,10 +111,48 @@ export default class Index extends wepy.page {
 
   methods = {}
 
+  onShareAppMessage(options) {
+    if (options.from === 'button') {
+      // 来自页面内转发按钮
+      console.log(options.target)
+    }
+    let storeName = wepy.getStorageSync('store_nhh') ? wepy.getStorageSync('store_nhh').name : ''
+    console.log('INDEX SHARE LINK:', this.shopLink + this.shopLinkParam)
+    return {
+      title: `${storeName}首页`,
+      path: this.shopLink + this.shopLinkParam,
+      // imageUrl: '自定义图片路径，可以是本地文件路径、代码包文件路径或者网络图片路径，支持PNG及JPG，不传入 imageUrl 则使用默认截图',
+      success: function (res) {
+        // 转发成功
+        console.log('success', res)
+        if (res.shareTickets) {
+          // 获取转发详细信息
+          let as = wepy.getShareInfo({
+            shareTicket: res.shareTickets[0],
+            success(res) {
+              console.log(172, res)
+              // res.errMsg // 错误信息
+              // res.encryptedData //  解密后为一个 JSON 结构（openGId    群对当前小程序的唯一 ID）
+              // res.iv // 加密算法的初始向量
+            },
+            fail() {},
+            complete() {}
+          })
+          console.log(as)
+        }
+      },
+      fail: function (res) {
+        // 转发失败
+        console.log('fail', res)
+      }
+    }
+  }
+
   onLoad() {}
 
   onShow() {
     this.imgUrl = this.$parent.globalData.imgUrl
+    this.qrShareShow = false
     this.$apply()
     // 加载数据
     this.loadData()
@@ -175,7 +221,6 @@ export default class Index extends wepy.page {
         self.new_daily = self.data.new_daily
         self.allDayHot = data.hot_list
         self.shopperChoose = data.shop_best_goods
-        self.sellerIdTemp = wepy.getStorageSync('sellerId')
         self.ptList = data.pt_list
         self.ptTotalNum = data.pt_total_num
         self.special = data.special

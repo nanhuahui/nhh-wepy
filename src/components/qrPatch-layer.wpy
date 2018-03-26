@@ -1,0 +1,90 @@
+<style lang="less">
+</style>
+
+<template>
+  <!-- 分享小程序码 -->
+  <view class="shareQ" style="bottom: {{bottom}}rpx;z-index: 1700;" wx:if="{{!qrShareShow  && sellerId}}"
+    data-type="{{1}}" bindtap="switchPatch">
+    <image style="width:144rpx;height: 144rpx;" src="{{imgUrl}}/fenxiang.png"></image>
+  </view>
+
+  <!-- 显示部分 -->
+  <view class="shopShare" wx:if="{{qrShareShow}}">
+    <view class="shopShareBg" bindtap="switchPatch" data-type="{{0}}"></view>
+    <view class="shopShareCont">
+      <compose-image imageArr="{{shareImgArr}}" textArr="{{shareTextArr}}"
+       qrValue="{{shareLink}}" qrParam="{{shareLinkParam}}" bgColor="{{'#ffffff'}}" commonSize="{{composeSize}}">
+       <view wx:if="{{isSlot}}" slot="composeSlot" style="float: right;margin: 0 5px -5px 0;">
+         <navigator url="../placard/placard" hover-class="navigator-hover">
+           <button class="weui-btn" type="primary" size="mini">选模板</button>
+         </navigator>
+        </view>
+      </compose-image>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import composeData from '../utils/data'
+
+export default class qrPatchLayer extends wepy.component {
+  props = {
+    bottom: String, // 静态传值为父组件向子组件传递常量数据，因此只能传递String字符串类型。
+    isSlot: String,
+    qrShareShow: Object,
+    shareImgArr: Object,
+    shareTextArr: Object,
+    shareLink: Object,
+    shareLinkParam: Object,
+    imgUrl: Object
+  }
+  data = {
+    sellerId: null
+  }
+  methods = {
+    switchPatch(e) {
+      // 处理小程序码贴片
+      this.loadShareQr(e.currentTarget.dataset.type)
+    }
+  }
+  onLoad() {
+    console.log('加载贴片组件', this.data)
+    this.sellerId = wepy.getStorageSync('sellerId')
+    this.$apply()
+  }
+  /*
+   * 小程序码参数
+   */
+  loadShareQr(t) {
+    // 先隐藏显示
+    this.$apply(() => {
+      this.qrShareShow = false
+    })
+    if (!t) {
+      // t=0表示隐藏不执行
+      return
+    }
+    console.log(123321)
+    // 读取是否定制显示海报
+    let k = parseFloat(wepy.getStorageSync('placardIndex'))
+    let w = wepy.getSystemInfoSync().screenWidth
+    let h = wepy.getSystemInfoSync().screenHeight
+    if (!isNaN(k)) {
+      this.shopImg = composeData.placardDrawImg(k)
+      this.shopText = composeData.placardDrawText
+      this.composeSize = {qr: [w * 0.74, h - w / 5 - 30, w / 5, w / 5]}
+    } else {
+      this.composeSize = {qr: [w / 3, h / 2 + 4, w / 3, w / 3]}
+      this.shopImg = composeData.composeImageForIndex
+      this.shopText = composeData.composeTextForIndex
+    }
+
+    // 设置贴图的图片
+    this.shopImg[1].src = wepy.getStorageSync('store_nhh').avatar
+    this.shopText[0].text = wepy.getStorageSync('store_nhh') ? wepy.getStorageSync('store_nhh').name : '南华汇商城'
+    this.qrShareShow = true
+    this.$apply()
+  }
+}
+</script>
