@@ -1,0 +1,183 @@
+<template>
+  <!-- 合图组件 -->
+  <view style="margin-top: -40px">
+    <slot name="composeSlot" wx:if="{{showSlot}}"></slot>
+
+    <canvas canvas-id="composeCanvas" binderror="canvasIdErrorCallback" wx:if="{{!hiddenCanvas}}"
+      style="width: {{canvasWidth}}px;height: {{canvasHeight}}px;margin-left: 200%;"></canvas>
+
+    <image src="{{imgPath}}" mode="widthFix" wx:if="{{imgPath}}"
+      binderror="" bindload="" bindtap="previewImage"
+      style="width: {{width}}px;height: {{height}}px;"></image>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { drawingMiniQr } from '../utils'
+
+let w = wepy.getSystemInfoSync().screenWidth
+let h = wepy.getSystemInfoSync().screenHeight
+
+export default class composeImage extends wepy.component {
+  props = {
+    width: {
+      type: Number,
+      value: w * 0.76
+    },
+    height: {
+      type: Number,
+      value: h * 0.86
+    },
+    canvasWidth: {
+      type: Number,
+      value: w
+    },
+    canvasHeight: {
+      type: Number,
+      value: h
+    },
+    bgColor: {
+      type: String,
+      value: '#ffffff'
+    },
+    qrValue: {
+      type: String,
+      value: 'pages/shopping/index'
+    },
+    qrParam: {
+      type: String,
+      value: ''
+    },
+    commonSize: {
+      type: Object,
+      value: {
+        qr: [250, 380, 122, 122]
+      }
+    },
+    imageArr: {
+      type: Array,
+      value: []
+    },
+    textArr: {
+      type: Array,
+      value: []
+    }
+  }
+  data = {
+    qrImgPath: null,
+    imgPath: null,
+    hiddenCanvas: false,
+    showSlot: false
+  }
+  methods = {
+    canvasIdErrorCallback: function (e) {
+      console.error(144, e.detail.errMsg)
+    },
+    previewImage() {
+      wepy.previewImage({
+        // 需要预览的图片http链接  使用split把字符串转数组。不然会报错
+        urls: this.imgPath.split(','),
+        success: (res) => {
+          console.log('预览成功', res)
+        },
+        fail: (res) => {
+          console.log('预览失败', res)
+        },
+        complete: (res) => {
+          console.log('预览完成', res)
+        }
+      })
+    }
+  }
+  onLoad() {}
+  drawFn(img, text, link, param) {
+    console.log(img, text, link, param)
+    // 调用公共方法去绘制
+    let vm = this
+    const ctx = wepy.createCanvasContext('composeCanvas', vm)
+    wepy.showLoading({title: '绘制中', mask: true})
+    drawingMiniQr(img, text, link, param, ctx).then((res) => {
+      // 把当前画布指定区域的内容导出生成指定大小的图片，并返回文件路径(此路径指在小程序环境下生效)
+      setTimeout(() => {
+        wepy.canvasToTempFilePath({
+          // x: 0,
+          // y: 0,
+          // width: 500,
+          // height: 500,
+          // destWidth: 100,
+          // destHeight: 100,
+          canvasId: 'composeCanvas',
+          success: function(res) {
+            vm.imgPath = res.tempFilePath
+            vm.hiddenCanvas = true
+            vm.$apply()
+          },
+          fail: function (err) {
+            console.error(err)
+          },
+          complete: function(res) {
+            vm.showSlot = true
+            vm.$apply()
+            wepy.hideLoading()
+          }
+        }, vm)
+      }, 500)
+    }).catch((e) => {
+      wepy.hideLoading()
+      console.log('合成小程序码图片出错', e)
+    })
+  }
+}
+</script>
+
+<style lang="less">
+.goods-main {
+  width: 100%;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+.goods-img {
+  display: flex;
+}
+
+.goods-img image {
+  width: 100%;
+}
+
+.shop-price {
+  padding: 4rpx 24rpx 8rpx;
+  font-size: 26rpx;
+  padding-right: 10px;
+  color: #ef0021;
+}
+
+.market-price {
+  color: #999;
+  text-decoration: line-through;
+  font-size: 22rpx;
+}
+
+.goods-title {
+  font-size: 23rpx;
+  color: #999;
+  padding: 0 24rpx;
+  overflow: hidden;
+}
+
+.goods-brief {
+  font-size: 25rpx;
+  color: #333;
+  overflow: hidden;
+  box-sizing: border-box;
+  height: 36rpx;
+  padding: 0 24rpx;
+}
+
+.ellipsis {
+  text-overflow:ellipsis;
+  overflow:hidden;
+  white-space:nowrap;
+}
+</style>

@@ -41,6 +41,7 @@
 
 <script>
 import wepy from 'wepy'
+import composeData from '../../utils/data'
 import header from '../../components/index-header'
 import swiper from '../../components/index-swiper'
 import category from '../../components/index-category'
@@ -104,7 +105,11 @@ export default class Index extends wepy.page {
     ptTotalNum: null, // 参与拼团人数
     groupGoodsNumber: 0, // 拼团商品数量
     currentPageRoute: null,
-    showQuickIcon: 'default'  // 快捷按钮是否打开
+    showQuickIcon: 'default',  // 快捷按钮是否打开
+    shopLink: null,
+    shopLinkParam: null,
+    shopImg: null,
+    shopText: null
   }
 
   computed = {}
@@ -157,8 +162,28 @@ export default class Index extends wepy.page {
     // 加载数据
     this.loadData()
     this.loadRecommend()
+    this.readyForQr()
   }
+  // 读取是否定制显示海报
+  readyForQr() {
+    let k = parseFloat(wepy.getStorageSync('placardIndex'))
+    let w = wepy.getSystemInfoSync().screenWidth
+    let h = wepy.getSystemInfoSync().screenHeight
+    if (!isNaN(k)) {
+      this.shopImg = composeData.placardDrawImg(k)
+      this.shopText = composeData.placardDrawText
+      this.composeSize = {qr: [w * 0.74, h - w / 5 - 30, w / 5, w / 5]}
+    } else {
+      this.composeSize = {qr: [w / 3, h / 2 + 4, w / 3, w / 3]}
+      this.shopImg = composeData.composeImageForIndex
+      this.shopText = composeData.composeTextForIndex
+    }
 
+    // 设置贴图的图片
+    this.shopImg[1].src = wepy.getStorageSync('store_nhh').avatar
+    this.shopText[0].text = wepy.getStorageSync('store_nhh') ? wepy.getStorageSync('store_nhh').name : '南华汇商城'
+    this.$apply()
+  }
   loadData() {
     let self = this
     self.shopLink = 'pages/shopping/index'
@@ -168,7 +193,7 @@ export default class Index extends wepy.page {
     wepy.request({
       url: `${self.$parent.globalData.apiUrl}/get_category.php`
     }).then(({data: {errcode, data, msg}}) => {
-      console.log('分类菜单', errcode, data, msg)
+      // console.log('分类菜单', errcode, data, msg)
       let self = this
       if (errcode === 0) {
         // 组装菜单
@@ -192,7 +217,7 @@ export default class Index extends wepy.page {
         uid: wepy.getStorageSync('sellerId')
       }
     }).then(({data: {errcode, data, msg}}) => {
-      console.log('首页数据', errcode, data, msg)
+      // console.log('首页数据', errcode, data, msg)
       // 组装各个楼层数据
       let tempFloor = []
       tempFloor.push(
@@ -255,7 +280,7 @@ export default class Index extends wepy.page {
         page: self.data.pageNum
       }
     }).then(({data: {errcode, data, msg}}) => {
-      console.log('个性推荐', errcode, data, msg)
+      // console.log('个性推荐', errcode, data, msg)
       if (errcode === 0) {
         let list = this.data.recommendListShow
         let recList = this.data.recommendList
