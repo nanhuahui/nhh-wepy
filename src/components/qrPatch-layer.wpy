@@ -45,15 +45,16 @@ export default class qrPatchLayer extends wepy.component {
   }
   methods = {
     switchPatch(e) {
-      this.qrShareShow = true
-      // 处理小程序码贴片
-      this.$invoke('composeImage', 'drawFn', 'pages/shopping/index/index', this.shareLinkParam, this.shareImgArr, this.shareTextArr)
+      this.qrShareShow = !this.qrShareShow
+      if (this.qrShareShow) {
+        // 处理小程序码贴片
+        this.$invoke('composeImage', 'drawFn', this.shareLink, this.shareLinkParam, this.shareImgArr, this.shareTextArr)
+      }
     }
   }
   onLoad() {
     this.sellerId = wepy.getStorageSync('sellerId')
     this.$apply()
-    console.log(this.data)
   }
 }
 </script>

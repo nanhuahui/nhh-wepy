@@ -16,27 +16,11 @@
 import wepy from 'wepy'
 import { drawingMiniQr } from '../utils'
 
-let w = wepy.getSystemInfoSync().screenWidth
-let h = wepy.getSystemInfoSync().screenHeight
+let w = wepy.getSystemInfoSync().windowWidth
+let h = wepy.getSystemInfoSync().windowHeight
 
 export default class composeImage extends wepy.component {
   props = {
-    width: {
-      type: Number,
-      value: w * 0.76
-    },
-    height: {
-      type: Number,
-      value: h * 0.86
-    },
-    canvasWidth: {
-      type: Number,
-      value: w
-    },
-    canvasHeight: {
-      type: Number,
-      value: h
-    },
     bgColor: {
       type: String,
       value: '#ffffff'
@@ -68,7 +52,11 @@ export default class composeImage extends wepy.component {
     qrImgPath: null,
     imgPath: null,
     hiddenCanvas: false,
-    showSlot: false
+    showSlot: false,
+    width: w * 0.76,
+    height: h * 0.86,
+    canvasWidth: w,
+    canvasHeight: h
   }
   methods = {
     canvasIdErrorCallback: function (e) {

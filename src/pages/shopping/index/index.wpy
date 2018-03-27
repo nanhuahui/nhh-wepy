@@ -163,8 +163,8 @@ export default class Index extends wepy.page {
   // 读取是否定制显示海报
   readyForQr() {
     let k = parseFloat(wepy.getStorageSync('placardIndex'))
-    let w = wepy.getSystemInfoSync().screenWidth
-    let h = wepy.getSystemInfoSync().screenHeight
+    let w = wepy.getSystemInfoSync().windowWidth
+    let h = wepy.getSystemInfoSync().windowHeight
     if (!isNaN(k)) {
       this.shopImg = composeData.placardDrawImg(k)
       this.shopText = composeData.placardDrawText
@@ -182,7 +182,7 @@ export default class Index extends wepy.page {
   }
   loadData() {
     let self = this
-    self.shopLink = 'pages/shopping/index'
+    self.shopLink = 'pages/shopping/index/index'
     self.shopLinkParam = wepy.getStorageSync('sellerId') ? `?s=${wepy.getStorageSync('sellerId')}` : ''
     self.$apply()
     // 获取分类菜单
