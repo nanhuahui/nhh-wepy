@@ -12,12 +12,11 @@
   <view class="shopShare" wx:if="{{qrShareShow}}">
     <view class="shopShareBg" bindtap="switchPatch" data-type="{{0}}"></view>
     <view class="shopShareCont">
-      <composeImage bgColor="#ffffff" imageArr.sync="shareImgArr" textArr.sync="shareTextArr"
-       qrValue.sync="shareLink" qrParam.sync="shareLinkParam" commonSize.sync="composeSize">
-       <view wx:if="{{isSlot}}" slot="composeSlot" style="float: right;margin: 0 5px -5px 0;">
-         <navigator url="../placard/placard" hover-class="navigator-hover">
-           <button class="weui-btn" type="primary" size="mini">选模板</button>
-         </navigator>
+      <composeImage bgColor="#ffffff">
+        <view wx:if="{{isSlot}}" slot="composeSlot" style="float: right;margin: 0 5px -5px 0;">
+          <navigator url="../placard/placard" hover-class="navigator-hover">
+            <button class="weui-btn" type="primary" size="mini">选模板</button>
+          </navigator>
         </view>
       </composeImage>
     </view>
@@ -27,28 +26,28 @@
 <script>
 import wepy from 'wepy'
 import composeImage from './compose-image'
+import { IMG_URL } from '../config'
 
 export default class qrPatchLayer extends wepy.component {
   components = { composeImage }
   props = {
     bottom: String, // 静态传值为父组件向子组件传递常量数据，因此只能传递String字符串类型。
     isSlot: String,
-    qrShareShow: Object,
     shareImgArr: Object,
     shareTextArr: Object,
-    shareLink: Object,
-    shareLinkParam: Object,
-    imgUrl: Object
+    shareQR: Object
   }
   data = {
-    sellerId: null
+    sellerId: null,
+    imgUrl: IMG_URL,
+    qrShareShow: false
   }
   methods = {
     switchPatch(e) {
       this.qrShareShow = !this.qrShareShow
       if (this.qrShareShow) {
         // 处理小程序码贴片
-        this.$invoke('composeImage', 'drawFn', this.shareLink, this.shareLinkParam, this.shareImgArr, this.shareTextArr)
+        this.$invoke('composeImage', 'drawFn', this.shareImgArr, this.shareTextArr, this.shareQR)
       }
     }
   }

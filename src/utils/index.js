@@ -142,19 +142,17 @@ function checkIdcard(idcard) {
 
 /*
  * 绘制小程序码合图
- * 需要传递参数对象和ctx对象,返回时通过wx.canvasToTempFilePath存储图片
- * 参考compose-imgage.js或posterShare.js
+ * 需要传递参数对象(图片,文字,小程序码)和ctx对象,返回时通过wx.canvasToTempFilePath存储图片
  */
-async function drawingMiniQr(link, param, imageArr, text, ctx) {
-  console.log(90901, link, param, imageArr, text)
+async function drawingMiniQr(imageArr, text, qr, ctx) {
   return new Promise((resolve, reject) => {
     wepy.request({
       method: 'POST',
       header: { 'Content-Type': 'application/x-www-form-urlencoded' },
       url: `${API_URL}/wx_app/get_qrcode.php?act=get_qrcode`,
       data: {
-        page: link,
-        scene: param // 长按图片识别小程序码1048
+        page: qr.link,
+        scene: qr.param // 长按图片识别小程序码1048
       }
     }).then(({data: {errcode, data, msg}}) => {
       if (errcode === 0) {
@@ -178,7 +176,6 @@ async function drawingMiniQr(link, param, imageArr, text, ctx) {
         // 转换基本图片
         Promise.all(promises).then(function(posts) {
           // success
-          console.log(903, posts, qrImgPath)
           imageArr = posts
 
           // 转换小程序码图片
@@ -200,9 +197,7 @@ async function drawingMiniQr(link, param, imageArr, text, ctx) {
               renderText(text, ctx)
 
               // 绘制小程序码
-              let qrSize = [250, 380, 122, 122]
-              // console.log(888, params.qrImgPath);
-              ctx.drawImage(qrImgPath, qrSize[0], qrSize[1], qrSize[2], qrSize[3])
+              ctx.drawImage(qrImgPath, qr.x, qr.y, qr.size, qr.size)
 
               // 调用绘制方法
               ctx.draw()
@@ -237,11 +232,11 @@ function renderImg(imageArr, ctx) {
   let arr = imageArr
   for (let i in arr) {
     let im = arr[i]
-    if (im.isCircular) {
+    if (im.c) {
       // 绘制大圆
       ctx.save()
       ctx.beginPath()
-      ctx.arc(im.x + im.width / 2, im.y + im.width / 2, im.width / 2, 0, 2 * Math.PI)
+      ctx.arc(im.x + im.w / 2, im.y + im.w / 2, im.w / 2, 0, 2 * Math.PI)
       ctx.fill()
       ctx.clip()
       ctx.restore()
@@ -249,15 +244,15 @@ function renderImg(imageArr, ctx) {
       // 绘制圆中圆
       ctx.save()
       ctx.beginPath()
-      ctx.arc(im.x + im.width / 2, im.y + im.width / 2, im.width / 2 - 2.8, 0, 2 * Math.PI)
+      ctx.arc(im.x + im.w / 2, im.y + im.w / 2, im.w / 2 - 2.8, 0, 2 * Math.PI)
       ctx.setFillStyle('#AAAAAA')
       ctx.fill()
       ctx.clip()
       // 绘制图片
-      ctx.drawImage(im.src, im.x, im.y, im.width, im.height)
+      ctx.drawImage(im.src, im.x, im.y, im.w, im.h)
       ctx.restore()
     } else {
-      ctx.drawImage(im.src, im.x, im.y, im.width, im.height)
+      ctx.drawImage(im.src, im.x, im.y, im.w, im.h)
     }
   }
 }
@@ -269,19 +264,19 @@ function renderText(textArr, ctx) {
   ctx.save()
   for (let i in textArr) {
     let t = textArr[i]
-    let x = t.ruler[0]
-    let y = t.ruler[1]
-    let s = t.ruler[2]
+    let x = t.x
+    let y = t.y
+    let s = t.size
     // 文字存在背景色时, 需要在对象中新增bg: {w: 340, h: 60, r: 10, c: '#464120'}
     if (t.bg) {
       ctx.setFillStyle(t.bg.c)
-      ctx.fillRect(x - 14, y - 26, t.bg.w, t.bg.h)
+      ctx.fillRect(t.x - 14, t.y - 26, t.bg.w, t.bg.h)
     }
 
     // 字体和样式
     ctx.setFillStyle(t.style)
     ctx.setTextAlign(t.align)
-    ctx.setFontSize(s)
+    ctx.setFontSize(t.size)
     if (t.width) {
       // 匹配是否要分词
       // let maxLineCount = Math.floor(t.width / s)
@@ -306,7 +301,7 @@ function renderText(textArr, ctx) {
       }
     } else {
       // 直接渲染
-      ctx.fillText(t.text, x, y)
+      ctx.fillText(t.text, t.x, t.y)
     }
   }
 }

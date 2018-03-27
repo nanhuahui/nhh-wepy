@@ -25,10 +25,7 @@
     <floorGoods :composeFloorArr.sync="composeFloorArr" :imgUrl.sync="imgUrl" componentId="floorGoods"></floorGoods>
 
     <!-- 分享小程序码浮层 -->
-    <qrPatchLayer bottom="4" isSlot="true"
-      :shareImgArr.sync="shopImg" :shareTextArr.sync="shopText" :shareLink.sync="shopLink"
-      :shareLinkParam.sync="shopLinkParam" :qrShareShow.sync="qrShareShow"
-      :composeSize.sync="composeSize" :imgUrl.sync="imgUrl"></qrPatchLayer>
+    <qrPatchLayer bottom="10" isSlot="true" :shareImgArr.sync="shareImg" :shareTextArr.sync="shareText" :shareQR.sync="shareQR"></qrPatchLayer>
 
     <!-- 个性推荐 -->
     <recommendSale :recommendList.sync="recommendList" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" :recommendListShow.sync="recommendListShow" :catId.sync="catId" :pageNum.sync="pageNum" :isCollect.sync="isCollect" componentId="recommendSale"></recommendSale>
@@ -94,7 +91,6 @@ export default class Index extends wepy.page {
     img_domain: null,
     isCollect: false,
     categoryArr: [], // 分类
-    qrShareShow: false,
     myAuctionNum: null, // 用户拍卖获拍未付款的商品数量
     popShow: false, // 新信息弹窗是否显示
     ptList: [], // 拼团商品列表
@@ -104,8 +100,9 @@ export default class Index extends wepy.page {
     showQuickIcon: 'default',  // 快捷按钮是否打开
     shopLink: null,
     shopLinkParam: null,
-    shopImg: null,
-    shopText: null
+    shareImg: null,
+    shareText: null,
+    shareQR: null
   }
 
   computed = {}
@@ -153,7 +150,6 @@ export default class Index extends wepy.page {
 
   onShow() {
     this.imgUrl = this.$parent.globalData.imgUrl
-    this.qrShareShow = false
     this.$apply()
     // 加载数据
     this.loadData()
@@ -166,18 +162,21 @@ export default class Index extends wepy.page {
     let w = wepy.getSystemInfoSync().windowWidth
     let h = wepy.getSystemInfoSync().windowHeight
     if (!isNaN(k)) {
-      this.shopImg = composeData.placardDrawImg(k)
-      this.shopText = composeData.placardDrawText
-      this.composeSize = {qr: [w * 0.74, h - w / 5 - 30, w / 5, w / 5]}
+      this.shareImg = composeData.placardDrawImg(k)
+      this.shareText = composeData.placardDrawText
+      // 设置小程序码
+      this.shareQR = { link: this.shopLink, param: this.shopLinkParam, size: w / 5, x: w * 0.74, y: h - w / 5 - 30 }
     } else {
-      this.composeSize = {qr: [w / 3, h / 2 + 4, w / 3, w / 3]}
-      this.shopImg = composeData.composeImageForIndex
-      this.shopText = composeData.composeTextForIndex
+      this.shareImg = composeData.composeImageForIndex
+      this.shareText = composeData.composeTextForIndex
+      // 设置小程序码
+      this.shareQR = { link: this.shopLink, param: this.shopLinkParam, size: w / 3, x: w / 3, y: h / 2 + 4 }
     }
 
     // 设置贴图的图片
-    this.shopImg[1].src = wepy.getStorageSync('store_nhh').avatar
-    this.shopText[0].text = wepy.getStorageSync('store_nhh') ? wepy.getStorageSync('store_nhh').name : '南华汇商城'
+    this.shareImg[1].src = wepy.getStorageSync('store_nhh').avatar
+    this.shareText[0].text = wepy.getStorageSync('store_nhh') ? wepy.getStorageSync('store_nhh').name : '南华汇商城'
+
     this.$apply()
   }
   loadData() {

@@ -12,63 +12,63 @@ module.exports = {
   composeImageForIndex: [
     {
       src: `${STATIC_IMG_PATH}/share/shopIndexBg.jpg`,
-      width: w,
-      height: h,
+      w: w,
+      h: h,
       x: 0,
       y: 0,
-      isCircular: false
+      c: false
     }, {
       src: '',
-      width: w / 10,
-      height: w / 10,
+      w: w / 10,
+      h: w / 10,
       x: w / 2 - 68,
       y: h * 0.74 + 2,
-      isCircular: true
+      c: true
     }
   ],
   /*
    * 首页二维码合成文字
    */
-  composeTextForIndex: [
-    {
-      ruler: [w * 0.44, h * 0.8 - 4, 14],
-      style: '#333333',
-      align: 'left',
-      text: ''
-    }
-  ],
+  composeTextForIndex: [{
+    text: '',
+    x: w * 0.44,
+    y: h * 0.8 - 4,
+    style: '#333333',
+    align: 'left',
+    size: 14
+  }],
   /*
    * 商品详情二维码合成图
    */
   composeImageForGoods: [
     {
       src: '',
-      width: w,
-      height: h / 2,
+      w: w,
+      h: h / 2,
       x: 0,
       y: 0,
-      isCircular: false
+      c: false
     }, {
       src: `${STATIC_IMG_PATH}/share/hot.png`,
-      width: 100,
-      height: 100,
+      w: 100,
+      h: 100,
       x: 0,
       y: 0,
-      isCircular: false
+      c: false
     }, {
       src: `${STATIC_IMG_PATH}/share/qrBackground.png`,
-      width: w / 3,
-      height: w / 3,
+      w: w / 3,
+      h: w / 3,
       x: w - w / 3 - 10,
       y: h - w / 3,
-      isCircular: false
+      c: false
     }, {
       src: '',
-      width: w / 8,
-      height: w / 8,
+      w: w / 8,
+      h: w / 8,
       x: 20,
       y: h * 0.6,
-      isCircular: true
+      c: true
     }
   ],
   /*
@@ -118,52 +118,54 @@ module.exports = {
   placardDrawImg(i) {
     return [{
       src: `${STATIC_IMG_PATH}/placard/${i}.jpg`,
-      width: w,
-      height: h,
+      w: w,
+      h: h,
       x: 0,
       y: 0,
-      isCircular: false
+      c: false
     }, {
       src: '',
-      width: w / 7,
-      height: w / 7,
+      w: w / 7,
+      h: w / 7,
       x: 10,
       y: h * 0.9 - 10,
-      isCircular: false
+      c: false
     }]
   },
   /*
    * 海报预览图合成的文字
    */
   placardDrawText: [{
-    ruler: [w / 7 + 20, h - 14, 14],
+    text: '',
+    x: w / 7 + 20,
+    y: h - 14,
     style: '#FFFFFF',
     align: 'left',
-    text: ''
+    size: 14
   }, {
-    ruler: [w - 16, h - 14, 12],
+    text: '长按小程序码进店',
+    x: w - 16,
+    y: h - 14,
     style: '#FFFFFF',
     align: 'right',
-    text: '长按小程序码进店'
+    size: 12
   }],
   // 逛逛精选合成图片
   composeImageForStroll: [
     {
       src: '',  // 商品图
-      width: 60,
-      height: 60,
+      w: 60,
+      h: 60,
       x: 30,
-      // y: 760,
-      y: h + 200, // -200
-      isCircular: false
+      y: h + 200,
+      c: false
     }, {
       src: '',   // 头像
-      width: 50,
-      height: 50,
+      w: 50,
+      h: 50,
       x: 15,
-      // y: 880,
-      y: h + 115, // -115
-      isCircular: true
+      y: h + 115,
+      c: true
     }
   ],
   // 逛逛精选合成文字

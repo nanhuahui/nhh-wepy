@@ -20,34 +20,7 @@ let w = wepy.getSystemInfoSync().windowWidth
 let h = wepy.getSystemInfoSync().windowHeight
 
 export default class composeImage extends wepy.component {
-  props = {
-    bgColor: {
-      type: String,
-      value: '#ffffff'
-    },
-    qrValue: {
-      type: String,
-      value: 'pages/shopping/index/index'
-    },
-    qrParam: {
-      type: String,
-      value: ''
-    },
-    commonSize: {
-      type: Object,
-      value: {
-        qr: [250, 380, 122, 122]
-      }
-    },
-    imageArr: {
-      type: Array,
-      value: []
-    },
-    textArr: {
-      type: Array,
-      value: []
-    }
-  }
+  props = {}
   data = {
     qrImgPath: null,
     imgPath: null,
@@ -81,14 +54,14 @@ export default class composeImage extends wepy.component {
   onLoad() {
     console.log('加载合图组件', this.data)
   }
-  async drawFn(link, param, img, text) {
+  async drawFn(img, text, qr) {
     // 调用公共方法去绘制
     let vm = this
     const ctx = wepy.createCanvasContext('composeCanvas', vm)
     wepy.showLoading({title: '绘制中', mask: true})
     // let data = await drawingMiniQr(link, param, img, text, ctx)
     // console.log(2018, data)
-    drawingMiniQr(link, param, img, text, ctx).then((res) => {
+    drawingMiniQr(img, text, qr, ctx).then((res) => {
       // 把当前画布指定区域的内容导出生成指定大小的图片，并返回文件路径(此路径指在小程序环境下生效)
       setTimeout(() => {
         wepy.canvasToTempFilePath({
