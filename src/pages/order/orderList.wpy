@@ -1,0 +1,411 @@
+<template>
+  <!--头部导航-->
+  <view class="tab-bar">
+    <view wx:for="{{tabs}}" wx:key="unique" data-index="{{index}}" bindtap="handlerTabTap" class="tab {{activeTab==index?'tab-active':''}}" style="width: {{stv.windowWidth/tabs.length}}px">
+      <text>{{item}}</text>
+    </view>
+    <view style="width: {{stv.lineWidth}}px; left: {{stv.offset/tabs.length}}px" class="under-line {{!stv.tStart? 'withAnimate': ''}}"></view>
+  </view>
+
+  <scroll-view class="stv-container" scroll-y="true">
+    <!--订单列表-->
+    <view class="scroll-view">
+      <view bindtouchstart="handlerStart" catchtouchmove="handlerMove" bindtouchcancel="handlerCancel" bindtouchend="handlerEnd" class="scroll-view-wrapper {{!stv.tStart? 'withAnimate': ''}}" style="left: -{{stv.offset}}px">
+        <view style="width: {{stv.windowWidth}}px;" wx:for="{{tabs}}" wx:key="unique" class="one-scene">
+          <scroll-view style="height: 100%;overflow: hidden;"
+          bindscrolltolower="loadMore" bindscroll="scroll" scroll-y="true" lower-threshold="100">
+            <view wx:for="{{orderList}}" wx:for-item="o" wx:key="o.order_id" class="order_list">
+              <view class="order_status" style="color: #999;">
+                订单状态：{{o.order_status}}
+              </view>
+              <navigator class="order_info" url="./orderInfo?id={{o.order_id}}&type=0">
+                <image src="{{o.img_url}}" mode="widthFix"></image>
+                <view class="detail">
+                  <text>
+                    <text style="color: #999;">订单编号：</text>
+                    <text>{{o.order_sn}}</text>
+                  </text>
+                  <text>
+                    <text style="color: #999;">订单金额：</text>
+                    <text>{{o.total_fee}}</text>
+                  </text>
+                  <text>
+                    <text style="color: #999;">订单日期：</text>
+                    <text>{{o.order_time}}</text>
+                  </text>
+                </view>
+                <view class="iconfont-yzg icon-yzg-arrow"></view>
+              </navigator>
+              <!-- 查看物流 -->
+            </view>
+            <view class="weui-loadmore" wx:if="{{pageNum>-1}}">
+              <view class="weui-loading"></view>
+              <view class="weui-loadmore__tips">正在加载</view>
+            </view>
+            <view class="weui-loadmore weui-loadmore_line" wx:else>
+              <view class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</view>
+            </view>
+          </scroll-view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class orderList extends wepy.page {
+    config = {
+      navigationBarTitleText: '购物订单列表'
+    }
+    components = {}
+    data = {
+      tabs: ['全部', '待付款', '待发货', '待收货', '已取消'],
+      activeTab: 0,
+      orderList: [],
+      orderAct: null,  // 购物订单类型
+      scrollTop: 0,
+      pageNum: 0,
+      stv: {
+        windowWidth: 0,
+        lineWidth: 0,
+        offset: 0,
+        tStart: false
+      }
+    }
+    onLoad(params) {
+      // 获取订单数据,默认为全部订单
+      this.loadOrder(params.orderAct ? parseFloat(params.orderAct) : 0)
+    }
+    onShow() {}
+    methods = {}
+    scroll(event) {
+      // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+      this.$apply(() => {
+        this.scrollTop = event.detail.scrollTop
+      })
+    }
+    loadOrder(index) {
+      try {
+        let act
+        switch (index) {
+          case 1:
+            act = 'order_unpay'
+            break
+          case 2:
+            act = 'order_payed'
+            break
+          case 3:
+            act = 'order_done'
+            break
+          case 4:
+            act = 'order_cancel'
+            break
+          default:
+            act = 'order_all'
+        }
+        let {tabs} = this
+        this.windowWidth = wepy.getSystemInfoSync().windowWidth
+        let {stv} = this
+        stv.lineWidth = this.windowWidth / this.tabs.length
+        stv.windowWidth = wepy.getSystemInfoSync().windowWidth
+        this.$apply(() => {
+          this.stv = stv
+          this.activeTab = index
+        })
+        this.tabsCount = tabs.length
+        this._updateSelectedPage(index)
+        // 获取传递的cid
+        this.$apply(() => {
+          this.orderAct = act
+          this.orderList = []
+          this.pageNum = 0
+          this.scrollTop = 0
+        })
+        // 去加载数据
+        this.loadMore()
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    /*
+     * 加载更多
+     */
+    loadMore() {
+      let self = this
+      if (self.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      self.$apply(() => {
+        self.pageNum += 1
+      })
+      let postData = {
+        act: 'order_list',
+        page: self.pageNum,
+        order_action: self.orderAct
+      }
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/user.php`,
+        method: 'POST',
+        header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        data: postData
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          if (data.orders.length === 0 || data.pager.page_count < self.pageNum) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+            })
+            return
+          }
+          // 数据组装
+          let list = self.orderList
+          for (var i = 0; i < data.orders.length; i++) {
+            list.push(data.orders[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.orderList = list
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    handlerStart(e) {
+      let {clientX, clientY} = e.touches[0]
+      this.startX = clientX
+      this.tapStartX = clientX
+      this.tapStartY = clientY
+      let {stv} = this
+      stv.tStart = true
+      this.tapStartTime = e.timeStamp
+      this.$apply(() => {
+        this.stv = stv
+      })
+    }
+    handlerMove(e) {
+      let {clientX} = e.touches[0]
+      let {stv} = this
+      let offsetX = this.startX - clientX
+      this.startX = clientX
+      stv.offset += offsetX
+      if (stv.offset <= 0) {
+        stv.offset = 0
+      } else if (stv.offset >= stv.windowWidth * (this.tabsCount - 1)) {
+        stv.offset = stv.windowWidth * (this.tabsCount - 1)
+      }
+      this.$apply(() => {
+        this.stv = stv
+      })
+    }
+    handlerCancel(e) {}
+    handlerEnd(e) {
+      let {clientX, clientY} = e.changedTouches[0]
+      let endTime = e.timeStamp
+      let {stv, activeTab} = this
+      let {offset, windowWidth} = stv
+      // 快速滑动
+      if (endTime - this.tapStartTime <= 300) {
+        // 向左
+        if (Math.abs(this.tapStartY - clientY) < 50) {
+          if (this.tapStartX - clientX > -5 && this.tapStartX - clientX < 5) {
+            stv.tStart = false
+            return
+          } else if (this.tapStartX - clientX > 5) {
+            if (activeTab < this.tabsCount - 1) {
+              this.$apply(() => {
+                this.activeTab = ++activeTab
+              })
+            }
+          } else {
+            if (activeTab > 0) {
+              this.$apply(() => {
+                this.activeTab = --activeTab
+              })
+            }
+          }
+          stv.offset = stv.windowWidth * activeTab
+        } else {
+          // 快速滑动 但是Y距离大于50 所以用户是左右滚动
+          let page = Math.round(offset / windowWidth)
+          if (activeTab !== page) {
+            this.$apply(() => {
+              this.activeTab = page
+            })
+          }
+          stv.offset = stv.windowWidth * page
+        }
+      } else {
+        let page = Math.round(offset / windowWidth)
+        if (activeTab !== page) {
+          this.$apply(() => {
+            this.activeTab = page
+          })
+        }
+        stv.offset = stv.windowWidth * page
+      }
+      stv.tStart = false
+      this.$apply(() => {
+        this.stv = stv
+      })
+      // 去查询
+      this.loadOrder(this.activeTab)
+    }
+    _updateSelectedPage(page) {
+      let {stv, activeTab} = this
+      activeTab = page
+      stv.offset = stv.windowWidth * activeTab
+      this.$apply(() => {
+        this.activeTab = activeTab
+        this.stv = stv
+      })
+    }
+    handlerTabTap(e) {
+      this._updateSelectedPage(e.currentTarget.dataset.index)
+      // 去查询
+      this.loadOrder(this.activeTab)
+    }
+  }
+</script>
+
+<style lang="less">
+.stv-container {
+  position: fixed;
+  top: 42px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.withAnimate {
+  transition: all 100ms ease;
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -ms-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  -moz-perspective: 1000;
+  -ms-perspective: 1000;
+  perspective: 1000;
+}
+
+/*头部导航样式*/
+
+.tab-bar {
+  position: relative;
+  top: 0px;
+  display: flex;
+  font-size: 30rpx;
+  color: #666;
+  height: 42px;
+  background: #f4f4f4;
+  border-top: 1px solid #ddd;
+  z-index: 20;
+}
+
+.tab-bar:after {
+  content: " ";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  border-bottom: 1px solid #bcbab6;
+  color: #bcbab6;
+  -webkit-transform-origin: 0 100%;
+  transform-origin: 0 100%;
+  -webkit-transform: scaleY(0.5);
+  transform: scaleY(0.5);
+}
+
+.tab-bar .tab-active {
+  color: #04be02;
+}
+
+.tab-bar .tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 16rpx;
+  padding-bottom: 20rpx;
+  font-size: 15px;
+}
+
+.tab-bar .under-line {
+  position: absolute;
+  bottom: 0;
+  height: 6rpx;
+  background-color: #04be02;
+}
+
+/*订单列表*/
+
+.stv-container .scroll-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #e7eaef;
+}
+
+.stv-container .scroll-view .scroll-view-wrapper {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+}
+
+.stv-container .scroll-view .scroll-view-wrapper .one-scene {
+  height: 100%;
+}
+
+.one-scene>text {
+  display: flex;
+  justify-content: flex-start;
+  color: #333;
+}
+
+.order_list {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+  padding-top: 10px;
+}
+
+.order_list .order_status {
+  font-size: 28rpx;
+  padding: 16rpx;
+  background: #fff;
+}
+
+.order_list .order_info {
+  display: -webkit-flex;
+  display: flex;
+  align-items: center;
+  padding: 16rpx 30rpx 16rpx 16rpx;
+  font-size: 26rpx;
+  background: #f9f9f9;
+}
+
+.order_info .detail {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+  flex: auto;
+  padding-left: 16rpx;
+}
+
+.order_info image {
+  width: 160rpx;
+  height: 160rpx;
+}
+</style>
