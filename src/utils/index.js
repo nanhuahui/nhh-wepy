@@ -145,60 +145,72 @@ function checkIdcard(idcard) {
  * 需要传递参数对象和ctx对象,返回时通过wx.canvasToTempFilePath存储图片
  * 参考compose-imgage.js或posterShare.js
  */
-function drawingMiniQr(params, ctx) {
-  console.log(90901, params)
+function drawingMiniQr(link, param, imageArr, text, ctx) {
+  console.log(90901, link, param, imageArr, text)
   return new Promise((finallyResolve, finallyReject) => {
     wepy.request({
       method: 'POST',
       header: { 'Content-Type': 'application/x-www-form-urlencoded' },
       url: `${API_URL}/wx_app/get_qrcode.php?act=get_qrcode`,
       data: {
-        scene: params.qrParam, // 长按图片识别小程序码1048
-        page: params.qrValue
+        page: link,
+        scene: param // 长按图片识别小程序码1048
       }
     }).then(({data: {errcode, data, msg}}) => {
       if (errcode === 0) {
-        params.qrImgPath = data
+        let qrImgPath = data
         // 生成一个Promise对象的数组
-        const promises = params.imageArr.map(function(w) {
+        const promises = imageArr.map(function(w) {
           return new Promise(function(resolve, reject) {
             // 转换图片地址http开头的为https,否则提示下载图片不在域名范围内
             w.src = w.src.split('http://').join('https://')
             wepy.downloadFile({
-              url: w.src,
-              success: ({errMsg, statusCode, tempFilePath}) => {
-                w.src = tempFilePath
-                resolve(w)
-              },
-              fail: (res) => {
-                console.log('downloadFile fail', res)
-                // reject(res);
-              },
-              complete: (res) => {
-                // 最终都要返回，不能因为图片不在而不能渲染
-                resolve(w)
-              }
+              url: w.src
+            }).then(({errMsg, statusCode, tempFilePath}) => {
+              w.src = tempFilePath
+              resolve(w)
+            }).catch((error) => {
+              console.log('downloadFile exception', error)
+              resolve(w)
             })
           })
         })
         // 转换基本图片
         Promise.all(promises).then(function(posts) {
           // success
-          params.imageArr = posts
+          console.log(903, posts, qrImgPath)
+          imageArr = posts
 
           // 转换小程序码图片
           wepy.getImageInfo({
-            src: params.qrImgPath,
-            success: ({width, height, path}) => {
-              params.qrImgPath = path
-            },
-            complete: (res) => {
-              setTimeout(() => {
-                // 绘制canvas
-                console.log('开始绘制', params)
-                drawBusinessImg(params, finallyResolve, ctx)
-              }, 200)
-            }
+            src: qrImgPath
+          }).then(({width, height, path}) => {
+            qrImgPath = path
+            setTimeout(() => {
+              // 绘制canvas
+              console.log('开始绘制')
+              ctx.rect(0, 0, 640, 900)
+              ctx.setFillStyle('#ffffff')
+              ctx.fill()
+
+              // 绘制图片
+              renderImg(imageArr, ctx)
+
+              // 绘制文字
+              renderText(text, ctx)
+
+              // 绘制小程序码
+              let qrSize = [250, 380, 122, 122]
+              // console.log(888, params.qrImgPath);
+              ctx.drawImage(qrImgPath, qrSize[0], qrSize[1], qrSize[2], qrSize[3])
+
+              // 调用绘制方法
+              ctx.draw()
+
+              finallyResolve()
+            }, 200)
+          }).catch((error) => {
+            console.log('getImageInfo exception', error)
           })
         }, function(fail) {
           // fail
@@ -217,35 +229,13 @@ function drawingMiniQr(params, ctx) {
   })
 }
 
-function drawBusinessImg(params, finallyResolve, ctx) {
-  ctx.rect(0, 0, 640, 900)
-  ctx.setFillStyle(params.bgColor)
-  ctx.fill()
-
-  // 绘制图片
-  renderImg(params, ctx)
-
-  // 绘制文字
-  renderText(params, ctx)
-
-  // 绘制小程序码
-  let qrSize = params.commonSize.qr
-  // console.log(888, params.qrImgPath);
-  ctx.drawImage(params.qrImgPath, qrSize[0], qrSize[1], qrSize[2], qrSize[3])
-
-  // 调用绘制方法
-  ctx.draw()
-
-  finallyResolve()
-}
-
 /*
  * 渲染图片方法
  */
-function renderImg(p, ctx) {
+function renderImg(imageArr, ctx) {
   // ctx作为参数传递至新的绘制方法时,要保存下canvas对象
   ctx.save()
-  let arr = p.imageArr
+  let arr = imageArr
   for (let i in arr) {
     let im = arr[i]
     if (im.isCircular) {
@@ -275,11 +265,11 @@ function renderImg(p, ctx) {
 /**
  * 渲染文字
  */
-function renderText(p, ctx) {
+function renderText(textArr, ctx) {
   // ctx作为参数传递至新的绘制方法时,要保存下canvas对象
   ctx.save()
-  for (let i in p.textArr) {
-    let t = p.textArr[i]
+  for (let i in textArr) {
+    let t = textArr[i]
     let x = t.ruler[0]
     let y = t.ruler[1]
     let s = t.ruler[2]

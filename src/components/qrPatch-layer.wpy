@@ -46,8 +46,7 @@ export default class qrPatchLayer extends wepy.component {
   methods = {
     switchPatch(e) {
       // 处理小程序码贴片
-      console.log('需要合成的数据', this.data)
-      this.$invoke('composeImage', 'drawFn', this.shareImgArr, this.shareTextArr, this.shareLink, this.shareLinkParam)
+      this.$invoke('composeImage', 'drawFn', 'pages/shopping/index/index', this.shareLinkParam, this.shareImgArr, this.shareTextArr)
     }
   }
   onLoad() {
