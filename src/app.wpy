@@ -30,7 +30,7 @@ const sceneArr = [1001, 1005, 1006, 1020, 1023, 1053, 1054, 1089, 1090]
 export default class extends wepy.app {
   config = {
     pages: [
-      'pages/shopping/index',
+      'pages/shopping/index/index',
       'pages/shopping/goods',
       'pages/shopping/searchGoods',
       'pages/shopping/coustomGoods',
@@ -56,12 +56,12 @@ export default class extends wepy.app {
       borderStyle: 'white',
       backgroundColor: '#f7f7f8',
       list: [{
-        pagePath: 'pages/shopping/index',
+        pagePath: 'pages/shopping/index/index',
         iconPath: 'assets/icon/iconfont-shop.png',
         selectedIconPath: 'assets/icon/iconfont-shop.png',
         text: '特卖'
       }, {
-        pagePath: 'pages/shopping/index',
+        pagePath: 'pages/shopping/index/index',
         iconPath: 'assets/icon/iconfont-cart.png',
         selectedIconPath: 'assets/icon/iconfont-cart-active.png',
         text: '购物车'

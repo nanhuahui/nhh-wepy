@@ -145,9 +145,9 @@ function checkIdcard(idcard) {
  * 需要传递参数对象和ctx对象,返回时通过wx.canvasToTempFilePath存储图片
  * 参考compose-imgage.js或posterShare.js
  */
-function drawingMiniQr(link, param, imageArr, text, ctx) {
+async function drawingMiniQr(link, param, imageArr, text, ctx) {
   console.log(90901, link, param, imageArr, text)
-  return new Promise((finallyResolve, finallyReject) => {
+  return new Promise((resolve, reject) => {
     wepy.request({
       method: 'POST',
       header: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -206,23 +206,22 @@ function drawingMiniQr(link, param, imageArr, text, ctx) {
 
               // 调用绘制方法
               ctx.draw()
-
-              finallyResolve()
+              resolve()
             }, 200)
           }).catch((error) => {
             console.log('getImageInfo exception', error)
           })
         }, function(fail) {
           // fail
-          finallyReject('convert image fail' + fail)
+          reject(new Error('convert image fail' + fail))
           console.error('convert image fail', fail)
         }).catch(function(reason) {
           // exception
-          finallyReject('convert image error' + reason)
+          reject(new Error('convert image error' + reason))
           console.error('convert image error', reason)
         })
       } else {
-        finallyReject('获取小程序码失败')
+        reject(new Error('获取小程序码失败'))
         console.error('获取小程序码失败', msg)
       }
     })

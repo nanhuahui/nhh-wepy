@@ -43,8 +43,7 @@ export default class composeImage extends wepy.component {
     },
     qrValue: {
       type: String,
-      // value: 'pages/shopping/index'
-      value: 'pages/index/index'
+      value: 'pages/shopping/index/index'
     },
     qrParam: {
       type: String,
@@ -94,37 +93,35 @@ export default class composeImage extends wepy.component {
   onLoad() {
     console.log('加载合图组件', this.data)
   }
-  drawFn(link, param, img, text) {
+  async drawFn(link, param, img, text) {
     // 调用公共方法去绘制
     let vm = this
     const ctx = wepy.createCanvasContext('composeCanvas', vm)
     wepy.showLoading({title: '绘制中', mask: true})
+    // let data = await drawingMiniQr(link, param, img, text, ctx)
+    // console.log(2018, data)
     drawingMiniQr(link, param, img, text, ctx).then((res) => {
-      console.log('什么鬼', res)
       // 把当前画布指定区域的内容导出生成指定大小的图片，并返回文件路径(此路径指在小程序环境下生效)
       setTimeout(() => {
-        // wepy.canvasToTempFilePath({
-        //   // x: 0,
-        //   // y: 0,
-        //   // width: 500,
-        //   // height: 500,
-        //   // destWidth: 100,
-        //   // destHeight: 100,
-        //   canvasId: 'composeCanvas',
-        //   success: function(res) {
-        //     vm.imgPath = res.tempFilePath
-        //     vm.hiddenCanvas = true
-        //     vm.$apply()
-        //   },
-        //   fail: function (err) {
-        //     console.error(err)
-        //   },
-        //   complete: function(res) {
-        //     vm.showSlot = true
-        //     vm.$apply()
-        //     wepy.hideLoading()
-        //   }
-        // }, vm)
+        wepy.canvasToTempFilePath({
+          // x: 0,
+          // y: 0,
+          // width: 500,
+          // height: 500,
+          // destWidth: 100,
+          // destHeight: 100,
+          canvasId: 'composeCanvas'
+        }, vm).then((res) => {
+          console.log(2019, res)
+          vm.imgPath = res.tempFilePath
+          vm.hiddenCanvas = true
+          vm.showSlot = true
+          vm.$apply()
+          wepy.hideLoading()
+        }).catch((e) => {
+          wepy.hideLoading()
+          console.log('合成小程序码导出图片异常', e)
+        })
       }, 500)
     }).catch((e) => {
       wepy.hideLoading()

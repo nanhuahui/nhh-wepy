@@ -1,7 +1,3 @@
-<style lang="less">
-@import '../../assets/styles/index.wxss';
-</style>
-
 <template>
   <view height="100%" wx:if="{{loadComplete}}">
     <!-- 头部 -->
@@ -41,17 +37,17 @@
 
 <script>
 import wepy from 'wepy'
-import composeData from '../../utils/data'
-import header from '../../components/index-header'
-import swiper from '../../components/index-swiper'
-import category from '../../components/index-category'
-import shoperChosen from '../../components/shoper-chosen'
-import todaySpecial from '../../components/today-special'
-import recommendSale from '../../components/recommend-sale'
-import specialSale from '../../components/special-sale'
-import coustomerGoods from '../../components/coustomer-goods'
-import floorGoods from '../../components/floor-goods'
-import qrPatchLayer from '../../components/qrPatch-layer'
+import composeData from '../../../utils/data'
+import qrPatchLayer from '../../../components/qrPatch-layer'
+import header from './components/index-header'
+import swiper from './components/index-swiper'
+import category from './components/index-category'
+import shoperChosen from './components/shoper-chosen'
+import todaySpecial from './components/today-special'
+import recommendSale from './components/recommend-sale'
+import specialSale from './components/special-sale'
+import coustomerGoods from './components/coustomer-goods'
+import floorGoods from './components/floor-goods'
 
 export default class Index extends wepy.page {
   config = {
@@ -320,3 +316,7 @@ export default class Index extends wepy.page {
   }
 }
 </script>
+
+<style lang="less">
+@import '../../../assets/styles/index.wxss';
+</style>
