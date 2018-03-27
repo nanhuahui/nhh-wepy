@@ -1,0 +1,670 @@
+<template>
+	<view class="stv-container">
+    <!--头部导航-->
+    <view class="tab-bar">
+      <view wx:for="{{tabs}}" wx:key="unique" data-index="{{index}}" bindtap="handlerTabTap" class="tab {{activeTab==index?'tab-active':''}}" style="width: {{stv.windowWidth/tabs.length}}px">
+        <text>{{item}}</text>
+      </view>
+      <view style="width: {{stv.lineWidth}}px; left: {{stv.offset/tabs.length}}px" class="under-line {{!stv.tStart? 'withAnimate': ''}}"></view>
+    </view>
+    <!--订单列表-->
+    <view class="scroll-view">
+      <view bindtouchstart="handlerStart" catchtouchmove="handlerMove" bindtouchcancel="handlerCancel" bindtouchend="handlerEnd" class="scroll-view-wrapper {{!stv.tStart? 'withAnimate': ''}}" style="left: -{{stv.offset}}px">
+        <view style="width: {{stv.windowWidth}}px;" wx:for="{{tabs}}" wx:key="unique" class="one-scene">
+          <scroll-view style="height:100%;overflow: hidden;" scroll-top="{{scrollTop}}" bindscrolltolower="loadMore" bindscroll="scroll" scroll-y="true" lower-threshold="100">
+            <view class="stamp stamp_bg {{couponStatus}}" wx:for="{{couponList}}" wx:key="*this">
+              <view class="par" catchtap="{{couponStatus === 'undrawn' ? 'drawBonus' : '' }}" data-id="{{item.type_id}}">
+                <view class="par_content">
+                  <view class="price">
+                    <text class="sign">￥</text>
+                    <text class="color_use">{{item.type_money}}</text>
+                  </view>
+                  <view wx:if="{{couponStatus === 'undrawn'}}" class="receive">点击领取</view>
+                </view>
+              </view>
+              <view class="stamp_right stamp_border">
+                <view class="right_content">
+                  <view class="order_up">订单满{{item.min_goods_amount}}元可用</view>
+                  <view class="font-weight:lighter;">有效期至：{{item.use_enddate}}</view>
+                </view>
+              </view>
+              <image wx:if="{{couponStatus === 'used'}}" src="{{imgUrl}}/myCoupon/used.png"></image>
+              <image wx:if="{{couponStatus === 'expire'}}" src="{{imgUrl}}/myCoupon/expire.png"></image>
+            </view>
+            <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum===-1}}" style="border:none;">
+              <image src="{{imgUrl}}/myCoupon/noCoupons.png" style="width: 100px;height: 250px;" mode="widthFix"></image>
+            </view>
+          </scroll-view>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class myCoupon extends wepy.page {
+    config = {
+      navigationBarTitleText: '我的优惠券'
+    }
+    components = {}
+    data = {
+      imgUrl: '',
+      tabs: ['待领取', '可使用', '已使用', '已过期'],
+      activeTab: 0,
+      couponList: [],
+      couponStatus: null,  // 优惠券状态 默认为待领取
+      hidden: true,
+      scrollTop: 0,
+      pageNum: 0,
+      stv: {
+        windowWidth: 0,
+        lineWidth: 0,
+        offset: 0,
+        tStart: false
+      },
+      delId: ''
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      // 获取数据,默认为待领取
+      this.loadList(0)
+    }
+    onShow() {}
+    methods = {}
+    loadList(i) {
+      try {
+        let act
+        switch (i) {
+          case 1:
+            act = 'unused'
+            break
+          case 2:
+            act = 'used'
+            break
+          case 3:
+            act = 'expire'
+            break
+          default:
+            act = 'undrawn'
+        }
+        let {tabs, stv} = this
+        this.windowWidth = wepy.getSystemInfoSync().windowWidth
+        stv.lineWidth = this.windowWidth / this.tabs.length
+        stv.windowWidth = wepy.getSystemInfoSync().windowWidth
+        this.$apply(() => {
+          this.stv = stv
+          this.activeTab = i
+        })
+        this.tabsCount = tabs.length
+        this._updateSelectedPage(i)
+        // 获取传递的cid
+        this.$apply(() => {
+          this.couponStatus = act
+          this.couponList = []
+          this.pageNum = 0
+          this.scrollTop = 0
+        })
+        // 去加载数据
+        this.loadMore()
+      } catch (e) {}
+    }
+    /*
+     * 加载更多
+     */
+    loadMore() {
+      let self = this
+      if (self.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
+        self.hidden = false
+      })
+      console.log('当前加载页码:' + self.pageNum)
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/user.php?act=bonus`,
+        method: 'POST',
+        header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        data: {
+          page: self.pageNum,
+          w: self.couponStatus
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          if (data.bonus.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+              self.hidden = true
+            })
+            return
+          }
+          // 数据组装
+          var list = self.couponList
+          for (var i = 0; i < data.bonus.length; i++) {
+            list.push(data.couponList[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.couponList = list
+            self.hidden = true
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('获取我的优惠券列表失败！', error)
+      })
+    }
+    /*
+     * 领取优惠卷
+     */
+    drawBonus(e) {
+      let self = this
+      let objId = e.currentTarget.dataset.id
+      // 提交参数列表
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/user.php`,
+        method: 'POST',
+        header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        data: {
+          act: 'draw_bonus',
+          type_id: objId
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.getId(objId)
+          // 删除优惠券列表对应的对象
+          self.couponList.splice(self.delId, 1)
+          self.$apply()
+          if (self.couponList.length === 0) {
+            self.$apply(() => {
+              self.pageNum = -1
+            })
+          }
+          wepy.showModal({
+            content: '领取成功',
+            showCancel: false
+          })
+        } else if (errcode === 5 || errcode === 6) {
+          wepy.showModal({
+            content: '已过领取时间！',
+            showCancel: false
+          })
+        } else if (errcode === 7) {
+          wepy.showModal({
+            content: '该优惠券已经领取过！',
+            showCancel: false
+          })
+        } else {
+          wepy.showModal({
+            content: '领取失败！',
+            showCancel: false
+          })
+        }
+      })
+    }
+    getId (objId) {
+      let self = this
+      self.couponList.forEach(function(item, index) {
+        if (item.type_id === objId) {
+          self.$apply(() => {
+            self.delId = index
+          })
+        }
+      })
+    }
+    scroll(event) {
+      // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+      this.$apply(() => {
+        this.scrollTop = event.detail.scrollTop
+      })
+    }
+    handlerStart(e) {
+      let {clientX, clientY} = e.touches[0]
+      this.startX = clientX
+      this.tapStartX = clientX
+      this.tapStartY = clientY
+      let {stv} = this
+      stv.tStart = true
+      this.tapStartTime = e.timeStamp
+      this.$apply(() => {
+        this.stv = stv
+      })
+    }
+    handlerMove(e) {
+      let {clientX} = e.touches[0]
+      let {stv} = this
+      let offsetX = this.startX - clientX
+      this.startX = clientX
+      stv.offset += offsetX
+      if (stv.offset <= 0) {
+        stv.offset = 0
+      } else if (stv.offset >= stv.windowWidth * (this.tabsCount - 1)) {
+        stv.offset = stv.windowWidth * (this.tabsCount - 1)
+      }
+      this.$apply(() => {
+        this.stv = stv
+      })
+    }
+    handlerCancel(e) {}
+    handlerEnd(e) {
+      let {clientX, clientY} = e.changedTouches[0]
+      let endTime = e.timeStamp
+      let {stv, activeTab} = this
+      let {offset, windowWidth} = stv
+      // 快速滑动
+      if (endTime - this.tapStartTime <= 300) {
+        // 向左
+        if (Math.abs(this.tapStartY - clientY) < 50) {
+          if (this.tapStartX - clientX > -5 && this.tapStartX - clientX < 5) {
+            stv.tStart = false
+            return
+          } else if (this.tapStartX - clientX > 5) {
+            if (activeTab < this.tabsCount - 1) {
+              this.$apply(() => {
+                this.activeTab = ++activeTab
+              })
+            }
+          } else {
+            if (activeTab > 0) {
+              this.$apply(() => {
+                this.activeTab = --activeTab
+              })
+            }
+          }
+          stv.offset = stv.windowWidth * activeTab
+        } else {
+          // 快速滑动 但是Y距离大于50 所以用户是左右滚动
+          let page = Math.round(offset / windowWidth)
+          if (activeTab !== page) {
+            this.$apply(() => {
+              this.activeTab = page
+            })
+          }
+          stv.offset = stv.windowWidth * page
+        }
+      } else {
+        let page = Math.round(offset / windowWidth)
+        if (activeTab !== page) {
+          this.$apply(() => {
+            this.activeTab = page
+          })
+        }
+        stv.offset = stv.windowWidth * page
+      }
+      stv.tStart = false
+      this.$apply(() => {
+        this.stv = stv
+      })
+      // 去查询
+      this.loadList(this.activeTab)
+    }
+    _updateSelectedPage(page) {
+      let {stv, activeTab} = this
+      activeTab = page
+      stv.offset = stv.windowWidth * activeTab
+      this.$apply(() => {
+        this.activeTab = activeTab
+        this.stv = stv
+      })
+    }
+    handlerTabTap(e) {
+      this._updateSelectedPage(e.currentTarget.dataset.index)
+      // 去查询
+      this.loadList(this.activeTab)
+    }
+  }
+</script>
+
+<style>
+.stv-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.withAnimate {
+  transition: all 100ms ease;
+  -webkit-transform: translate3d(0, 0, 0);
+  -moz-transform: translate3d(0, 0, 0);
+  -ms-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -ms-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  -moz-perspective: 1000;
+  -ms-perspective: 1000;
+  perspective: 1000;
+}
+
+/*头部导航样式*/
+
+.stv-container .tab-bar {
+  position: relative;
+  display: flex;
+  font-size: 30rpx;
+  color: #666;
+  height: 44px;
+  background: #f4f4f4;
+  border-top: 1px solid #ddd;
+}
+
+.stv-container .tab-bar:after {
+  content: " ";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  border-bottom: 1px solid #bcbab6;
+  color: #bcbab6;
+  -webkit-transform-origin: 0 100%;
+  transform-origin: 0 100%;
+  -webkit-transform: scaleY(0.5);
+  transform: scaleY(0.5);
+}
+
+.stv-container .tab-bar .tab-active {
+  color: #04be02;
+}
+
+.stv-container .tab-bar .tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 16rpx;
+  padding-bottom: 20rpx;
+  font-size: 15px;
+}
+
+.stv-container .tab-bar .under-line {
+  position: absolute;
+  bottom: 0;
+  height: 6rpx;
+  background-color: #04be02;
+}
+
+/*订单列表*/
+
+.stv-container .scroll-view {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #e7eaef;
+}
+
+.stv-container .scroll-view .scroll-view-wrapper {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+}
+
+.stv-container .scroll-view .scroll-view-wrapper .one-scene {
+  height: 100%;
+}
+
+.one-scene>text {
+  display: flex;
+  justify-content: flex-start;
+  color: #333;
+}
+
+.order_list {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+  padding-top: 20rpx;
+}
+
+.order_list .order_status {
+  font-size: 28rpx;
+  padding: 16rpx;
+  background: #fff;
+}
+
+.order_list .order_info {
+  display: -webkit-flex;
+  display: flex;
+  align-items: center;
+  padding: 16rpx 30rpx 16rpx 16rpx;
+  font-size: 26rpx;
+  background: #f9f9f9;
+}
+
+.order_info .detail {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+  flex: auto;
+  padding-left: 16rpx;
+}
+
+/*vue*/
+
+.orderTitle {
+  z-index: 0;
+  position: relative;
+  height: 45px;
+}
+
+.orderTitle .weui_navbar {
+  height: 45px;
+  background: #f4f4f4;
+}
+
+.orderTitle .weui_navbar .navbar_item {
+  height: 45px;
+  border-top: 1px solid #ddd;
+  background: #f4f4f4;
+  box-sizing: border-box;
+}
+
+.tab_block::after {
+  content: '';
+  display: block;
+  border-bottom: 4px solid #333;
+  width: 20px;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  margin-left: -15px;
+}
+
+.weui_navbar {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  position: absolute;
+  z-index: 500;
+  top: 0;
+  width: 100%;
+  background-color: #fafafa;
+}
+
+.navbar_item {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  flex: 1;
+  padding: 10px 0;
+  position: relative;
+}
+
+.weui_navbar_item {
+  position: relative;
+  display: block;
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  flex: 1;
+  padding: 11px 0 19px;
+  text-align: center;
+  font-size: 28rpx;
+  -webkit-tap-highlight-color: transparent;
+  line-height: 0;
+  color: #666;
+}
+
+.weui_navbar_item.tab_block {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.stamp {
+  position: relative;
+  overflow: hidden;
+  padding-left: 5px;
+  margin: 10rpx 15px 0;
+  display: flex;
+}
+
+.stamp_bg {
+  background: radial-gradient(transparent 0, transparent 3px, #000 2px);
+  background-size: 8px 8px;
+  background-position: 4px 7px;
+}
+
+.stamp_bg.used {
+  background: radial-gradient(transparent 0, transparent 3px, #ccc 2px);
+  background-size: 8px 8px;
+  background-position: 4px 7px;
+  position: relative;
+}
+
+.stamp_bg>image {
+  width: 126rpx;
+  height: 126rpx;
+  position: absolute;
+  left: 201rpx;
+  top: 17rpx;
+}
+
+.stamp_bg.expire {
+  background: radial-gradient(transparent 0, transparent 3px, #ccc 2px);
+  background-size: 8px 8px;
+  background-position: 4px 7px;
+  position: relative;
+}
+
+.stamp .par {
+  background: #000;
+  float: left;
+  text-align: left;
+  color: #c8975c;
+}
+
+.stamp_bg.used .par {
+  background: #ccc;
+  color: #999;
+}
+
+.stamp_bg.expire .par {
+  background: #ccc;
+  color: #999;
+}
+
+.stamp .par text {
+  font-size: 72rpx;
+}
+
+.stamp .par_content {
+  height: 124rpx;
+  border-right: 1px solid #c8975c;
+  margin: 18rpx 0;
+  width: 250rpx;
+}
+
+.stamp .par_content .price {
+  padding-left: 56rpx;
+  /*padding-right: 1.4933rem;*/
+}
+
+.stamp.used .par_content {
+  border-right: 1px solid #dedede;
+}
+
+.stamp.expire .par_content {
+  border-right: 1px solid #dedede;
+}
+
+.stamp .par .sign {
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.stamp .par .receive {
+  font-size: 18rpx;
+  text-align: center;
+  position: relative;
+  top: -18rpx;
+}
+
+.stamp .stamp_right {
+  background: #000;
+  padding-right: 60rpx;
+  flex: 1;
+  vertical-align: text-bottom;
+  font-size: 32rpx;
+  color: #c8975c;
+  text-align: center;
+  line-height: initial;
+}
+
+.stamp.used .stamp_right {
+  background: #ccc;
+  color: #999;
+}
+
+.stamp.expire .stamp_right {
+  background: #ccc;
+  color: #999;
+}
+
+.stamp .right_content {
+  padding: 27rpx 0;
+}
+
+.stamp .stamp_right view {
+  font-size: 24rpx;
+  margin: 12rpx 0;
+  text-align: right;
+}
+
+.stamp .stamp_right .order_up {
+  font-size: 28rpx;
+}
+
+.weui-loadmore_line image {
+  width: 200rpx;
+  padding-top: 300rpx;
+}
+
+.unReceive {
+  position: relative;
+}
+
+.unReceive text {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ef4b4b;
+  border: none;
+  position: absolute;
+  right: 36rpx;
+  top: 0;
+  margin-left: 0;
+}
+
+</style>
