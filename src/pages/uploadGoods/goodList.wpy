@@ -1,0 +1,407 @@
+<template>
+  <view height="100%">
+  <!-- 排序 -->
+  <view class="goodsSortMenu">
+    <view bindtap = "sortGoods" data-type="add_time">
+      <text>添加时间</text>
+      <image wx:if="{{sortType === 'add_time DESC'}}" src="{{imgUrl}}/storeGoods/sortUp.png" mode="widthFix"></image>
+      <image wx:elif="{{sortType === 'add_time ASC'}}" src="{{imgUrl}}/storeGoods/sortDown.png" mode="widthFix"></image>
+      <image wx:else src="{{imgUrl}}/storeGoods/sortDefault.png" mode="widthFix"></image>
+    </view>
+    <view bindtap = "sortGoods" data-type="sale_count">
+      <text>销量</text>
+      <image wx:if="{{sortType === 'sale_count DESC'}}" src="{{imgUrl}}/storeGoods/sortUp.png" mode="widthFix"></image>
+      <image wx:elif="{{sortType === 'sale_count ASC'}}" src="{{imgUrl}}/storeGoods/sortDown.png" mode="widthFix"></image>
+      <image wx:else src="{{imgUrl}}/storeGoods/sortDefault.png" mode="widthFix"></image>
+    </view>
+    <view bindtap = "sortGoods" data-type="number">
+      <text>库存</text>
+      <image wx:if="{{sortType === 'number DESC'}}" src="{{imgUrl}}/storeGoods/sortUp.png" mode="widthFix"></image>
+      <image wx:elif="{{sortType === 'number ASC'}}" src="{{imgUrl}}/storeGoods/sortDown.png" mode="widthFix"></image>
+      <image wx:else src="{{imgUrl}}/storeGoods/sortDefault.png" mode="widthFix"></image>
+    </view>
+  </view>
+  <!-- 订单列表 -->
+  <view class="orderDisplay" style="position:fixed; top:44px; bottom:44px; width:100%;">
+    <view class="list" style="height:100%">
+      <scroll-view  scroll-y="true"  scroll-top="{{scrollTop}}"
+      bindscrolltolower="loadGoodsList" bindscroll="scroll"
+      class="goods-lists data-list"
+      style="height: 100%;display: block;overflow: hidden;">
+        <view class="list-item" wx:for = "{{goods_list}}" wx:for-item = "g" wx:for-index = "index" wx:key = "g.upc_id">
+          <view>
+            <navigator url="../uploadGoods/uploadGood?g_id={{g.g_id}}">
+              <view class="list_content">
+                <view class="content_up">
+                  <image src="{{img_domain}}/{{g.master_img}}"></image>
+                  <view class="state">
+                    <view class="title h6 c3">{{g.goods_name}}</view>
+                    <view class="describe h6 c2">{{g.goods_brief}}</view>
+                  </view>
+                  <view class="h6 c3" style="flex:1;text-align:right;">{{g.shop_price}}</view>
+                </view>
+                <view class="content_down h6 c3">
+                  <view class="h6" style="flex:2;">库存{{g.number}}</view>
+                  <view class="h6" style="flex:2;">销量{{g.sale_count}}</view>
+                  <view class="h6" style="flex:6;text-align:right;">发布时间 {{g.add_time}}</view>
+                </view>
+              </view>
+            </navigator>
+            <!-- 上下架操作 -->
+            <view class="list operate">
+              <view class="list-item">
+                <navigator url="../uploadGoods/goodsInfo/goodsInfo?upc_id={{g.upc_id}}">
+                  <image src="{{imgUrl}}/storeGoods/preview.png"></image>
+                  <view class="h8 c3">预览</view>
+                </navigator>
+              </view>
+              <view class="list-item" wx:if = "{{g.is_on_sale_upc === '1'}}" bindtap = "operateGoods" data-gid = "{{g.upc_id}}" data-isOn = "0" data-index = "{{index}}" data-act_type = "on_sale">
+                <image src="{{imgUrl}}/storeGoods/putaway.png"></image>
+                <view class="h8 c3">上架</view>
+              </view>
+              <view class="list-item" wx:else bindtap = "operateGoods" data-gid = "{{g.upc_id}}" data-isOn = "1" data-index = "{{index}}" data-act_type = "on_sale">
+                <image src="{{imgUrl}}/storeGoods/putDown.png"></image>
+                <view class="h8 c3">下架</view>
+              </view>
+              <!-- 商品为精选商品时 设置取消精选按钮 -->
+              <view class="list-item" wx:if = "{{g.is_best === '1'}}" bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-isOn = "0" data-index = "{{index}}" data-act_type = "set_best">
+                <image src="{{imgUrl}}/storeGoods/shoperChoice.png"></image>
+                <view class="h8 c3">取消精选</view>
+              </view>
+              <view class="list-item" wx:else bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-isOn = "1" data-index = "{{index}}" data-act_type = "set_best">
+                <image src="{{imgUrl}}/storeGoods/noChoice.png"></image>
+                <view class="h8 c3">设为精选</view>
+              </view>
+              <!-- 操作删除 -->
+              <view class="list-item" bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-index = "{{index}}" data-act_type = "del">
+                <image src="{{imgUrl}}/storeGoods/delete.png"></image>
+                <view class="h8 c3">删除</view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+    <navigator url="../uploadGoods/uploadGood">
+      <view class="c11 toAddGoods">
+        + 添加商品
+      </view>
+    </navigator>
+    <!-- 加载中。。。 -->
+    <view class="body-view">
+        <loading hidden="{{hidden}}" bindchange="loadingChange">
+          加载中...
+        </loading>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class goodList extends wepy.page {
+    config = {
+      navigationBarTitleText: '商品管理'
+    }
+    data = {
+      imgUrl: '',
+      img_domain: '',
+      goods_list: [],
+      page: 0,
+      hidden: true,
+      scrollTop: 0,
+      upc_id: 0,
+      sortType: 'add_time DESC', // 查看时间商品排序 默认查看顺序为时间倒叙
+      add_time: 'DESC', // 添加时间排序，默认倒叙
+      sale_count: 'ASC',  // 销量排序
+      number: 'ASC'  // 库存排序
+    }
+    onLoad(option) {
+      this.loadGoodsList()
+    }
+    sortGoods(e) {
+      let currentTarget = e.currentTarget.dataset
+      let sortType
+      if (currentTarget.type === 'add_time') {
+        var addTimeSort = this.data.add_time === 'DESC' ? 'ASC' : 'DESC'
+        this.add_time = addTimeSort
+        this.$apply()
+        sortType = currentTarget.type + ' ' + this.data.add_time
+      } else if (currentTarget.type === 'sale_count') {
+        var saleSort = this.data.sale_count === 'DESC' ? 'ASC' : 'DESC'
+        this.sale_count = saleSort
+        this.$apply()
+        sortType = currentTarget.type + ' ' + this.data.sale_count
+      } else {
+        var numberSort = this.data.number === 'DESC' ? 'ASC' : 'DESC'
+        this.number = numberSort
+        this.$apply()
+        sortType = currentTarget.type + ' ' + this.data.number
+      }
+      this.$apply(() => {
+        this.sortType = sortType
+        this.goods_list = []
+        this.page = 0
+        this.scrollTop = 0
+      })
+      this.loadGoodsList()
+    }
+    loadGoodsList() {
+    // 发送请求
+      let self = this
+      if (this.data.page === -1) {
+        return false
+      }
+      let nowPage = this.data.page + 1
+      this.$apply(() => {
+        this.page = nowPage
+        this.hidden = false
+      })
+      let questParam = {
+        page: this.data.page,
+        sort: this.data.sortType
+      }
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/goods/goods.php?act=get_goods_list`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: questParam
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          if (data.goods_list.length === 0) {
+            self.$apply(() => {
+              self.page = -1
+              self.hidden = true
+            })
+          }
+          let nowGoodsList = self.data.goods_list
+          for (let g of data.goods_list) {
+            nowGoodsList.push(g)
+          }
+          this.$apply(() => {
+            this.imgUrl = this.$parent.globalData.imgUrl
+            this.goods_list = nowGoodsList
+            this.img_domain = data.img_domain
+            this.hidden = true
+          })
+          // $wuxDialog.alert({title: '提示', content: '发布成功', onConfirm(e) {}});
+        } else {
+          wepy.showModal({
+            content: '发布成功',
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+   * [operateGoods 自主商品操作（上下架 设为精选 删除）]
+   */
+    operateGoods(e) {
+      console.log(e)
+      let currentTarget = e.currentTarget.dataset
+      let questParam = {}
+      // 上下架操作 请求参数为upc_id 删除和精选参数为goods_id
+      if (currentTarget.act_type === 'on_sale') {
+        questParam = {
+          act_type: currentTarget.act_type,
+          upc_id: currentTarget.gid
+        }
+      } else {
+        questParam = {
+          act_type: currentTarget.act_type,
+          goods_id: currentTarget.gid
+        }
+      }
+      console.log(222, questParam)
+      let self = this
+      if (currentTarget.act_type === 'del') {
+        wepy.showModal({
+          title: '提示',
+          content: '确定要删除当前商品吗？'
+        }).then((res) => {
+          if (res.confirm) {
+            self.operateFun(questParam, currentTarget)
+          } else if (res.cancel) {
+            return false
+          }
+        })
+      } else {
+        this.operateFun(questParam, currentTarget)
+      }
+    }
+    operateFun(questParam, currentTarget) {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/goods/goods.php?act=goods_act`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: questParam
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          let goodsList = this.data.goods_list
+          if (currentTarget.act_type === 'on_sale') {
+            goodsList[currentTarget.index]['is_on_sale_upc'] = currentTarget.ison
+            wepy.showToast({
+              title: currentTarget.ison === '1' ? '上架成功' : '已下架',
+              icon: 'success',
+              duration: 2000
+            })
+          } else if (currentTarget.act_type === 'del') {
+            goodsList.splice(currentTarget.index, 1)
+          } else {
+            goodsList[currentTarget.index]['is_best'] = currentTarget.ison
+          }
+          this.goods_list = goodsList
+          this.$apply()
+        } else {
+          console.error(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.list_content {
+  padding: 12rpx 30rpx 0 0;
+  margin-left: 30rpx;
+  border-bottom: 1px solid #ccc;
+}
+
+.list_content .content_up {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+}
+
+.list_content .content_down {
+  margin-left: 174rpx;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  margin-top: -5px;
+}
+
+.content_up image {
+  width: 150rpx;
+  height: 150rpx;
+  background-size: cover;
+}
+
+.content_up .state {
+  width: 340rpx;
+  margin-left: 26rpx;
+}
+
+.state .title {
+  margin-bottom: 18rpx;
+  height: 76rpx;
+  overflow: hidden;
+}
+
+.state .describe {
+  margin-bottom: 18rpx;
+  height: 38rpx;
+  overflow: hidden;
+}
+
+.operate {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  margin-top: 14rpx;
+}
+
+.operate .list-item {
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  flex: 1;
+  text-align: center;
+}
+
+.operate image {
+  width: 38rpx;
+  height: 38rpx;
+}
+
+.operate view {
+  margin-bottom: 4rpx;
+  margin-top: -4rpx;
+}
+
+.orderDisplay .list .list-item {
+  background: #fff;
+  margin-top: 5px;
+}
+
+.goodsSortMenu {
+  height: 44px;
+  line-height: 44px;
+  z-index: 0;
+  display: flex;
+  background: #fff;
+}
+
+.goodsSortMenu view {
+  flex: 1;
+  -webkit-box-flex: 1;
+  -webkit-flex: 1;
+  text-align: center;
+  font-size: 15px;
+  display: table-cell;
+}
+
+.goodsSortMenu view image {
+  width: 18px;
+  vertical-align: middle;
+  margin-top: -2px;
+}
+
+.toAddGoods {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #333;
+  height: 46px;
+  line-height: 46px;
+  text-align: center;
+  z-index: 1;
+}
+
+.weui-loadmore {
+  width: 65%;
+  margin: 70rpx auto;
+  line-height: 75rpx;
+  font-size: 14px;
+  text-align: center;
+}
+
+.weui-loadmore_line {
+  border-top: 1px solid #e5e5e5;
+  margin-top: 112rpx;
+}
+
+.weui-loadmore__tips {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.weui-loadmore_line .weui-loadmore__tips {
+  position: relative;
+  top: -42rpx;
+  padding: 0 26rpx;
+  background-color: #fff;
+  color: #999;
+  font-size: 14px;
+  height: 22px;
+  line-height: 22px;
+}
+</style>

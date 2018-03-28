@@ -1,0 +1,304 @@
+<template>
+  <view>
+    <scroll-view scroll-y="true" height="100%">
+      <!-- 头部搜索 -->
+      <view class="searchTop" style="overflow: hidden;">
+        <input type="text" placeholder="输入订单号，手机号，姓名" class="form-control" bindinput = "searchInput"/>
+        <view class="h3 c11" bindtap = "changeOrder">搜索</view>
+      </view>
+      <!-- 订单导航 -->
+      <view class="list orderMenu">
+        <view class="list-item h13 {{act_type == 'unship' ? 'c3' : 'c2'}}" data-type = "unship" bindtap = "changeOrder">
+          待发货
+        </view>
+        <view class="list-item h13 {{act_type == 'unpay' ? 'c3' : 'c2'}}" data-type = "unpay" bindtap = "changeOrder">
+          待付款
+        </view>
+        <view class="list-item h13 {{act_type == 'ship' ? 'c3' : 'c2'}}" data-type = "ship" bindtap = "changeOrder">
+          已发货
+        </view>
+        <view class="list-item h13 {{act_type == 'cancel' ? 'c3' : 'c2'}}" data-type = "cancel" bindtap = "changeOrder">
+          已取消
+        </view>
+        <view class="list-item h13 {{act_type == 'return' ? 'c3' : 'c2'}}" data-type = "return" bindtap = "changeOrder">
+          退款
+        </view>
+      </view>
+      <!-- 订单列表 -->
+      <view class="shopOrderList">
+        <scroll-view  scroll-y="true"  scroll-top="{{scrollTop}}"
+          bindscrolltolower="loadList" bindscroll="scroll"
+          style="height: 100%;display: block;overflow: hidden;">
+          <view class="table">
+            <view class="table-tr" wx:for = "{{orders_list}}" wx:for-item = "order" wx:key = "order.order_id" wx:for-index = "index">
+              <view class="table-td" style="position: relative;">
+                <image src="{{order.master_img ? order.master_img : imgUrl + '/no_picture.jpg'}}" mode="aspectFill"></image>
+              </view>
+              <view class="table-td h5 c3">
+                <navigator url = "../orderInfo/orderInfo?id={{order.order_id}}">
+                  <view class="paragraph"><text class="h6 c3">订单号：</text>{{order.order_sn}}</view>
+                  <view class="paragraph"><text class="h6 c3">收货人：</text>{{order.consignee}}</view>
+                  <view class="paragraph"><text class="h6 c3">订单金额：</text>{{order.total_fee}}</view>
+                  <view class="paragraph"><text class="h6 c3">{{order.order_time}}</text></view>
+                </navigator>
+                <block wx:if = "{{is_show_shipping === 1}}">
+                  <navigator url = "../delivery/delivery?order_id={{order.order_id}}" class="h5 c11 delivery">发货</navigator>
+                  <span class="h5 c11 delivery" bindtap="userTake" style="right:140rpx" data-orderId = "{{order.order_id}}" data-index = "{{index}}">自提</span>
+                </block>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+      <!-- 加载中。。。 -->
+      <view class="body-view">
+        <loading hidden="{{hidden}}" bindchange="loadingChange">
+          加载中...
+        </loading>
+        <p wx:if="{{load_complete}}">-- 已为您加载全部内容 -- </p>
+        </view>
+    </scroll-view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class orderList extends wepy.page {
+    config = {
+      navigationBarTitleText: '订单管理'
+    }
+    data = {
+      imgUrl: '',
+      img_domain: '',
+      orders_list: [],
+      page: 0,
+      keywords: '',
+      act_type: 'unship',
+      scrollTop: 0,
+      is_show_shipping: '',
+      hidden: true,
+      load_complete: false
+    }
+    onLoad(option) {
+      this.loadList()
+    }
+    changeOrder(e) {
+      this.$apply(() => {
+        this.page = 0
+        this.orders_list = []
+        this.hidden = true
+        this.act_type = e.currentTarget.dataset.type ? e.currentTarget.dataset.type : this.data.act_type
+      })
+      this.loadList()
+    }
+    loadList(e) {
+      let self = this
+      // 发送请求
+      if (this.data.page === -1) {
+        return false
+      }
+      let nowPage = this.data.page + 1
+      this.$apply(() => {
+        this.page = nowPage
+        this.hidden = false
+      })
+      let questParam = {
+        page: this.data.page,
+        keywords: this.data.keywords,
+        act_type: this.data.act_type
+      }
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/shop/order/order.php?act=get_order_list`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: questParam
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          if (data.orders.length === 0) {
+            self.$apply(() => {
+              self.page = -1
+              self.hidden = true
+              self.load_complete = true
+            })
+          }
+          let nowOrderList = this.data.orders_list
+          for (let o of data.orders) {
+            nowOrderList.push(o)
+          }
+          self.$apply(() => {
+            self.orders_list = nowOrderList
+            self.img_domain = data.img_domain
+            self.is_show_shipping = data.orders.length > 0 ? data.orders[0].is_show_shipping : ''
+            self.hidden = true
+          })
+        } else {
+          console.error(msg)
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    methods = {
+      searchInput(e) {
+        this.$apply(() => {
+          this.keywords = e.detail.value
+        })
+      }
+    }
+    userTake(e) {
+      let index = e.target.dataset.index
+      let questParam = {
+        act: 'shipping',
+        order_id: e.target.dataset.orderid,
+        user_take: 1
+      }
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/shop/order/order.php`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: questParam
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          wepy.showModal({
+            content: '操作成功',
+            showCancel: false
+          })
+          let ordersList = this.data.orders_list
+          ordersList.splice(index, 1)
+          this.$apply(() => {
+            this.orders_list = ordersList
+          })
+        } else {
+          console.log(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.searchTop {
+  margin: 10rpx 15px 0;
+}
+
+.searchTop .form-control {
+  width: 80%;
+  float: left;
+  box-sizing: border-box;
+}
+
+.searchTop view {
+  float: right;
+  background: #333;
+  border-radius: 4px;
+  width: 18%;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  margin-left: 2%;
+}
+
+.orderMenu {
+  background: #fff;
+  margin: 10rpx 0 !important;
+  overflow: hidden;
+}
+
+.orderMenu .list-item {
+  width: 20%;
+  padding: 27rpx 0;
+  text-align: center;
+  float: left;
+}
+
+.shopOrderList .table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.shopOrderList .table .table-td {
+  box-sizing: border-box;
+  padding: 20rpx 20rpx 10rpx;
+  background: #fff;
+  border-bottom: 10rpx solid #e5e8f1;
+}
+
+.shopOrderList .table .table-td image {
+  /*width: 100%;*/
+  width: 194rpx;
+  height: 194rpx;
+  background-size: cover;
+  position: absolute;
+  top: 20rpx;
+  left: 20rpx;
+}
+
+.shopOrderList .table .table-td .paragraph {
+  padding-bottom: 10rpx;
+}
+
+.shopOrderList .table .table-tr .table-td:first-child {
+  width: 234rpx;
+  height: 234rpx;
+  position: relative;
+}
+
+.shopOrderList .table .table-tr .table-td:last-child {
+  position: relative;
+}
+
+.shopOrderList .delivery {
+  position: absolute;
+  right: 30rpx;
+  bottom: 24rpx;
+  height: 56rpx;
+  width: 100rpx;
+  text-align: center;
+  line-height: 56rpx;
+  background: #333;
+  border-radius: 4px;
+}
+
+.weui-loadmore {
+  width: 65%;
+  margin: 70rpx auto;
+  line-height: 75rpx;
+  font-size: 14px;
+  text-align: center;
+}
+
+.weui-loadmore_line {
+  border-top: 1px solid #e5e5e5;
+  margin-top: 112rpx;
+}
+
+.weui-loadmore__tips {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.weui-loadmore_line .weui-loadmore__tips {
+  position: relative;
+  top: -42rpx;
+  padding: 0 26rpx;
+  background-color: #fff;
+  color: #999;
+  font-size: 14px;
+  height: 22px;
+  line-height: 22px;
+}
+.body-view{text-align:center;}
+
+
+</style>

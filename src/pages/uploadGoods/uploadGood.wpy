@@ -1,0 +1,585 @@
+<template>
+  <scroll-view scroll-y="true" height="100%">
+    <view class="uploadGoods">
+      <!-- 商品主图 -->
+      <view class="topPic">
+        <view class="addPicTitle h3 c3">
+          添加商品图片<text class="h6 c2">(点击图片可编辑排序)</text>
+          <text class="h6 c2 addNumber">{{topImgArr.length}}/5</text>
+        </view>
+        <!--添加商品主图-->
+        <view class="list addImg" style="overflow: hidden;">
+          <view class="list-item" wx:for="{{topImgArrDomain}}" wx:for-item="img" wx:key="index" wx:for-index = "index">
+            <image mode="scaleToFill" src="{{img}}" bindtap = "previewImg" data-current = "{{img}}" data-urls = "{{topImgArrDomain}}"></image>
+            <text class="delImgBtn" bindtap = "delImgAsk" data-index = "{{index}}" data-source = "topImg">×</text>
+          </view>
+          <view class="list-item" bindtap="uploadImg" data-source="mainImg" wx:if = "{{topImgArrDomain.length < 5}}">
+            <image src="{{imgUrl}}/addImg.png" mode="widthFix"></image>
+          </view>
+        </view>
+        <!--商品名称 副标题-->
+        <view class="goodsName">
+          <input type="text" maxlength="30" placeholder="请输入商品名称" value="{{goods_name}}" bindinput="goodsNameInput"/>
+          <text class="c1 h7">{{goods_name.length}}/30</text>
+        </view>
+        <view class="goodsName">
+          <input type="text" maxlength="15" placeholder="请输入商品副标题" value="{{goods_brief}}" bindinput="goodsBriefInput"/>
+          <text class="c1 h7">{{goods_brief.length}}/15</text>
+        </view>
+      </view>
+      <!--详情图文编辑-->
+      <view class="goodsDetImg">
+        <view class="h3 c3">商品详情图文编辑</view>
+        <textarea placeholder="请输入商品描述 写些特色吧～" value="{{goods_detail}}" bindinput="goodsDescInput"></textarea>
+        <view class="list addImg" style="overflow: hidden;">
+          <view class="list-item" wx:for="{{detImgArrDomain}}" wx:for-item="img" wx:key="index">
+            <image mode="scaleToFill" src="{{img}}" bindtap = "previewImg" data-current = "{{img}}" data-urls = "{{detImgArrDomain}}"></image>
+            <text class="delImgBtn" bindtap = "delImgAsk">×</text>
+          </view>
+          <view class="list-item" bindtap="uploadImg" data-source="detailImg" wx:if = "{{detImgArrDomain.length < 15}}">
+            <image src="{{imgUrl}}/addImg.png" mode="widthFix"></image>
+          </view>
+        </view>
+        <view class="c1 h5">商品详情图（最多10张图，图片大小不得超过2M）</view>
+      </view>
+      <!--运费 价格 库存-->
+      <view class="stockFee">
+        <view class="table">
+          <view class="table-tr">
+            <view class="table-td">运费</view>
+            <view class="table-td h5 c1" style="font-size: 24rpx;">
+              <text class="c11 h5">0.00  </text>全场商品均包邮 请注意商品价格设定
+            </view>
+          </view>
+          <view class="table-tr">
+            <view class="table-td">销售价格</view>
+            <view class="table-td">
+              <input class="h5" type="digit" placeholder="请填写合适的商品销售价格" value="{{goods_shop_price}}" bindinput="shopPriceInput"/>
+            </view>
+          </view>
+          <view class="table-tr">
+            <view class="table-td">市场价格</view>
+            <view class="table-td">
+              <input class="h5" type="digit" placeholder="请填写合适的商品市场价格" value="{{goods_market_price}}" bindinput="marketPriceInput"/>
+            </view>
+          </view>
+          <view class="table-tr">
+            <view class="table-td">库存</view>
+            <view class="table-td">
+              <input class="h5" type="tel" placeholder="请填写合适的商品库存 防止超卖" value="{{goods_stock}}" bindinput="stockInput"/>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <!--确认发布-->
+    <view class="publishSubmit" bindtap="publishGoods">
+      <view class="h2 c11">确认发布</view>
+    </view>
+  </scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import md5Util from '../../utils/md5'
+  import { DEFAULT_UID, API_SIGNATURE } from '../../../src/config'
+
+  export default class uploadGood extends wepy.page {
+    config = {
+      navigationBarTitleText: '新建商品'
+    }
+    data = {
+      imgUrl: '', // 静态图片资源路径
+      img_domain: '',
+      topImgArr: [],    // 主图
+      topImgArrDomain: [],  // 补全图片链接地址 图片预览时使用
+      detImgArr: [],    // 详情图
+      detImgArrDomain: [],  // 鱼片预览使用
+      goods_name: '',   // 商品名称
+      goods_brief: '',  // 商品副标题
+      goods_detail: '',  // 商品详情介绍
+      goods_shop_price: '',    // 商品价格
+      goods_market_price: '',  // 商品市场价格对比
+      goods_stock: 0,         // 商品库存
+      g_id: 0,                 // 商品编辑g_id
+      act_type: 'add'
+    }
+    onLoad(option) {
+      let self = this
+      this.imgUrl = this.$parent.globalData.imgUrl
+      if (option.g_id) {
+        self.g_id = option.g_id
+        self.act_type = 'edit'
+        self.$apply()
+        this.loadEditGoods()
+      }
+    }
+    // 查看更多
+    loadEditGoods() {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/goods/goods.php?act=edit`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: {
+          goods_id: this.data.g_id
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          let goodsImg = []
+          let goodsImgDomain = []
+          let detailImg = []
+          let detailImgDomain = []
+          for (let img of data.goods_img) {
+            goodsImg.push(img.goods_img)
+            goodsImgDomain.push(data.img_domain + img.goods_img)
+          }
+          for (let img of data.goods_detail_img) {
+            detailImg.push(img.goods_img)
+            detailImgDomain.push(data.img_domain + img.goods_img)
+          }
+          // 赋值
+          self.$apply(() => {
+            self.img_domain = data.img_domain
+            self.detImgArrDomain = detailImgDomain
+            self.detImgArr = detailImg
+            self.topImgArrDomain = goodsImgDomain
+            self.topImgArr = goodsImg
+            self.goods_stock = data.goods_info.number
+            self.goods_market_price = data.goods_info.market_price
+            self.goods_shop_price = data.goods_info.shop_price
+            self.goods_detail = data.goods_info.goods_desc_m
+            self.goods_brief = data.goods_info.goods_brief
+            self.goods_name = data.goods_info.goods_name
+          })
+          // wepy.setTitle(this.data.title_name)
+        } else {
+          console.error(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    publishGoods() {
+      let self = this.data
+      let _this = this
+      let saveParam = {
+        act: 'publish_goods',
+        goods_name: self.goods_name,
+        goods_brief: self.goods_brief,
+        upc_shop_price: self.goods_shop_price,
+        upc_market_price: self.goods_market_price,
+        upc_number: self.goods_stock,
+        act_type: self.act_type,
+        goods_id: self.g_id
+      }
+      for (let i in self.topImgArr) {
+        let imgJson = {}
+        let key = `goods_imgs[${i}]`
+        imgJson[key] = self.topImgArr[i]
+        Object.assign(saveParam, imgJson)
+      }
+      for (let i in self.detImgArr) {
+        let imgJson = {}
+        let key = `detail_imgs[${i}]`
+        imgJson[key] = self.detImgArr[i]
+        Object.assign(saveParam, imgJson)
+      }
+      // 发送请求
+      wepy.request({
+        url: `${_this.$parent.globalData.apiUrl}/shop/goods/goods.php`,
+        method: 'GET',
+        header: {
+          'Accept': 'application/json, text/plain, */*',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: saveParam
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          console.log('errcode===0')
+          wepy.showModal({
+            title: '提示',
+            content: '发布成功',
+            confirmText: '去往列表',
+            cancelText: '继续添加'
+          }).then((res) => {
+            if (res.confirm) {
+              wepy.navigateTo({
+                url: '../uploadGoods/goodList'
+              })
+            } else if (res.cancel) {
+              _this.$apply(() => {
+                _this.goods_name = ''
+                _this.goods_brief = ''
+                _this.goods_detail = ''
+                _this.goods_shop_price = ''
+                _this.goods_market_price = ''
+                _this.goods_stock = ''
+                _this.topImgArr = []
+                _this.topImgArrDomain = []
+                _this.detImgArr = []
+                _this.detImgArrDomain = []
+              })
+            }
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * 从相册选择图片并上传
+     */
+    uploadImg(e) {
+      let self = this
+      let source = e.currentTarget.dataset.source
+      let uploadCount = 5
+      if (source === 'detailImg' && self.data.detImgArrDomain.length >= 10) {
+        uploadCount = 15 - self.data.detImgArrDomain.length
+      }
+      if (source === 'mainImg') {
+        uploadCount = 5 - self.data.topImgArrDomain.length
+      }
+      wepy.chooseImage({
+        count: uploadCount, // 默认9
+        sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+        sourceType: ['album', 'camera'] // 可以指定来源是相册还是相机，默认二者都有
+      }).then((res) => {
+        // 返回选定照片的本地文件路径列表，tempFilePath可以作为img标签的src属性显示图片
+        var tempFilePaths = res.tempFilePaths
+        for (let m of tempFilePaths) {
+          // if ()
+          self.imgMediaUpload(source, m)
+        }
+      })
+    }
+    /**
+     * 上传图片至服务器
+     * @param  {[type]} source   [图片来源 主图或详情图]
+     * @param  {[type]} media_id [chooseImage接口拿到的图片资源]
+     */
+    imgMediaUpload(source, mediaId) {
+      // 发送请求
+      let u = wepy.getStorageSync('user_nhh')
+      let uid = u.user_id || DEFAULT_UID
+      let timestamp = Date.parse(new Date()) / 1000
+      let md5Str = md5Util.hexMD5(uid + '' + timestamp + API_SIGNATURE)
+      let uploadParam = {
+        uid: uid,
+        timestamp: timestamp,
+        sign: md5Str,
+        sess_id: wepy.getStorageSync('sessId'),
+        act: 'upload',
+        type: 'user_goods',
+        filePath: mediaId,
+        name: 'file'
+      }
+      let self = this
+      // 上传图片资源至服务器
+      wepy.uploadFile({
+        url: `${self.$parent.globalData.apiUrl}/wx_app/upload_img.php`,
+        filePath: mediaId,
+        name: 'file', // 接口规定必须为file
+        formData: uploadParam
+      }).then((res) => {
+        var resData = JSON.parse(res.data)
+        if (resData.errcode === 0) {
+          console.log(11, resData)
+          // 保存主图和详情图
+          self.img_domain = resData.data.img_domain
+          self.$apply()
+          let imgList, imgListDomain
+          if (source === 'mainImg') {
+            imgList = self.data.topImgArr
+            imgListDomain = self.data.topImgArrDomain  // 同步更新
+            imgList.push(resData.data.file)
+            imgListDomain.push(self.data.img_domain + resData.data.file)
+            self.topImgArr = imgList
+            self.topImgArrDomain = imgListDomain
+            self.$apply()
+          } else {
+            imgList = self.data.detImgArr
+            imgListDomain = self.data.detImgArrDomain
+            imgList.push(resData.data.file)
+            imgListDomain.push(self.data.img_domain + resData.data.file)
+            self.topImgArr = imgList
+            self.topImgArrDomain = imgListDomain
+            self.$apply()
+          }
+        } else {
+          wepy.showModal({
+            content: '操作成功',
+            showCancel: false
+          })
+        }
+      })
+    }
+    /**
+     * [previewImg 图片预览]
+     */
+    previewImg(e) {
+      console.log(111, e)
+      var urls = e.currentTarget.dataset.urls
+      var current = e.currentTarget.dataset.current
+      wepy.previewImage({
+        current: current, // 当前显示图片的http链接
+        urls: urls // 需要预览的图片http链接列表
+      })
+    }
+    /**
+     * 询问是否删除图片
+     */
+    delImgAsk(e) {
+      let source = e.currentTarget.dataset.source  // 图片来源 商品主图还是详情图
+      let index = e.currentTarget.dataset.index     // 当前图片索引
+      wepy.showModal({
+        title: '提示',
+        content: '确定要删除当前商品吗？'
+      }).then((res) => {
+        if (res.confirm) {
+          this.delImgByIndex(source, index)
+        } else if (res.cancel) {
+          return false
+        }
+      })
+    }
+    /**
+     * [delImgByIndex 根据图片来源和索引删除对应图片]
+     * @param  {[type]} source [图片来源 商品主图还是详情图]
+     * @param  {[type]} index  [当前图片索引]
+     * @return {[type]}        [description]
+     */
+    delImgByIndex(source, index) {
+      let self = this
+      let currentImgArr, currentImgArrDomain
+      // 根据图片来源删除相应图片
+      if (source === 'topImg') {
+        currentImgArr = this.data.topImgArr
+        currentImgArrDomain = this.data.topImgArrDomain
+        currentImgArr.splice(index, 1)
+        currentImgArrDomain.splice(index, 1)
+        self.topImgArr = currentImgArr
+        self.topImgArrDomain = currentImgArrDomain
+        self.$apply()
+      } else {
+        currentImgArr = this.data.detImgArr
+        currentImgArrDomain = this.data.detImgArrDomain
+        this.detImgArr.splice(index, 1)
+        this.detImgArrDomain.splice(index, 1)
+        self.detImgArr = currentImgArr
+        self.detImgArrDomain = currentImgArrDomain
+        self.$apply()
+      }
+    }
+    // 绑定input框数据
+    methods = {
+      goodsNameInput: function(e) {
+        this.$apply(() => {
+          this.goods_name = e.detail.value
+        })
+      },
+      goodsBriefInput: function(e) {
+        this.goods_brief = e.detail.value
+        this.$apply()
+      },
+      goodsDescInput: function(e) {
+        this.$apply(() => {
+          this.goods_detail = e.detail.value
+        })
+      },
+      shopPriceInput: function(e) {
+        this.$apply(() => {
+          this.goods_shop_price = e.detail.value
+        })
+      },
+      marketPriceInput: function(e) {
+        this.$apply(() => {
+          this.goods_market_price = e.detail.value
+        })
+      },
+      stockInput: function(e) {
+        this.$apply(() => {
+          this.goods_stock = e.detail.value
+        })
+      }
+    }
+  }
+</script>
+
+<style lang="less">
+  .uploadGoods {
+  margin-bottom: 50px;
+}
+
+.addPicTitle {
+  position: relative;
+}
+
+.addPicTitle .addNumber {
+  position: absolute;
+  right: 0;
+  top: 4px;
+  font-style: normal;
+}
+
+.topPic,
+.goodsDetImg {
+  padding: 18rpx 30rpx 16rpx;
+  background: #fff;
+}
+
+.addImg {
+  padding-bottom: 16rpx;
+}
+
+.addImg .list-item {
+  float: left;
+  width: 20%;
+  position: relative;
+}
+
+.addImg .list-item image {
+  width: 120rpx;
+  height: 120rpx;
+  padding: 10rpx;
+  background-size: cover;
+}
+
+.goodsName {
+  height: 100rpx;
+  position: relative;
+  padding: 4rpx 0;
+  border-top: 1px solid #e8e8e8;
+}
+
+.goodsName text {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+.uploadGoods input,
+.uploadGoods textarea {
+  border: none;
+  outline: none;
+  width: 100%;
+}
+
+.goodsDetImg,
+.stockFee,
+.publishSubmit {
+  margin-top: 10rpx;
+  background: #fff;
+}
+
+.goodsDetImg .addImg {
+  padding: 0;
+}
+
+.uploadGoods textarea {
+  height: 187rpx;
+  resize: none;
+  line-height: 37rpx;
+  padding-top: 9rpx;
+}
+
+.stockFee .table {
+  width: 100%;
+}
+
+.stockFee {
+  padding-left: 30rpx;
+}
+
+
+/*.stockFee .table .table-td{padding: 24rpx 0; border-bottom: 1px solid #e8e8e8}*/
+.stockFee .table .table-tr {
+  border-bottom: 1px solid #e8e8e8;
+  height: 94rpx;
+}
+.stockFee .table .table-td {
+  box-sizing: border-box;
+  height: 94rpx;
+  padding-top: 24rpx;
+  position: relative;
+}
+
+.stockFee .table .table-td input {
+  height: 94rpx;
+  position: absolute;
+  top: 24rpx;
+  height: 44rpx;
+  min-height: 44rpx;
+}
+
+.stockFee .table .table-tr:last-child .table-td {
+  border: none;
+}
+
+.publishSubmit {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: none;
+  padding: 0;
+  z-index: 100;
+}
+
+.publishSubmit view {
+  display: block;
+  background: #333;
+  text-align: center;
+  height: 84rpx;
+  line-height: 84rpx;
+}
+
+.publishSubmit view:active {
+  color: #fff;
+}
+
+.picCont {
+  position: relative;
+  background: #fff;
+  padding: 15px 15px 35px;
+}
+
+.picCont>view {
+  outline: none;
+}
+
+.picCont>image {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  width: 40px;
+}
+
+.delImgBtn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: #050505;
+  background: -webkit-gradient(linear, left top, right bottom, from(#050505), to(#4a4949));
+  background: -moz-linear-gradient(#050505, #4a4949);
+  background: -o-linear-gradient(#050505, #4a4949);
+  background: linear-gradient(top center, #050505, #4a4949);
+  display: block;
+  width: 22px;
+  height: 22px;
+  line-height: 20px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #fff;
+  border-radius: 50%;
+  opacity: 0.8;
+}
+</style>

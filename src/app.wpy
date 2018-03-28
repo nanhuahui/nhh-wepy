@@ -41,8 +41,11 @@ export default class extends wepy.app {
       'pages/user/orderManage',
       'pages/user/personnelsManage',
       'pages/user/myIncome',
-      'pages/user/myCoupon',
-      'pages/order/orderList'
+      'pages/order/orderList',
+      'pages/uploadGoods/uploadGood',
+      'pages/uploadGoods/goodList',
+      'pages/uploadGoods/uploadBanner',
+      'pages/uploadGoods/orderList'
     ],
     window: {
       navigationBarBackgroundColor: '#f7f7f8',

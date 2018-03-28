@@ -1,0 +1,261 @@
+<template>
+  <view>
+    <view class="tishi">
+      <text class="currentUse">当前使用</text>
+      <text class="upload" bindtap="uploadImg" data-source="banner">自定义上传</text>
+    </view>
+
+    <view class="banner">
+      <image wx:if="{{shop_banner === 'default'}}" src="{{imgUrl}}/share/banner_6.jpg"></image>
+      <image wx:else src="{{shop_banner ? img_domain + shop_banner : ''}}"></image>
+      <text class="tishi_scale">提示：图片比例请使用750*295</text>
+    </view>
+
+    <view class="tishi" style="border-top:10rpx solid #eee;margin-top:84rpx;">
+      <text class="currentUse">模板banner</text>
+    </view>
+
+    <swiper style="height: 220rpx;" next-margin="{{'180rpx'}}"
+      indicator-dots="{{false}}" autoplay="{{false}}" interval="{{5000}}" duration="{{1000}}">
+      <block wx:for="{{localBanner}}" wx:key="id">
+        <swiper-item>
+          <image bindtap="selectBanner" data-urls="{{item.shop_banner}}" data-id="{{item.id}}"
+            src="{{item.shop_banner ? img_domain + item.shop_banner : ''}}" class="slide-image {{currentItem === item.id ? 'active' : ''}}" width="355" height="150"></image>
+        </swiper-item>
+      </block>
+    </swiper>
+    <button style="margin-top:93rpx;font-size:28rpx" class="useImg" bindtap="useImg" data-img="{{shop_banner}}" data-url="/pages/shopping/index/index">确定更换</button>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import md5Util from '../../utils/md5'
+  import { DEFAULT_UID, API_SIGNATURE } from '../../../src/config'
+
+  export default class uploadBanner extends wepy.page {
+    config = {
+      navigationBarTitleText: '自营管理'
+    }
+    data = {
+      imgUrl: '', // 静态图片资源路径
+      img_domain: '',
+      shop_banner: null,    // 主图
+      localBanner: [],  // 补全图片链接地址 图片预览时使用
+      currentItem: 0
+    }
+    onLoad(option) {
+      this.getLocalBanner()
+    }
+    // 查看更多
+    getLocalBanner () {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/store.php?act=banner_select`
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          // 赋值
+          self.$apply(() => {
+            self.img_domain = data.img_domain
+            self.shop_banner = data.shop_banner
+            self.localBanner = data.banner_all
+          })
+        } else {
+          console.error(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    selectBanner(e) {
+      let self = this
+      let imgId = e.currentTarget.dataset.id
+      let item = e.currentTarget.dataset.urls
+      self.$apply(() => {
+        self.currentItem = imgId
+        self.shop_banner = item
+      })
+      console.log('这是img的id', imgId)
+    }
+    /**
+     * 从相册选择图片并上传
+     */
+    uploadImg(e) {
+      let self = this
+      let source = e.currentTarget.dataset.source
+      wepy.chooseImage({
+        count: 1, // 默认9
+        sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+        sourceType: ['album', 'camera'] // 可以指定来源是相册还是相机，默认二者都有
+      }).then((res) => {
+        // 返回选定照片的本地文件路径列表，tempFilePath可以作为img标签的src属性显示图片
+        var tempFilePaths = res.tempFilePaths
+        for (let m of tempFilePaths) {
+          // if ()
+          self.imgMediaUpload(source, m)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * 上传图片至服务器
+     * @param  {[type]} source   [图片来源 主图或详情图]
+     * @param  {[type]} media_id [chooseImage接口拿到的图片资源]
+     */
+    imgMediaUpload(source, mediaId) {
+      // 发送请求
+      let u = wepy.getStorageSync('user_nhh')
+      let uid = u.user_id || DEFAULT_UID
+      let timestamp = Date.parse(new Date()) / 1000
+      let md5Str = md5Util.hexMD5(uid + '' + timestamp + API_SIGNATURE)
+      let uploadParam = {
+        uid: uid,
+        timestamp: timestamp,
+        sign: md5Str,
+        sess_id: wepy.getStorageSync('sessId'),
+        act: 'upload',
+        type: 'user_goods',
+        filePath: mediaId,
+        name: 'file'
+      }
+      let self = this
+      // 上传图片资源至服务器
+      wepy.uploadFile({
+        url: `${this.$parent.globalData.apiUrl}/wx_app/upload_img.php`,
+        filePath: mediaId,
+        name: 'file', // 接口规定必须为file
+        formData: uploadParam
+      }).then((res) => {
+        var resData = JSON.parse(res.data)
+        console.log(11, resData)
+        if (resData.errcode === 0) {
+          if (source === 'banner') {
+            self.data.shop_banner = resData.data.file
+          }
+          self.$apply(() => {
+            self.shop_banner = self.data.shop_banner
+          })
+          console.log(resData.data.file)
+          // 保存主图和详情图
+        } else {
+          // $wuxDialog.alert({title: '提示', content: '', onConfirm(e) {}});
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    useImg(e) {
+      let url = e.currentTarget.dataset.url
+      let shopBanner = e.currentTarget.dataset.img
+      console.log('这是图片路径', shopBanner)
+      let kd = {
+        banner: shopBanner
+      }
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/store.php?act=update_banner`,
+        method: 'POST',
+        header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        data: kd
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          wepy.switchTab({url: url})
+        } else {
+          console.error(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+page {
+  background: #fff;
+}
+
+.viewStyle {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  font-family: 'PingFang SC';
+  background: #fff;
+}
+
+.container {
+  padding: 0;
+}
+
+.row {
+  margin: 0;
+}
+
+.tishi {
+  display: flex;
+}
+
+.tishi text {
+  flex: 1;
+  padding-top: 20rpx;
+  padding-bottom: 20rpx;
+}
+
+.currentUse {
+  text-align: left;
+  padding-left: 30rpx;
+  font-weight: bold;
+}
+
+.upload {
+  text-align: right;
+  padding-right: 30rpx;
+  color: #CB9D42;
+  font-weight: bold;
+}
+
+.banner {
+  width: 92%;
+  margin: 0 auto;
+  height: 280rpx;
+}
+
+.banner image {
+  width: 100%;
+  height: inherit;
+}
+
+.useImg {
+  display: flex;
+  color: #CB9D42;
+  width: 85%;
+  justify-content: center;
+  margin: 0.853rem auto 0;
+  border-radius: 40rpx;
+  border: 2rpx solid #333;
+  background-color: #333;
+}
+
+.swiper-container {
+  width: 100%;
+}
+
+swiper-item {
+  height: 213rpx;
+}
+
+swiper-item image {
+  width: 95%;
+  margin-left: 20rpx;
+  height: 213rpx;
+}
+
+.tishi_scale {
+  padding: 10rpx 0 0 0;
+}
+
+.active {
+  border: 4rpx solid #CB9D42;
+}
+
+</style>
