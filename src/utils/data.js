@@ -74,35 +74,43 @@ module.exports = {
   /*
    * 商品详情二维码合成文字
    */
-  composeTextForGoods: [
-    {
-      ruler: [w / 5, h * 0.66, 20],
-      style: '#000000',
-      align: 'left',
-      text: '' // 商品主标题
-    }, {
-      ruler: [20, h * 0.74, 20],
-      style: '#E34E4E',
-      align: 'left',
-      text: '' // 商品价格
-    }, {
-      ruler: [w / 3, h * 0.74, 16],
-      style: '#666666',
-      align: 'left',
-      text: '' // 市场价
-    }, {
-      ruler: [20, h * 0.8, 16],
-      style: '#999999',
-      align: 'left',
-      text: '', // 商品副标题
-      width: w * 0.4
-    }, {
-      ruler: [20, h - 8, 26],
-      style: '#999999',
-      align: 'left',
-      text: '>>>>>>>>>>'
-    }
-  ],
+  composeTextForGoods: [{
+    x: w / 5,
+    y: h * 0.66,
+    size: 20,
+    style: '#000000',
+    align: 'left',
+    text: '' // 商品主标题
+  }, {
+    x: 20,
+    y: h * 0.74,
+    size: 20,
+    style: '#E34E4E',
+    align: 'left',
+    text: '' // 商品价格
+  }, {
+    x: w / 3,
+    y: h * 0.74,
+    size: 16,
+    style: '#666666',
+    align: 'left',
+    text: '' // 市场价
+  }, {
+    x: 20,
+    y: h * 0.8,
+    size: 16,
+    style: '#999999',
+    align: 'left',
+    text: '', // 商品副标题
+    width: w * 0.4
+  }, {
+    x: 20,
+    y: h - 8,
+    size: 26,
+    style: '#999999',
+    align: 'left',
+    text: '>>>>>>>>>>'
+  }],
   /*
    * 海报预览图
    */

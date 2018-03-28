@@ -107,23 +107,23 @@
     </view>
 
     <!-- 分享小程序码浮层 -->
-    <import src="../../../templates/qrPatch-layer/qrPatch-layer" />
-    <template is="qrPatchLayer" data="{{bottom: 90, shareImgArr: shareImgs, shareTextArr: shareText, qrShareShow, sellerIdTemp, shareLink, shareLinkParam, composeSize, imgUrl}}" />
+    <qrPatchLayer bottom="120" :shareImgArr.sync="shareImgs" :shareTextArr.sync="shareText" :shareQR.sync="shareQR"></qrPatchLayer>
   </view>
 </template>
 
 <script>
 import wepy from 'wepy'
 import WxParse from '../../utils/wxParse/wxParse'
+import qrPatchLayer from '../../components/qrPatch-layer'
 import {composeImageForGoods, composeTextForGoods} from '../../utils/data'
 
-let w = wepy.getSystemInfoSync().screenWidth
-let h = wepy.getSystemInfoSync().screenHeight
+let w = wepy.getSystemInfoSync().windowWidth
+let h = wepy.getSystemInfoSync().windowHeight
 export default class Goods extends wepy.page {
   config = {
     navigationBarTitleText: ''
   }
-  components = {}
+  components = { qrPatchLayer }
   data = {
     id: null,
     uid: null,
@@ -143,9 +143,10 @@ export default class Goods extends wepy.page {
     pageTitle: '',
     scroll_top: 0,
     qrShareShow: false,
-    composeSize: {qr: [ w * 0.64, h - w / 2.5, w / 3, w / 3 ]},
+    qrSize: [ w * 0.64, h - w / 2.5, w / 3 ],
     shareImgs: composeImageForGoods,
     shareText: composeTextForGoods,
+    shareQR: null,
     shareLink: null,
     shareLinkParam: null,
     showQuickIcon: 'default'  // 快捷按钮是否打开
@@ -269,7 +270,6 @@ export default class Goods extends wepy.page {
           self.shareText[0].text = wepy.getStorageSync('store_nhh') ? wepy.getStorageSync('store_nhh').name : '南华汇商城' + '向您推荐了'
           self.shareImgs[3].src = wepy.getStorageSync('store_nhh').avatar ? wepy.getStorageSync('store_nhh').avatar : wepy.getStorageSync('user_wx').avatarUrl
         }
-
         // 后台会传递空标签过来
         data.goods_tab.find((value, index) => {
           // 剔除无效标签
@@ -291,10 +291,12 @@ export default class Goods extends wepy.page {
                 bgWidth += reg.test(goodsTab[t][i]) ? 16 : 16 / 2
               }
               self.shareText.push({
-                ruler: [20 + x, w / 2 + line * 20, 16],
+                x: 20 + x,
+                y: h / 2 + line * 20,
+                size: 16,
                 style: '#464120',
                 align: 'left',
-                text: goodsTab[t], // 商品主标题
+                text: goodsTab[t], // 商品标签
                 bg: {
                   w: bgWidth,
                   h: 42,
@@ -307,9 +309,9 @@ export default class Goods extends wepy.page {
           // 没有标签,相应元素上移
           self.shareImgs[2].y -= 30
           self.shareImgs[3].y -= 30
-          self.composeSize.qr[1] -= 30
+          self.qrSize[1] -= 30
           self.shareText.find((value, index) => {
-            value.ruler[1] -= 30
+            value.y -= 30
           })
         }
         // 组装分享的路径
@@ -341,6 +343,8 @@ export default class Goods extends wepy.page {
           self.sellerIdTemp = wepy.getStorageSync('sellerId')
         })
         wepy.setNavigationBarTitle({ title: self.pageTitle })
+        // 设置小程序码
+        self.shareQR = { link: shareLinkV, param: param, size: self.qrSize[2], x: self.qrSize[0], y: self.qrSize[1] }
         /**
         * WxParse.wxParse(bindName , type, data, target,imagePadding)
         * 1.bindName绑定的数据名(必填)
@@ -360,6 +364,38 @@ export default class Goods extends wepy.page {
         // console.error(msg)
       }
     })
+  }
+
+  /**
+   * 转换视频地址
+   */
+  changeVedioUrl(path) {
+    // 腾讯
+    if (path.indexOf('//v.qq.com/') !== -1) {
+      let vid = path.split('vid=')[1].split('&')[0]
+      if (vid) {
+        console.log(vid)
+      }
+      let self = this
+      wepy.request({
+        url: `https://vv.video.qq.com/getinfo?vids=${vid}&platform=101001&charge=0&otype=json`
+      }).then((res) => {
+        // 去除开头的QZOutputJson=
+        let c1 = res.data.split('QZOutputJson=')[1]
+        // 去除结尾的;
+        let c2 = c1.substr(0, c1.length - 1)
+        if (c2) {
+          let json = JSON.parse(c2)
+          let videoJson = json.vl.vi[0]
+          let videoUrl = `${videoJson.ul.ui[0].url}${videoJson.fn}?vkey=${videoJson.fvkey}`
+          self.setData({
+            videoUrl: videoUrl
+          })
+        }
+      }).catch((error) => {
+        console.log('获取腾讯视频地址失败', error)
+      })
+    }
   }
 }
 </script>

@@ -3,14 +3,13 @@
 
 <template>
   <!-- 分享小程序码 -->
-  <view class="shareQ" style="bottom: {{bottom}}rpx;z-index: 1700;" wx:if="{{!qrShareShow  && sellerId}}"
-    data-type="{{1}}" bindtap="switchPatch">
+  <view class="shareQ" style="bottom: {{bottom}}rpx;z-index: 1700;" wx:if="{{!qrShareShow && sellerId}}" bindtap="switchPatch">
     <image style="width:144rpx;height: 144rpx;" src="{{imgUrl}}/fenxiang.png"></image>
   </view>
 
   <!-- 显示部分 -->
   <view class="shopShare" wx:if="{{qrShareShow}}">
-    <view class="shopShareBg" bindtap="switchPatch" data-type="{{0}}"></view>
+    <view class="shopShareBg" bindtap="switchPatch"></view>
     <view class="shopShareCont">
       <composeImage bgColor="#ffffff">
         <view wx:if="{{isSlot}}" slot="composeSlot" style="float: right;margin: 0 5px -5px 0;">
@@ -47,6 +46,7 @@ export default class qrPatchLayer extends wepy.component {
       this.qrShareShow = !this.qrShareShow
       if (this.qrShareShow) {
         // 处理小程序码贴片
+        console.log(this.shareImgArr, this.shareTextArr, this.shareQR)
         this.$invoke('composeImage', 'drawFn', this.shareImgArr, this.shareTextArr, this.shareQR)
       }
     }
