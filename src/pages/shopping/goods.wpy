@@ -20,20 +20,20 @@
         <text class="redColor">{{goodUpc.shop_price}}</text>
         <text class="marketPrice">{{goodUpc.market_price}}</text>
         <view class="goodNum clearfix" style="display:none">
-          <text class="add" bindtap="numChange" data-type="del">-</text>
+          <text class="add" @tap="numChange" data-type="del">-</text>
           <input type="text" value="{{goodNumber}}" name="number" />
-          <text class="delete" bindtap="numChange" data-type="add" style="cursor:pointer">+</text>
+          <text class="delete" @tap="numChange" data-type="add" style="cursor:pointer">+</text>
         </view>
       </view>
       <view class="shoucang">
-        <view bindtap="addToCollection">
+        <view @tap="addToCollection">
           <icon class="iconfont-yzg icon-yzg-shouc_no {{isCollect ? 'yishoucang' : 'icon-yzg-shouc_no'}}" />
         </view>
         <text style="color: rgb(51, 51, 51); font-size: 12px; display: block; margin-top: -10px;">收藏</text>
       </view>
     </view>
-    <view class="back_home">
-      <image bindtap="navigate" data-url="../index/index" data-tab="true"  style="width:30px;height:30px;" src="{{imgUrl}}/back_home.png" />
+    <view class="back_home" @tap="navigate({{true}}, '../shopping/index/index')">
+      <image style="width:30px;height:30px;" src="{{imgUrl}}/back_home.png" />
     </view>
     <!-- <view class="timeSale clearfix">
       <view class="limit" style="padding: 0px; width: 20%;">
@@ -80,27 +80,27 @@
     </view>
     <view class="fixed-contact_pic" wx:if="{{contactImg}}">
       <view class="fixed-wechat_png">
-        <image src="/assets/images/weChat.jpg"></image>
-        <view class="dial_phone" bindtap="calling" data-tel="4006226777"></view>
-        <text class="close" bindtap="closeContact"></text>
+        <image src="{{imgUrl}}/weChat.jpg"></image>
+        <view class="dial_phone" @tap="calling" data-tel="4006226777"></view>
+        <text class="close" @tap="closeContact"></text>
       </view>
     </view>
     <view id="contact_pic_mask"></view>
     <!--底部导航-->
     <view class="fixedFooter clearfix">
       <view class="leftIcon">
-        <view class="kefu" bindtap="contact" data-url="" data-tab="true">
+        <view class="kefu" @tap="contact" data-url="" data-tab="true">
           <image style="width: 20px;height:20px;margin-top: 5px;" src="{{imgUrl}}/lxkf.png" />
           <text style="color:#333;font-size:10px;display: block;margin-top:-6px;">客服</text>
         </view>
-        <view bindtap="navigate" data-url="../cart/cart" data-tab="true" ><!-- class="iconfont-yzg icon-yzg-msnui-cart" -->
+        <view @tap="navigate({{true}}, '../cart/cart')"><!-- class="iconfont-yzg icon-yzg-msnui-cart" -->
           <view class="cartNumber" wx:if="{{cartCount>0}}">{{cartCount}}</view>
           <image style="width: 20px;height:20px;margin-top: 5px;" src="{{imgUrl}}/shop_c.png" />
           <text style="color:#333;font-size:10px;display: block;margin-top:-6px;">购物车</text>
         </view>
       </view>
       <view class="animationBall" style="left: {{x}}px; top: {{y}}px;" wx:if="{{showBall}}"></view>
-      <view class="addToCart" bindtap="addToCart" data-type='0'>
+      <view class="addToCart" @tap="addToCart" data-type='0'>
         <view class="iconfont-yzg icon-yzg-msnui-cart"></view>
         <text>加入购物车</text>
       </view>
@@ -138,11 +138,11 @@ export default class Goods extends wepy.page {
     cartCount: 0, // 购物车数量
     x: 260,
     y: 10,
+    showBall: false,
     cartAnimation: {},
     contactImg: false,
     pageTitle: '',
     scroll_top: 0,
-    qrShareShow: false,
     qrSize: [ w * 0.64, h - w / 2.5, w / 3 ],
     shareImgs: composeImageForGoods,
     shareText: composeTextForGoods,
@@ -367,6 +367,165 @@ export default class Goods extends wepy.page {
   }
 
   /**
+   * 添加收藏
+   */
+  addToCollection() {
+    let self = this
+    // 请求数据
+    wepy.request({
+      url: `${self.$parent.globalData.apiUrl}/user.php`,
+      data: {
+        id: self.data.id,
+        act: 'collect'
+      }
+    }).then(({data: {errcode, data, msg}}) => {
+      if (errcode === 0) {
+        self.isCollect = true
+        self.$apply()
+      } else {
+        wepy.showToast({
+          title: msg,
+          icon: 'none',
+          duration: 2000
+        })
+      }
+    }).catch((error) => {
+      console.log('添加收藏失败！', error)
+    })
+  }
+  /**
+   * 添加购物车
+   */
+  addToCart(event) {
+    let self = this
+    let params = {
+      goods: JSON.stringify({
+        'quick': 0,
+        'spec': [],
+        'goods_id': self.data.goodsInfo.goods_id,
+        'number': self.data.goodsInfo.seckill ? '1' : self.data.goodNumber,
+        'parent': 0,
+        'upc_id': self.data.goodUpc.upc_id
+      }),
+      one_step_buy: event.target.dataset.type,
+      buy_type: 0,
+      group_no: 0,
+      seller_id: wepy.getStorageSync('sellerId'),
+      from_id: self.data.uid ? self.data.uid : ''
+    }
+    // 发送请求
+    wepy.request({
+      method: 'POST',
+      header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      url: `${self.$parent.globalData.apiUrl}//flow.php?step=add_to_cart`,
+      data: params
+    }).then(({data: {errcode, data, msg}}) => {
+      console.log('添加购物车成功！', data)
+      if (errcode === 0) {
+        if (data.buy_type === 0) {
+          // 动画效果
+          self.moveCart()
+          // 设置详情页的购物车数量
+          self.cartCount = data.content
+        } else {
+          // 跳转至订单结算
+          self.$navigate(`../../order/orderSubmit/orderSubmit?one_step_buy=1`)
+        }
+      } else {
+        wepy.showToast({
+          title: msg,
+          icon: 'none',
+          duration: 2000
+        })
+      }
+    }).catch((error) => {
+      console.log('添加购物车失败！', error)
+    })
+  }
+
+  numChange(event) {
+    var dataType = event.target.dataset.type
+    var nowNum
+    if (dataType === 'add') {
+      nowNum = this.goodNumber - (-1)
+      this.goodNumber = nowNum
+    } else {
+      if (this.goodNumber === 1) {
+        wepy.showToast({
+          title: '受不了了，不能再少了',
+          icon: 'none',
+          duration: 2000
+        })
+      } else {
+        nowNum = this.data.goodNumber - 1
+        this.goodNumber = nowNum
+      }
+    }
+    this.$apply()
+  }
+
+  /**
+   * 添加至购物车动画效果
+   */
+  moveCart() {
+    // start和end坐标互相取反,在遍历时会处理
+    this.startPotint = {x: w / 3 - 10, y: 10}
+    this.endPoint = {x: w * 0.8, y: 0}
+    let topPoint = {x: w / 3 + 20, y: -60}
+    let linePos = this.$parent.bezier([this.startPotint, topPoint, this.endPoint], 20)
+    // start
+    let index = 30
+    let self = this
+    let bezierPoints = linePos['bezier_points']
+    this.timer = setInterval(function () {
+      index--
+      if (bezierPoints[index]) {
+        self.showBall = true
+        self.x = bezierPoints[index]['x']
+        self.y = bezierPoints[index]['y']
+      }
+      if (index === 0) {
+        self.showBall = false
+        clearInterval(self.timer)
+      }
+      self.$apply()
+    }, 10)
+  }
+
+  contact() {
+    this.contactImg = true
+  }
+  closeContact() {
+    this.contactImg = false
+  }
+  calling(e) {
+    wepy.makePhoneCall({
+      phoneNumber: e.currentTarget.dataset.tel,
+      success: function () {
+        console.log('拨打电话成功！')
+      },
+      fail: function () {
+        console.log('拨打电话失败！')
+      }
+    })
+  }
+
+  /**
+   * 跳转
+   */
+  navigate(e) {
+    let url = e.currentTarget.dataset.wpynavigateB
+    let tab = e.currentTarget.dataset.wpynavigateA
+    if (tab) {
+      // 跳转菜单
+      this.$switch({url: url})
+    } else {
+      // 普通跳转
+      this.$navigate({url: url})
+    }
+  }
+
+  /**
    * 转换视频地址
    */
   changeVedioUrl(path) {
@@ -506,15 +665,6 @@ export default class Goods extends wepy.page {
   flex:1;
 }
 
-
-
-
-
-
-
-
-
-
 .icon-yzg-shouc_no{
   font-size:22px;
   color:#333;
@@ -553,12 +703,6 @@ export default class Goods extends wepy.page {
 }
 .wxParse-p image{width:100% !important;}
 .serviceSystem{text-align:center;margin-top:20px;}
-
-
-
-
-
-
 
 .goodsDet {
   padding: 15px;

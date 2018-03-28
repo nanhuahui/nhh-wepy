@@ -61,7 +61,7 @@ export default class composeImage extends wepy.component {
     wepy.showLoading({title: '绘制中', mask: true})
     // let data = await drawingMiniQr(link, param, img, text, ctx)
     // console.log(2018, data)
-    drawingMiniQr(img, text, qr, ctx).then((res) => {
+    await drawingMiniQr(img, text, qr, ctx).then((res) => {
       // 把当前画布指定区域的内容导出生成指定大小的图片，并返回文件路径(此路径指在小程序环境下生效)
       setTimeout(() => {
         wepy.canvasToTempFilePath({
