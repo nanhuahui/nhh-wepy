@@ -166,7 +166,7 @@ async function drawingMiniQr(imageArr, text, qr, ctx) {
               wepy.downloadFile({
                 url: w.src
               }).then(({errMsg, statusCode, tempFilePath}) => {
-                w.src = tempFilePath
+                w.tempSrc = tempFilePath
                 resolve(w)
               }).catch((error) => {
                 console.log('downloadFile exception', error)
@@ -228,17 +228,15 @@ async function drawingMiniQr(imageArr, text, qr, ctx) {
 /*
  * 渲染图片方法
  */
-function renderImg(imageArr, ctx) {
+async function renderImg(imageArr, ctx) {
   // ctx作为参数传递至新的绘制方法时,要保存下canvas对象
   ctx.save()
-  let arr = imageArr
-  for (let i in arr) {
-    let im = arr[i]
-    if (im.c) {
+  await imageArr.map((m) => {
+    if (m.c) {
       // 绘制大圆
       ctx.save()
       ctx.beginPath()
-      ctx.arc(im.x + im.w / 2, im.y + im.w / 2, im.w / 2, 0, 2 * Math.PI)
+      ctx.arc(m.x + m.w / 2, m.y + m.w / 2, m.w / 2, 0, 2 * Math.PI)
       ctx.fill()
       ctx.clip()
       ctx.restore()
@@ -246,17 +244,17 @@ function renderImg(imageArr, ctx) {
       // 绘制圆中圆
       ctx.save()
       ctx.beginPath()
-      ctx.arc(im.x + im.w / 2, im.y + im.w / 2, im.w / 2 - 2.8, 0, 2 * Math.PI)
+      ctx.arc(m.x + m.w / 2, m.y + m.w / 2, m.w / 2 - 2.8, 0, 2 * Math.PI)
       ctx.setFillStyle('#AAAAAA')
       ctx.fill()
       ctx.clip()
       // 绘制图片
-      ctx.drawImage(im.src, im.x, im.y, im.w, im.h)
+      ctx.drawImage(m.tempSrc, m.x, m.y, m.w, m.h)
       ctx.restore()
     } else {
-      ctx.drawImage(im.src, im.x, im.y, im.w, im.h)
+      ctx.drawImage(m.tempSrc, m.x, m.y, m.w, m.h)
     }
-  }
+  })
 }
 /**
  * 渲染文字
