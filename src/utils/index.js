@@ -259,11 +259,10 @@ async function renderImg(imageArr, ctx) {
 /**
  * 渲染文字
  */
-function renderText(textArr, ctx) {
+async function renderText(textArr, ctx) {
   // ctx作为参数传递至新的绘制方法时,要保存下canvas对象
   ctx.save()
-  for (let i in textArr) {
-    let t = textArr[i]
+  await textArr.map((t) => {
     let x = t.x
     let y = t.y
     let s = t.size
@@ -303,7 +302,7 @@ function renderText(textArr, ctx) {
       // 直接渲染
       ctx.fillText(t.text, t.x, t.y)
     }
-  }
+  })
 }
 
 module.exports = {
