@@ -1,0 +1,265 @@
+<template>
+  <view>
+    <scroll-view scroll-y="true" height="100%" style="{{'height:' + scrollHeight + 'px' }}"  bindscroll="scroll"  bindscrolltolower="loadMore" class="goods-lists clearfix">
+      <image wx:if="{{shop_banner === 'default'}}" src="{{imgUrl}}/share/banner_6.jpg" mode="widthFix" style="width:100%"></image>
+      <image wx:else src="{{shop_banner ? img_domain + shop_banner : ''}}" mode="widthFix" style="width:100%"></image>
+      <view class="list-item" wx:for="{{goods_list}}" wx:for-item="g" wx:key="g.upc_id">
+        <navigator url="../uploadGoods/goodsInfo/goodsInfo?upc_id={{g.upc_id}}">
+          <view class="goods-img">
+            <image src="{{g.master_img ? img_domain + g.master_img : imgUrl + '/no_picture.jpg'}}" mode="aspectFill"></image>
+            <span class="vedio_icon" wx:if="{{g.video_url}}">
+              <image src="{{imgUrl}}/vedio_icon.png" mode="widthFix"></image>
+            </span>
+          </view>
+        </navigator>
+        <view class="goods-price">
+          ¥{{g.shop_price}}
+          <span class="goods-price_origin">
+            ¥{{g.market_price ? g.market_price : ''}}
+          </span>
+        </view>
+        <view class="goods_brief">{{g.goods_brief}}</view>
+        <view class="goods-title">{{g.goods_name}}</view>
+      </view>
+    </scroll-view>
+    <view class="body-view">
+      <loading hidden="{{hidden}}">
+        加载中...
+      </loading>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class upperGoodsList extends wepy.page {
+    config = {
+      navigationBarTitleText: '精选特卖'
+    }
+    data = {
+      cid: null,
+      imgUrl: '',
+      img_domain: '',
+      goods_list: [],
+      shop_banner: '',
+      pageNum: 0,
+      scrollTop: 0,
+      scrollHeight: 0,
+      hidden: true
+    }
+    onLoad(q) {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      if (!q.cid) {
+        // 默认美妆,用于审核
+        q.cid = 43
+      }
+      this.getInfoSys()
+      this.changeCid(q.cid)
+    }
+    getInfoSys(e) {
+      let self = this
+      wepy.getSystemInfo()
+      .then((res) => {
+        self.scrollHeight = res.windowHeight
+        self.$apply()
+      })
+    }
+    changeCid(cid) {
+      // 获取传递的cid
+      this.$apply(() => {
+        this.cid = cid
+        this.goods_list = []
+        this.pageNum = 0
+        this.scrollTop = 0
+      })
+      // 去加载数据
+      this.loadMore()
+    }
+    scroll(event) {
+      // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+      this.scrollTop = event.detail.scrollTop
+      this.$apply()
+    }
+    /*
+     * 加载更多
+     */
+    loadMore() {
+      let self = this
+      if (self.data.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.data.pageNum + 1
+      self.pageNum = num
+      self.hidden = false
+      self.$apply()
+      // console.log("当前加载页码:" + self.data.pageNum);
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/goods/goods.php?act=get_shop_goods`,
+        data: {
+          page: self.data.pageNum
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          if (data.goods_list.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.pageNum = -1
+            self.hidden = true
+            self.$apply()
+            return
+          }
+          // 数据组装
+          var list = self.data.goods_list
+          for (var i = 0; i < data.goods_list.length; i++) {
+            list.push(data.goods_list[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.shop_banner = data.shop_banner
+            self.goods_list = list
+            self.img_domain = data.img_domain
+            self.title_name = data.title_name ? data.title_name : self.data.title_name
+            self.hidden = true
+          })
+        } else {
+          console.error(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+@import '../../assets/styles/store.wxss';
+
+page {
+  font-family: "微软雅黑";
+  background-color: #f1f1f1;
+}
+
+/*分类样式*/
+
+.classify {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+}
+
+.classify_item {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+}
+
+.classify_item .theme {
+  flex: auto;
+  padding: 10rpx 30rpx 0;
+  border-bottom: 1rpx solid #eee;
+  height: 48rpx;
+  font-size: 28rpx;
+  line-height: 48rpx;
+  color: #ed3366;
+}
+
+.classify_item .item_grid {
+  display: -webkit-flex;
+  display: flex;
+  background: #fff;
+  flex-wrap: wrap;
+  padding-bottom: 16rpx;
+}
+
+.item_grid .context {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 25%;
+  padding-top: 16rpx;
+}
+
+.context image {
+  width: 76rpx;
+}
+
+.context text {
+  font-size: 22rpx;
+}
+
+.shop-bag {
+  text-align: right;
+}
+
+.shop-bag span {
+  font-size: 26px;
+}
+
+.sortMenu-ul li:last-child {
+  padding-right: 0 !important;
+  margin-right: 60px !important;
+}
+
+.mescroll {
+  position: relative;
+  top: 88px;
+  bottom: 2px;
+  height: auto;
+  width: 100%;
+}
+
+/*展示上拉加载的数据列表*/
+
+.data-list {
+  display: none;
+}
+
+.data-list .list-item {
+  position: relative;
+  border-bottom: 1px solid #eee;
+  float: left;
+}
+
+.data-list .pd-img {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  width: 80px;
+  height: 80px;
+}
+
+.data-list .pd-name {
+  font-size: 16px;
+  line-height: 20px;
+  height: 40px;
+  overflow: hidden;
+}
+
+.data-list .pd-price {
+  margin-top: 8px;
+  color: red;
+}
+
+.data-list .pd-sold {
+  font-size: 12px;
+  margin-top: 8px;
+  color: gray;
+}
+
+.goods-lists .list-item {
+  width: 50%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid #f1f1f1;
+  border-top: none;
+  border-left: none;
+}
+.goods-lists .goods-img{ overflow:hidden}
+.goods-lists .goods-img image{ width:100%;height:100%;}
+.goods-lists .goods_brief{padding:0 28rpx; width: 320rpx; text-overflow:ellipsis; overflow: hidden; white-space: nowrap;}
+.goods-lists view{float:left;}
+
+
+</style>
