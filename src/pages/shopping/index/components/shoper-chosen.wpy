@@ -24,7 +24,7 @@
 
 <template>
   <view class="shoper_best_goods" wx:if="{{shoperGoods.length > 0}}">
-    <navigator url="../../uploadGoods/upperGoodsList/upperGoodsList">
+    <navigator url="../../uploadGoods/upperGoodsList">
       <view class="shoper_header">
         <view class="h1 c3">
           店主精选
@@ -54,7 +54,7 @@
         </view>
       </view>
     </view>
-    <navigator class="shoper_see_more h5 c11" url="../../uploadGoods/upperGoodsList/upperGoodsList">
+    <navigator class="shoper_see_more h5 c11" url="../../uploadGoods/upperGoodsList">
       查看更多<text class="iconfont-yzg icon-yzg-arrow" style="font-size: 24rpx;"></text>
     </navigator>
     <!-- 楼层end -->
@@ -75,7 +75,8 @@ export default class shoperChosen extends wepy.component {
   methods = {
     // 点击事件
     redirectToGoods(e) {
-      let id = e.currentTarget.dataset.item.id
+      console.log(123, e)
+      let id = e.currentTarget.dataset.id
       this.$parent.$navigate('../../uploadGoods/goodsInfo/goodsInfo', {upc_id: id})
     }
   }
