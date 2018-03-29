@@ -45,7 +45,9 @@ export default class extends wepy.app {
       'pages/uploadGoods/uploadGood',
       'pages/uploadGoods/goodList',
       'pages/uploadGoods/uploadBanner',
-      'pages/uploadGoods/orderList'
+      'pages/uploadGoods/orderList',
+      'pages/uploadGoods/goodsInfo/goodsInfo',
+      'pages/uploadGoods/upperGoodsList'
     ],
     window: {
       navigationBarBackgroundColor: '#f7f7f8',
@@ -371,7 +373,7 @@ export default class extends wepy.app {
       }
     })
   }
-
+  
   bezier(points, times) {
     /*eslint-disable */
     // 0、以3个控制点为例，点A,B,C,AB上设置点D,BC上设置点E,DE连线上设置点F,则最终的贝塞尔曲线是点F的坐标轨迹。
