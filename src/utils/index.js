@@ -157,63 +157,65 @@ async function drawingMiniQr(imageArr, text, qr, ctx) {
     }).then(({data: {errcode, data, msg}}) => {
       if (errcode === 0) {
         let qrImgPath = data
-        // 生成一个Promise对象的数组
-        const promises = imageArr.map(function(w) {
-          return new Promise(function(resolve, reject) {
-            // 转换图片地址http开头的为https,否则提示下载图片不在域名范围内
-            w.src = w.src.split('http://').join('https://')
-            wepy.downloadFile({
-              url: w.src
-            }).then(({errMsg, statusCode, tempFilePath}) => {
-              w.src = tempFilePath
-              resolve(w)
-            }).catch((error) => {
-              console.log('downloadFile exception', error)
-              resolve(w)
+        if (imageArr && imageArr.length > 0) {
+          // 生成一个Promise对象的数组
+          const promises = imageArr.map(function(w) {
+            return new Promise(function(resolve, reject) {
+              // 转换图片地址http开头的为https,否则提示下载图片不在域名范围内
+              w.src = w.src.split('http://').join('https://')
+              wepy.downloadFile({
+                url: w.src
+              }).then(({errMsg, statusCode, tempFilePath}) => {
+                w.src = tempFilePath
+                resolve(w)
+              }).catch((error) => {
+                console.log('downloadFile exception', error)
+                resolve(w)
+              })
             })
           })
-        })
-        // 转换基本图片
-        Promise.all(promises).then(function(posts) {
-          // success
-          imageArr = posts
 
-          // 转换小程序码图片
-          wepy.getImageInfo({
-            src: qrImgPath
-          }).then(({width, height, path}) => {
-            qrImgPath = path
-            setTimeout(() => {
-              // 绘制canvas
-              console.log('开始绘制')
-              ctx.rect(0, 0, 640, 900)
-              ctx.setFillStyle('#ffffff')
-              ctx.fill()
-
-              // 绘制图片
-              renderImg(imageArr, ctx)
-
-              // 绘制文字
-              renderText(text, ctx)
-
-              // 绘制小程序码
-              ctx.drawImage(qrImgPath, qr.x, qr.y, qr.size, qr.size)
-
-              // 调用绘制方法
-              ctx.draw()
-              resolve()
-            }, 200)
-          }).catch((error) => {
-            console.log('getImageInfo exception', error)
+          // 转换基本图片
+          Promise.all(promises).then(function(posts) {
+            // success
+            imageArr = posts
+          }, function(fail) {
+            // fail
+            reject(new Error('convert image fail' + fail))
+            console.error('convert image fail', fail)
+          }).catch(function(reason) {
+            // exception
+            reject(new Error('convert image error' + reason))
+            console.error('convert image error', reason)
           })
-        }, function(fail) {
-          // fail
-          reject(new Error('convert image fail' + fail))
-          console.error('convert image fail', fail)
-        }).catch(function(reason) {
-          // exception
-          reject(new Error('convert image error' + reason))
-          console.error('convert image error', reason)
+        }
+        // 转换小程序码图片
+        wepy.getImageInfo({
+          src: qrImgPath
+        }).then(({width, height, path}) => {
+          qrImgPath = path
+          setTimeout(() => {
+            // 绘制canvas
+            console.log('开始绘制')
+            ctx.rect(0, 0, 640, 900)
+            ctx.setFillStyle('#ffffff')
+            ctx.fill()
+
+            // 绘制图片
+            renderImg(imageArr, ctx)
+
+            // 绘制文字
+            renderText(text, ctx)
+
+            // 绘制小程序码
+            ctx.drawImage(qrImgPath, qr.x, qr.y, qr.size, qr.size)
+
+            // 调用绘制方法
+            ctx.draw()
+            resolve()
+          }, 200)
+        }).catch((error) => {
+          console.log('getImageInfo exception', error)
         })
       } else {
         reject(new Error('获取小程序码失败'))

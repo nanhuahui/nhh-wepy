@@ -57,6 +57,8 @@ export default class composeImage extends wepy.component {
   async drawFn(img, text, qr) {
     // 调用公共方法去绘制
     let vm = this
+    vm.hiddenCanvas = false
+    vm.$apply()
     const ctx = wepy.createCanvasContext('composeCanvas', vm)
     wepy.showLoading({title: '绘制中', mask: true})
     // let data = await drawingMiniQr(link, param, img, text, ctx)
