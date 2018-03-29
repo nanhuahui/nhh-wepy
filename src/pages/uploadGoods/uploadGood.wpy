@@ -81,7 +81,7 @@
 
 <script>
   import wepy from 'wepy'
-  import md5Util from '../../utils/md5'
+  import md5 from 'md5'
   import { DEFAULT_UID, API_SIGNATURE } from '../../../src/config'
 
   export default class uploadGood extends wepy.page {
@@ -270,7 +270,7 @@
       let u = wepy.getStorageSync('user_nhh')
       let uid = u.user_id || DEFAULT_UID
       let timestamp = Date.parse(new Date()) / 1000
-      let md5Str = md5Util.hexMD5(uid + '' + timestamp + API_SIGNATURE)
+      let md5Str = md5(uid + '' + timestamp + API_SIGNATURE)
       let uploadParam = {
         uid: uid,
         timestamp: timestamp,
