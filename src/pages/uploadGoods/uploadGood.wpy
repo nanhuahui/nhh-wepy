@@ -309,13 +309,13 @@
             imgListDomain = self.data.detImgArrDomain
             imgList.push(resData.data.file)
             imgListDomain.push(self.data.img_domain + resData.data.file)
-            self.topImgArr = imgList
-            self.topImgArrDomain = imgListDomain
+            self.detImgArr = imgList
+            self.detImgArrDomain = imgListDomain
             self.$apply()
           }
         } else {
           wepy.showModal({
-            content: '操作成功',
+            content: '操作失败',
             showCancel: false
           })
         }
@@ -369,10 +369,10 @@
         self.topImgArrDomain = currentImgArrDomain
         self.$apply()
       } else {
-        currentImgArr = this.data.detImgArr
-        currentImgArrDomain = this.data.detImgArrDomain
-        this.detImgArr.splice(index, 1)
-        this.detImgArrDomain.splice(index, 1)
+        currentImgArr = self.data.detImgArr
+        currentImgArrDomain = self.data.detImgArrDomain
+        self.detImgArr.splice(index, 1)
+        self.detImgArrDomain.splice(index, 1)
         self.detImgArr = currentImgArr
         self.detImgArrDomain = currentImgArrDomain
         self.$apply()
