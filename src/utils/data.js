@@ -179,30 +179,41 @@ module.exports = {
   // 逛逛精选合成文字
   composeTextForStroll: [
     {
-      ruler: [20, 40, 11],
+      x: 20,
+      y: 40,
+      size: 11,
       style: '#333333',
       align: 'justify',
       text: '', // 描述
+      // width: w - 140
       width: w - 140
     }, {
-      ruler: [95, h + 190, 12], // -190
+      x: 95,
+      y: h + 190,
+      size: 12,
       style: '#333333',
       align: 'left',
       text: '', // 商品标题
       width: w - 190
     }, {
-      ruler: [95, h + 130, 12], // -130
+      x: 95,
+      y: h + 130,
+      size: 12,
       style: '#666666',
       align: 'left',
       text: '' // 商品价格
     }, {
-      ruler: [110, h + 130, 10], // -130
+      x: 110,
+      y: h + 130,
+      size: 10,
       style: '#999999',
       align: 'left',
       text: '', // 市场价格
       width: 160
     }, {
-      ruler: [70, h + 80, 20], // -80
+      x: 70,
+      y: h + 80,
+      size: 20,
       style: '#e22d2d',
       align: 'left',
       text: '识别图中小程序码查看图文详情' // 识别二维码查看图文详情
