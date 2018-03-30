@@ -1,0 +1,880 @@
+<template>
+<scroll-view scroll-y="true" scroll-top="0"
+  bindscrolltolower="getListDataFromNet" bindscroll="scroll"
+  class="clearfix content">
+  <!-- 分类 -->
+  <scroll-view scroll-x="true" class="scrollView" scroll-with-animation="true">
+    <!-- 全部商品 -->
+    <view class="list-item {{cid === '0' ? 'active_cid' : ''}}">
+      <image src="{{imgUrl}}/stroll/allCategory.png" data-cid="0" bindtap="getListByMenu"></image>
+    </view>
+    <view class="list-item {{menu.cat_id === cid ? 'active_cid' : ''}}" wx:for="{{swiperMenu}}" wx:for-item="menu" wx:key="{{index}}">
+      <image src="{{menu.cat_banner ? imgDomain + menu.cat_banner : imgUrl + '/no_picture.jpg'}}" data-cid="{{menu.cat_id}}" bindtap="getListByMenu"></image>
+    </view>
+  </scroll-view>
+  <view class="content_wraper" style="overflow: hidden;">
+    <view class="strollList-item" wx:for="{{strollList}}" wx:for-item="content" wx:key="{{index}}">
+      <!-- banner -->
+      <navigator class="banner" wx:if="{{content.stroll_type === '2'}}" url="../strollDet/strollDet?strollId={{content.stroll_id}}">
+        <image src="{{content.banner ? imgDomain + content.banner : imgUrl + '/no_picture.jpg'}}"></image>
+        <view class="banner_bottom h3 c3">
+          <image src="{{content.person_photo ? imgDomain + content.person_photo : imgUrl + '/no_picture.jpg'}}"></image>
+            {{content.content}}
+        </view>
+      </navigator>
+      <!-- banner end -->
+      <!-- content -->
+      <view class="contentShare {{'contentShare' + index}}" wx:else>
+        <view class="title_name clearfix" style="overflow: hidden;">
+          <view class="col-xs-2">
+            <image src="{{imgDomain + content.person_photo}}"></image>
+          </view>
+          <view class="col-xs-8">
+            <text class="h3 c12">{{content.person_recommend}}</text>
+            <view class="h7 c2">{{content.publish_time}}</view>
+          </view>
+         <!-- 二维码分享 图片分享展示 -->
+          <!-- <view class="share">
+            <image class="{{showShare === index ? 'img_share showShareImg' : (showShare === -2 ? 'no_share' : 'imgHideShare')}}" src="{{imgUrl}}/stroll/tupian.png" mode="widthFix" bindtap="freshImgshareShow" data-index="{{index}}"></image>
+            <image class="{{showShare === index ? 'qr_share showShareImg' : (showShare === -2 ? 'no_share' : 'qrHideShare')}}" src="{{imgUrl}}/stroll/erweima.png" mode="widthFix" bindtap="freshQRCodeShow" data-index="{{index}}"></image>
+          </view> -->
+        </view>
+        <!-- 文章描述 -->
+        <view class="h5 c3 title_cont">
+          {{content.content}}
+        </view>
+        <!-- 文章贴图 -->
+        <view class="img_list clearfix {{'img_list_' + content.stroll_img.length}}" style="overflow:hidden;">
+          <view class="col-xs-4 list-item" wx:for="{{content.stroll_img}}" wx:for-item="img" wx:key="{{index}}">
+            <view wx:if="{{img.type==='qrCode'}}" style="width: {{img.size + 10}}px; height: {{img.size + 10}}px;overflow: hidden;">
+              <image src="{{img.path}}" bindtap="previewImage" data-path="{{img.path}}" style="width: {{img.size}}px;height: {{img.size}}px;" class="ewm"></image>
+            </view>
+            <image src="{{img ? imgDomain + img : imgUrl + '/no_picture.jpg'}}" wx:else mode="widthFix">
+            </image>
+          </view>
+        </view>
+        <!-- 商品介绍 -->
+        <view class="pro">
+          <navigator url="../shopping/goods/goods?g={{content.goods_info.upc_id}}">
+            <image src="{{imgDomain + content.goods_info.master_img}}"></image>
+            <view class="pro_detail">
+              <view class="h5 c3 goodsName">
+                {{content.goods_info.goods_name}}
+              </view>
+              <view class="pro_price h3 c3">
+                ¥{{content.goods_info.shop_price}} <text class="h6 c2">¥{{content.goods_info.market_price}}</text>
+              </view>
+            </view>
+          </navigator>
+        </view>
+        <!-- 分享 -->
+        <view class="botShare clearfix" style="overflow:hidden;">
+          <view class="col-xs-6" bindtap="freshImgshareShow" data-index="{{index}}">
+            <image src="{{imgUrl}}/stroll/shareImg.jpg"></image>
+            分享图片
+          </view>
+          <view class="col-xs-6" bindtap="freshQRCodeShow" data-index="{{index}}">
+            <image src="{{imgUrl}}/stroll/shareQr.jpg"></image>
+            分享商品
+          </view>
+        </view>
+      </view>
+      <!-- content end -->
+    </view>
+  </view>
+</scroll-view>
+
+<!-- qrcode share -->
+<view class="shopShare" wx:if="{{qrShareShow}}">
+  <view class="shopShareBg" bindtap="switchPatch"></view>
+  <view class="shopShareCont">
+    <composeImage1 bgColor="#ffffff"></composeImage1>
+  </view>
+</view>
+<!-- qrcode share end -->
+
+<!-- img share -->
+<view class="shopShare imgShare" wx:if="{{imgShareShow}}">
+  <view class="yzg-title">
+    <!-- 左侧图标 -->
+    <!-- <view class="col-xs-2 backBtn">
+      <a bindtap="leftClick">
+        <i class="iconfont-yzg icon-yzg-back"></i>
+      </a>
+    </view> -->
+    <!-- 默认title -->
+    <!-- <view class="col-xs-8 shop-name">
+      <text>分享图片</text>
+    </view>
+    <view class="col-xs-2">
+    </view> -->
+    <view class="col-xs-12" style="text-align: right;">
+      <icon style="margin-right:40rpx;height:60rpx;" type="cancel" size="30" bindtap="leftClick"/>
+    </view>
+  </view>
+  <view class="shopShareCont" style="width: {{deviceWidth}}px;">
+    <composeImage2 bgColor="#ffffff" :width.sync="deviceWidth" :height.sync="qrHeight" :canvasWidth="deviceWidth" :canvasHeight.sync="qrHeight" :imageArr.sync="strollImgs"></composeImage2>
+  </view>
+</view>
+<!-- img share end -->
+
+<!-- 返回顶部 -->
+<image class="mescroll-totop {{toTopStyle}}" src="{{imgUrl}}/stroll/mescroll-totop.png" mode="widthFix" bindtap="toTop"></image>
+<!-- 返回顶部end -->
+
+<view class="weui-loadmore" wx:if="{{pageNum === -1}}" style="height:2em;">
+  <text>-- 哎呀，没了啦 --</text>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import {composeImageForGoods, composeTextForGoods, composeImageForStroll, composeTextForStroll} from '../../utils/data'
+  import composeImage from '../../components/compose-image'
+
+  export default class stroll extends wepy.page {
+    config = {
+      navigationBarTitleText: '图文分享'
+    }
+    components = {
+      composeImage1: composeImage, // 分享商品
+      composeImage2: composeImage // 分享图片
+    }
+    data = {
+      imgUrl: '',
+      showShare: -2, // 是否展示分享按钮
+      swiperMenu: [], // 分类轮播数组
+      strollList: [],
+      imgDomain: '',
+      cid: '0',
+      qrShareShow: false, // 是否展示分享二维码贴片
+      qrImgs: composeImageForGoods,  // 二维码分享贴片图片组
+      qrText: composeTextForGoods,    // 二维码分享贴片文字组
+      qrShareValue: null,  // 二维码分享贴片二维码链接
+      shareLinkParam: null, // 二维码分享贴片二维码链接参数
+      imgShareShow: false, // 是否展示图片分享合成图
+      strollImgs: composeImageForStroll,  // 图文分享图片组
+      strollText: composeTextForStroll,   // 图文分享文字组
+      setImgQrPos: {
+        x: 420,
+        y: 310,
+        width: 200,
+        height: 200
+      }, // 图文分享贴片二维码坐标及大小
+      qrHeight: 1000, // 图文分享合成图片高度
+      shareValue: null, // 图文分享二维码链接
+      linkParam: null, // 图文分享二维码链接参数
+      pageNum: 0,
+      scrollTop: 0,
+      deviceWidth: null, // 设备宽度
+      deviceHeight: null, // 设备高度
+      shareQR: {}, // 二维码分享小程序码
+      strollQR: {} // 图文分享小程序码
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.deviceWidth = wepy.getSystemInfoSync().windowWidth
+      this.deviceHeight = wepy.getSystemInfoSync().windowHeight
+      this.$apply()
+      this.changeCid('0')
+    }
+    onShow() {}
+    onPageScroll(e) {
+      if (e.scrollTop > this.deviceHeight && this.imgShareShow === false && this.qrShareShow === false) {
+        this.$apply(() => {
+          this.toTopStyle = 'toTopShow'
+        })
+      } else {
+        this.$apply(() => {
+          this.toTopStyle = ''
+        })
+      }
+    }
+    methods = {}
+    changeCid(cid) {
+      // 获取传递的cid
+      this.$apply(() => {
+        this.cid = cid
+        this.strollList = []
+        this.pageNum = 0
+        this.scrollTop = 0
+      })
+      // 去加载数据
+      this.getListDataFromNet()
+    }
+    scroll(event) {
+      // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+      this.$apply(() => {
+        this.scrollTop = event.detail.scrollTop
+      })
+    }
+    getListDataFromNet() {
+      let self = this
+      if (self.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
+      })
+      // 获取数据
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/stroll.php?act=list`,
+        data: {
+          cat_id: self.cid,
+          page: self.pageNum
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.swiperMenu = data.cat_list
+            self.imgDomain = data.img_domain
+          })
+          // 数据组装
+          var list = self.strollList
+          if (data.stroll_list.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+            })
+            return
+          }
+          let qrCode = {}
+          const promises = data.stroll_list.map(function(m) {
+            return new Promise(function(resolve, reject) {
+              qrCode = {}
+              if (m.stroll_type !== '2') {
+                // 获取二维码图片地址
+                wepy.request({
+                  url: `${self.$parent.globalData.apiUrl}/wx_app/get_qrcode.php?act=get_qrcode`,
+                  data: {
+                    scene: '?g=' + m.goods_info.upc_id, // 长按图片识别小程序码1048
+                    page: 'pages/shopping/goods/goods'
+                  }
+                }).then(({data: {errcode, data, msg}}) => {
+                  if (errcode === 0) {
+                    switch (m.stroll_img.length) {
+                      case 1:
+                      case 2:
+                      case 4:
+                      case 5:
+                      case 7:
+                      case 8:
+                        qrCode = {
+                          type: 'qrCode',
+                          size: Math.ceil(110 / 375 * self.deviceWidth) - 10,
+                          path: data
+                        }
+                        break
+                      case 3:
+                      case 6:
+                        qrCode = {
+                          type: 'qrCode',
+                          size: Math.ceil(170 / 375 * self.deviceWidth) - 10,
+                          path: data
+                        }
+                        break
+                      default: break
+                    }
+                    m.stroll_img.splice(m.stroll_img.length, 0, qrCode) // 插入到图片数组中
+                    resolve(m)
+                  } else {
+                    console.error('获取小程序码失败', msg)
+                  }
+                })
+              }
+            })
+          })
+          Promise.all(promises).then(function(posts) {
+            for (var i = 0; i < data.stroll_list.length; i++) {
+              list.push(data.stroll_list[i])
+            }
+            self.$apply(() => {
+              self.strollList = list
+            })
+          })
+        }
+      })
+    }
+    /**
+     * [getListByMenu 点击菜单获取数据]
+     * @return {[type]} [description]
+     */
+    getListByMenu(e) {
+      this.$apply(() => {
+        this.cid = e.currentTarget.dataset.cid
+        this.pageNum = 0
+        this.strollList = []
+      })
+      this.getListDataFromNet()
+    }
+    /*
+     * 重新绘制二维码分享合成图像
+     */
+    freshQRCodeShow (e) {
+      let self = this
+      let strollInfo = self.strollList[e.currentTarget.dataset.index] // 获取合图需要的信息
+      /* 二维码分享合成图片赋值 */
+      self.qrImgs[0].src = self.imgDomain + strollInfo.goods_info.master_img
+      self.qrText[1].text = '¥' + strollInfo.goods_info.shop_price
+      self.qrText[2].text = '市场价 ￥' + strollInfo.goods_info.market_price
+      self.qrText[1].size = 18
+      self.qrText[2].size = 16
+      self.qrText[3].text = strollInfo.goods_info.goods_name
+      self.qrText[4].text = ''
+      // 判断
+      self.qrText[0].text = wepy.getStorageSync('user_wx').nickName + '向您推荐了'
+      self.qrText[0].y = self.deviceHeight - 190
+      self.qrImgs[3].src = wepy.getStorageSync('user_wx').avatarUrl
+      // 没有标签,相应元素上移
+      self.qrImgs[2].y = self.deviceHeight - self.deviceWidth / 3 - 30
+      self.qrImgs[3].y = self.deviceHeight * 0.6 - 30
+      self.qrText[0].y = self.deviceHeight * 0.66 - 30
+      if (self.deviceWidth < 321) {
+        self.qrText[1].y = self.deviceHeight * 0.74 - 40
+        self.qrText[2].y = self.deviceHeight * 0.74 - 40
+        self.qrText[3].y = self.deviceHeight * 0.8 - 40
+      } else {
+        self.qrText[1].y = self.deviceHeight * 0.74 - 30
+        self.qrText[2].y = self.deviceHeight * 0.74 - 30
+        self.qrText[3].y = self.deviceHeight * 0.8 - 30
+      }
+      // 组装分享的路径
+      let user = wepy.getStorageSync('user_nhh')
+      let qrShareValue = 'pages/shopping/goods/goods'
+      let param = `?g=${strollInfo.goods_info.upc_id}&u=${user.user_id}`
+      if (wepy.getStorageSync('sellerId')) {
+        // 从缓存中获取卖家ID进行组装
+        let sid = wepy.getStorageSync('sellerId')
+        param += `&s=${sid}`
+      }
+      self.qrShareValue = qrShareValue
+      self.shareLinkParam = param
+      self.qrShareShow = true
+      self.$apply()
+      // 设置小程序码
+      this.shareQR = { link: this.qrShareValue, param: this.shareLinkParam, size: 98, x: wepy.getSystemInfoSync().windowWidth - wepy.getSystemInfoSync().windowWidth / 24 * 7 - 10, y: wepy.getSystemInfoSync().windowHeight - 166 }
+      // 处理小程序码贴片
+      this.$invoke('composeImage1', 'drawFn', this.qrImgs, this.qrText, this.shareQR)
+    }
+    /*
+     * 重新绘制图片分享合成图像
+     */
+    freshImgshareShow (e) {
+      wepy.setNavigationBarTitle({ title: '分享图片' })
+      let self = this
+      let mapWidth = self.deviceWidth - 40 // 贴图宽度
+      let strollInfo = self.strollList[e.currentTarget.dataset.index] // 获取合图需要的信息
+      // 初始化图片数组 只赋值数组的前两个元素 即头像和二维码 其他图片清空
+      self.strollImgs = []
+      var imgBorder = {
+        src: 'https://huahuishang.com/static/images/stroll/transparent.png',  // 商品图
+        w: self.deviceWidth,
+        h: self.deviceWidth / 3.2,
+        x: 0,
+        y: mapWidth + 100,
+        isCircular: false
+      }
+      self.strollImgs.push(composeImageForStroll[0], composeImageForStroll[1], imgBorder)
+      // 初始化合成图片参数 按需定制每个合成图片参数
+      self.qrHeight = mapWidth + 260
+      self.strollImgs[0].y = mapWidth + 118
+      self.strollImgs[1].y = mapWidth + 80 + self.deviceWidth / 3.2
+      self.strollText[1].y = mapWidth + 135
+      self.strollText[2].y = mapWidth + 175
+      self.strollText[3].y = mapWidth + 175
+      self.strollText[4].y = mapWidth + 230
+      // imgWidth：各个图片所占宽度
+      // heightOffset：根据特殊图片个数所占高度 画布高度在原有基础上增加或减少
+      let imgWidth = []
+      let heightOffset = 0
+      switch (strollInfo.stroll_img.length) {
+        case 2:
+          imgWidth = [mapWidth, (mapWidth - 20) / 3]
+          break
+        case 3:
+          heightOffset = -(mapWidth + 10) / 3
+          imgWidth = [(mapWidth - 20) / 3 * 2 + 10, (mapWidth - 20) / 3, (mapWidth - 20) / 3]
+          break
+        case 4:
+          imgWidth = [(mapWidth - 10) / 2, (mapWidth - 10) / 2, (mapWidth - 10) / 2, (mapWidth - 10) / 2]
+          break
+        case 5:
+          heightOffset = -(mapWidth + 10) / 6
+          imgWidth = [(mapWidth - 10) / 2, (mapWidth - 10) / 2, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3]
+          break
+        case 6:
+          imgWidth = [(mapWidth - 20) / 3 * 2 + 10, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3]
+          break
+        case 7:
+          heightOffset = (mapWidth + 10) / 3
+          imgWidth = [(mapWidth - 10) / 2, (mapWidth - 10) / 2, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 10) / 2, (mapWidth - 10) / 2]
+          break
+        case 8:
+          imgWidth = [(mapWidth - 10) / 2, (mapWidth - 10) / 2, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3]
+          heightOffset = (mapWidth + 10) / 6
+          break
+        case 9:
+          imgWidth = [(mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3, (mapWidth - 20) / 3]
+          break
+      }
+      // 重写画布高度及各个元素的偏移量
+      self.qrHeight += parseInt(heightOffset)
+      self.strollImgs[0].y += parseInt(heightOffset)
+      self.strollImgs[1].y += parseInt(heightOffset)
+      self.strollText[1].y += parseInt(heightOffset)
+      self.strollText[2].y += parseInt(heightOffset)
+      self.strollText[3].y += parseInt(heightOffset)
+      self.strollText[4].y += parseInt(heightOffset)
+      imgBorder.y += parseInt(heightOffset)
+      // 图片坐标 初始值为20 100
+      let offsetX = 20
+      let offsetY = 100
+      let imgList = strollInfo.stroll_img
+      // 计算各个图片的坐标
+      for (let i in imgList) {
+        if (i > 0) {
+          offsetX += imgWidth[i - 1] + 10
+          if (offsetX >= 300) {
+            offsetX = 20
+            offsetY += imgWidth[i - 1] + 10
+          }
+        }
+        // 图片排列为6张或者3张时，特殊定制第三张位置，因为第一为大图
+        if (imgList.length === 6 || imgList.length === 3) {
+          if (i === '2') {
+            offsetX = imgWidth[0] + 30
+            offsetY = imgWidth[1] + 110
+          }
+        } else if (imgList.length === 2) {
+          if (i === '1') {
+            offsetX = imgWidth[0] - imgWidth[1] + 20
+            offsetY = imgWidth[0] - imgWidth[1] + 140
+          }
+        }
+        let img = strollInfo.stroll_img[i]
+        if (img.type === 'qrCode') {
+          // 当前图片为二维码时，重定义二维码坐标
+          self.setImgQrPos = {
+            x: offsetX,
+            y: offsetY,
+            width: imgWidth[i],
+            height: imgWidth[i]
+          }
+        } else {
+          // 追加图片至画布所需图片数组 并定义坐标及宽高
+          self.strollImgs.push({
+            src: self.imgDomain + img, // 商品图
+            w: imgWidth[i],
+            h: imgWidth[i],
+            x: offsetX,
+            y: offsetY,
+            isCircular: false
+          })
+        }
+      }
+      self.strollImgs[0].src = self.imgDomain + strollInfo.goods_info.master_img // 商品图片
+      self.strollImgs[1].src = wepy.getStorageSync('user_wx').avatarUrl // 头像
+      self.strollText[0].text = strollInfo.content  // 商品描述
+      self.strollText[1].text = strollInfo.goods_info.goods_name  // 商品名称
+      self.strollText[2].text = '¥' + strollInfo.goods_info.shop_price  // 商品销售价
+      self.strollText[3].text = '市场价¥' + strollInfo.goods_info.market_price  // 商品市场价
+      self.strollText[3].x = 150
+      // 组装分享的路径
+      let user = wepy.getStorageSync('user_nhh')
+      let shareLinkV = 'pages/shopping/goods/goods'
+      let param = `?g=${strollInfo.goods_info.upc_id}&u=${user.user_id}`
+      if (wepy.getStorageSync('sellerId')) {
+        // 从缓存中获取卖家ID进行组装
+        let sid = wepy.getStorageSync('sellerId')
+        param += `&s=${sid}`
+      }
+      self.shareValue = shareLinkV
+      self.linkParam = param
+      self.imgShareShow = true
+      self.$apply()
+      // 设置小程序码
+      this.strollQR = { link: this.shareValue, param: this.linkParam, size: self.setImgQrPos.width, x: self.setImgQrPos.x, y: self.setImgQrPos.y }
+      // 处理小程序码贴片
+      this.$invoke('composeImage2', 'drawFn', this.strollImgs, this.strollText, this.strollQR)
+    }
+    switchPatch () {
+      this.$apply(() => {
+        this.qrShareShow = !this.qrShareShow
+      })
+    }
+    leftClick () {
+      wepy.setNavigationBarTitle({ title: '图文分享' })
+      this.$apply(() => {
+        this.imgShareShow = false
+      })
+    }
+    /*
+     * 返回顶部
+     */
+    toTop () {
+      wepy.pageScrollTo({
+        scrollTop: 0
+      })
+    }
+    /*
+     * 预览图片
+     */
+    previewImage(e) {
+      let imgPath = e.currentTarget.dataset.path
+      wepy.previewImage({
+        // 需要预览的图片http链接  使用split把字符串转数组。不然会报错
+        urls: imgPath.split(','),
+        success: (res) => {
+          console.log('预览成功', res)
+        },
+        fail: (res) => {
+          console.log('预览失败', res)
+        },
+        complete: (res) => {
+          console.log('预览完成', res)
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.scrollView {
+  height:136rpx;
+  white-space:nowrap;
+  width:100%;
+  padding-left: 10px;
+  background-color: #fff;
+}
+.scrollView .list-item {
+  width:186rpx;
+  height:90rpx;
+  display:inline-block;
+  background-color:#fff;
+  text-align:center;
+  margin: 14rpx 4rpx;
+}
+.scrollView .list-item image {
+  width:186rpx;
+  height: 90rpx;
+}
+.scrollView .list-item.active_cid::before {
+  position:absolute;
+  content:'';
+  width:10px;
+  height:0;
+  border-width: 10px;
+  border-color:#666 transparent transparent transparent;
+  border-style:solid;
+  bottom:-17rpx;
+  left:0;
+  right:0;
+  margin:0 auto;
+}
+@media screen and (max-width: 321px) {
+  .scrollView .list-item.active_cid::before {
+    bottom:-24rpx;
+  }
+}
+@media screen and (min-width: 411px) {
+  .scrollView .list-item.active_cid::before {
+    bottom:-14rpx;
+  }
+}
+
+.active_cid{
+  position: relative;
+}
+.active_cid:before{
+  position: absolute;
+  content: '';
+  border-style: solid;
+  border-color: #666 transparent transparent transparent;
+  border-width: 10px;
+  bottom: 12rpx;
+  left: 0;
+  right: 0;
+  margin:0 auto;
+  width: 10px;
+}
+.banner{
+  background: #fff;
+}
+.banner>image{
+  width: 100%
+}
+.banner_bottom{
+  position: relative;
+  padding: 24rpx 28rpx 24rpx 112rpx;
+}
+.banner_bottom image{
+  width: 64rpx;
+  height:64rpx;
+  position: absolute;
+  left: 28rpx;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  border-radius:50%;
+}
+.content{
+  width: 100%;
+  overflow-x: hidden;
+  position: fixed;
+  top:2px;
+  bottom: 2px;
+}
+.title_name{
+  position: relative;
+  padding: 0 38rpx 10rpx;
+}
+.title_name .col-xs-2{
+  padding-left: 0;
+  padding-top: 14rpx;
+}
+.title_name .col-xs-2 image{
+  border-radius: 50%;
+  width: 78rpx;
+  height: 78rpx;
+  padding: 0;
+  border: 1px solid #d8d3d1;
+}
+.content_wraper .strollList-item{
+  margin-top: 10px
+}
+.content_wraper .strollList-item:first-child{
+  margin-top: 0
+}
+.content_wraper .contentShare{
+  padding: 18rpx 0;
+  background: #fff;
+}
+.img_list{
+  padding: 10rpx 14rpx 0;
+  background: #e5e8f1;
+}
+.img_list .list-item{
+  position: relative;
+  padding-left: 14rpx;
+}
+.right_btn{
+  text-align: right;
+  position: absolute;
+  right: -24rpx;
+}
+.title_name .col-xs-8{
+  padding-left: 0;
+  margin-left: -18rpx;
+  padding-top: 14rpx;
+}
+.right_btn{
+  margin-top: -5px;
+}
+.title_cont{
+  text-align: justify;
+  padding: 0 38rpx 18rpx;
+}
+.pro{
+  box-sizing: border-box;
+  padding: 4rpx 38rpx 0;
+  margin-top: 10rpx;
+  width: 100%
+}
+.pro navigator {
+  display: flex;
+  padding:10rpx;
+  border:1px solid #eee;
+  box-sizing: border-box;
+}
+.pro image{
+  width: 154rpx;
+  padding-right: 5px;
+  height: 154rpx;
+  display: block;
+  border: 1px dashed #eee;
+}
+.pro_detail{
+  position: relative;
+  vertical-align: top;
+  padding-left: 20rpx;
+  flex: 1;
+}
+.pro_detail .goodsName{
+  height: 78rpx;
+  overflow: hidden;
+}
+.pro_price{
+  position: absolute;
+}
+.pro_price text{
+  text-decoration: line-through;
+}
+.share image{
+  width: 117rpx;
+  position: absolute;
+  top: -6px;
+}
+.no_share{
+  right:-140rpx;
+}
+.img_share{
+  right: 56rpx;
+}
+.qr_share{
+  right: 56rpx;
+}
+/* 展示分享动画 */
+.right_btn text{
+  display: inline-block;
+  width: 117rpx;
+  height: 117rpx;
+  background: url(http://wxassets.xf66.com/stroll/fenxiang.png) center;
+  background-size: 117rpx;
+}
+.right_btn .fenxiangPng{
+  background: url(http://wxassets.xf66.com/stroll/fenxiang.png) center;
+  background-size: 117rpx;
+  animation: changeFenxiang 2.5s;
+      -moz-animation: changeFenxiang 2.5s; /* Firefox */
+   -webkit-animation: changeFenxiang 2.5s;  /* Safari 和 Chrome */
+        -o-animation: changeFenxiang 2.5s; /* Opera */}
+.shopShare{
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 501;
+  text-align: center;
+  height: 100%;
+  background: #f8f8f8;
+}
+.shopShare .shopShareBg {
+  position: absolute;
+  width: 100%;
+  background: rgba(0,0,0,.5);
+  height: 100%;
+  z-index: 501;
+}
+.shopShare .shopShareCont {
+  position:relative;
+  width: 78%;
+  left: 0;
+  top: 0;
+  margin: 0 auto;
+  margin-top: 25%;
+  z-index: 502;
+}
+.imgShare{
+  overflow: scroll;
+}
+.imgShare .shopShareCont{
+  width: 100%;
+  z-index:9;
+  margin-top: 24px;
+}
+.imgShare image{
+  border-radius:0;
+}
+/*定制不同图片位置*/
+.img_list{
+  position: relative;
+}
+.img_list .list-item{
+  width: 234rpx;
+  height: 234rpx;
+  display: inline-block;
+  box-sizing: border-box;
+}
+.img_list .list-item image{
+  width:100%;
+}
+.img_list .list-item view{
+  width:100%;
+  height: 100%;
+  background: #fff;
+}
+.img_list_4 .list-item{
+  width: 354rpx;
+  height: 354rpx;
+}
+.img_list_3 .list-item{
+  width: 234rpx;
+  height: 234rpx;
+}
+.img_list_3 .list-item:first-child{
+  width: 468rpx;
+  height: 468rpx;
+}
+.img_list_2 .list-item:last-child{
+  position: absolute;
+  width: 120rpx;
+  height: 120rpx;
+  background:#fff;
+  bottom: 5px;
+  right: 7px;
+}
+.img_list_6 .list-item:first-child{
+  width: 470rpx;
+  height: 454rpx;
+}
+.img_list_7 .list-item:nth-child(1), .img_list_7 .list-item:nth-child(2), .img_list_7 .list-item:nth-child(6), .img_list_7 li:nth-child(7) {
+  width: 354rpx;
+  height: 354rpx;
+}
+.img_list_5 .list-item:first-child, .img_list_5 .list-item:nth-child(2) {
+  width: 354rpx;
+  height: 354rpx;
+}
+.img_list_8 .list-item:first-child, .img_list_8 .list-item:nth-child(2) {
+  width: 354rpx;
+  height: 354rpx;
+}
+.botShare {
+  position: relative;
+  margin-top: 10rpx;
+}
+.botShare image{
+  width: 48rpx;
+  height: 48rpx;
+  vertical-align: middle;
+  margin-top: -3px;
+}
+.botShare .col-xs-6{
+  text-align: center;
+  height: 76rpx;
+  line-height: 94rpx;
+}
+.botShare .col-xs-6:first-child{
+  position: relative;
+}
+.botShare .col-xs-6:first-child:before{
+  position: absolute;
+  content: '';
+  width: 1px;
+  height: 48rpx;
+  background: #eee;
+  left: 100%;
+  top: 24rpx;
+}
+.ewm{
+  padding: 5px;
+}
+.mescroll-totop {
+  z-index: 9990;
+  position: fixed;
+  right: 10px;
+  bottom: 68px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  opacity: 0;
+}
+.toTopShow {
+  opacity: 1 !important;
+}
+.shopShareCont image{
+  margin-top: 40px;
+  width: 100%;
+}
+</style>

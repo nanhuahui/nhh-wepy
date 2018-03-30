@@ -41,6 +41,8 @@ export default class extends wepy.app {
       'pages/user/orderManage',
       'pages/user/personnelsManage',
       'pages/user/myIncome',
+      'pages/user/myCoupon',
+      'pages/user/stroll',
       'pages/order/orderList',
       'pages/uploadGoods/uploadGood',
       'pages/uploadGoods/goodList',
@@ -280,7 +282,7 @@ export default class extends wepy.app {
     let wxUser = await wepy.getUserInfo()
     console.log('授权用户:', wxUser)
     // 存储微信的用户信息
-    wepy.setStorageSync('user_wx', wxUser)
+    wepy.setStorageSync('user_wx', wxUser.userInfo)
     if (wxUser) {
       // 调用后台登录接口
       let self = this
@@ -373,7 +375,7 @@ export default class extends wepy.app {
       }
     })
   }
-  
+
   bezier(points, times) {
     /*eslint-disable */
     // 0、以3个控制点为例，点A,B,C,AB上设置点D,BC上设置点E,DE连线上设置点F,则最终的贝塞尔曲线是点F的坐标轨迹。

@@ -20,16 +20,29 @@ let w = wepy.getSystemInfoSync().windowWidth
 let h = wepy.getSystemInfoSync().windowHeight
 
 export default class composeImage extends wepy.component {
-  props = {}
+  props = {
+    width: {
+      type: String,
+      default: w * 0.76
+    },
+    height: {
+      type: String,
+      default: h * 0.86
+    },
+    canvasWidth: {
+      type: String,
+      default: w
+    },
+    canvasHeight: {
+      type: String,
+      default: h
+    }
+  }
   data = {
     qrImgPath: null,
     imgPath: null,
     hiddenCanvas: false,
-    showSlot: false,
-    width: w * 0.76,
-    height: h * 0.86,
-    canvasWidth: w,
-    canvasHeight: h
+    showSlot: false
   }
   methods = {
     canvasIdErrorCallback: function (e) {
