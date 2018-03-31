@@ -1,0 +1,496 @@
+<template>
+<scroll-view scroll-y="true" height="100%">
+  <view class="list">
+    <view class="list-item">
+      <text>店铺头像:</text>
+      <view class="store_avatar_img" style="flex: 1;" bindtap="uploadQr" data-type="avatar">
+        <image src="{{imgDomain + storeInfo.store_title_img}}"></image>
+        <text class="iconfont-yzg icon-yzg-arrow"></text>
+      </view>
+    </view>
+    <view class="list-item">
+      <text>店铺名称:</text>
+      <input type="text" placeholder="请填写店铺名称" value="{{storeInfo.store_name}}" data-key="store_name" bindinput="storeInput"/>
+    </view>
+    <view class="list-item">
+      <text>昵称：</text>
+      <input type="text" placeholder="不知道昵称是什么" value="{{userInfo.nickname}}" data-key="nickname" bindinput="userInput"/>
+    </view>
+    <view class="list-item">
+      <text>个人签名：</text>
+      <input type="text" placeholder="请填写个人签名" value="{{storeInfo.signature}}" data-key="signature" bindinput="storeInput"/>
+    </view>
+    <view class="list-item">
+      <text>手机号：</text>
+      <input type="text" placeholder="请填写手机号"  value="{{storeInfo.mobile}}" data-key="mobile" bindinput="storeInput"/>
+    </view>
+    <view class="list-item">
+      <text>微信二维码：</text>
+      <view class="qrcode" style="flex: 1;" bindtap="toUploadQr">
+        <input type="text" placeholder="{{storeInfo.qrcode_img ? '已设置' : '未设置'}}" disabled="true" />
+        <text class="iconfont-yzg icon-yzg-arrow arrow"></text>
+      </view>
+    </view>
+    <view class="list-item">
+      <text>我的等级</text>
+      <input type="text" placeholder="服务商" value="{{myRank}}" bindtap="alertInfo"/>
+    </view>
+    <view class="list-item">
+      <text>抵用金：</text>
+      <view style="flex: 1;">
+        <text class="offset_gold" bindtap="alertInfo">￥{{userInfo.offset_money}}</text>
+        <navigator url="./sellerFundUse" class="use_detail">用途明细</navigator>
+      </view>
+    </view>
+  </view>
+  <button class="btn" bindtap="checkMobile">确认设置</button>
+</scroll-view>
+
+<!--上传二维码-->
+<view class="yzg-title" wx:if="{{uploadShow === 'show'}}">
+  <!-- 左侧图标 -->
+  <view class="col-xs-2 backBtn">
+    <a bindtap="toManageContent">
+      <i class="iconfont-yzg icon-yzg-back"></i>
+    </a>
+  </view>
+  <!-- 默认title -->
+  <view class="col-xs-8 shop-name" wx:if="title">
+    <text>上传微信二维码</text>
+  </view>
+  <!-- 右侧图标 -->
+  <view class="col-xs-2 shop-bag" style="padding-left: 0;" bindtap="setConfig">
+    <text class="c11 saveQrCode" style="font-size: 16px;">保存</text>
+  </view>
+</view>
+
+<view class="{{uploadClass}}">
+  <view class="codeImg">
+    <image src="{{imgDomain + qrcodeImg}}" mode="widthFix"></image>
+  </view>
+  <view class="whyUpload">
+    <view class="question">为什么要上传微信二维码</view>
+    <view class="answer">
+      <view>将显示在订单详情页面</view>
+      <view>方便客户找到您</view>
+      <view>也便于扩展您的客户群</view>
+    </view>
+  </view>
+  <view class="button" bindtap="uploadQr" data-type="qrcode">选择二维码</view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import md5Util from 'md5'
+  import { DEFAULT_UID, API_SIGNATURE } from '../../../src/config'
+
+  export default class accountManage extends wepy.page {
+    config = {
+      navigationBarTitleText: ''
+    }
+    components = {}
+    data = {
+      imgUrl: null,
+      userInfo: {},
+      storeInfo: {},
+      myRank: '',
+      myParentRank: '',
+      myParentName: '',
+      uploadShow: null,
+      imgDomain: '',
+      qrcodeImg: '',
+      uploadClass: 'uploadQrCode uploadOriginal' // 上传二维码部分样式
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.loadData()
+    }
+    onShow() {}
+    methods = {}
+    loadData () {
+      wepy.showLoading({ title: '加载中' })
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/store.php`,
+        data: {
+          act: 'setting'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          console.log('用户数据', data)
+          self.$apply(() => {
+            self.userInfo = data.user_info
+            self.storeInfo = data.store_info
+            self.imgDomain = data.img_path
+          })
+          if (data.store_info.qrcode_img) {
+            self.$apply(() => {
+              self.qrcodeImg = data.store_info.qrcode_img
+            })
+          }
+          self.parentName()
+          self.rankCount()
+          wepy.setNavigationBarTitle({ title: '账号管理' })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    rankCount () {
+      this.userInfo.user_rank === '1' ? this.myRank = '汇商' : this.userInfo.user_rank === '2' ? this.myRank = '合伙人' : this.userInfo.user_rank === '3' ? this.myRank = '白金合伙人' : this.userInfo.user_rank === '4' ? this.myRank = '董事' : this.myRank = '消费商'
+      console.log(this.userInfo.user_rank)
+      this.userInfo.parent_user_rank === '1' ? this.myParentRank = this.myParentName + '（汇商）' : this.userInfo.parent_user_rank === '2' ? this.myParentRank = this.myParentName + '（合伙人）' : this.userInfo.parent_user_rank === '3' ? this.myParentRank = this.myParentName + '（白金合伙人）' : this.userInfo.parent_user_rank === '4' ? this.myParentRank = this.myParentName + '（董事）' : this.myParentRank = ''
+      this.$apply()
+    }
+    parentName () {
+      if (this.userInfo.parent_nickname) {
+        this.$apply(() => {
+          this.myParentName = this.userInfo.parent_nickname
+        })
+      } else {
+        this.$apply(() => {
+          this.myParentName = this.userInfo.parent_user_name
+        })
+      }
+    }
+    checkMobile () {
+      if (!(/^1[34578]\d{9}$/.test(this.storeInfo.mobile))) {
+        wepy.showModal({
+          content: '手机号码填写不正确',
+          showCancel: false
+        })
+      } else {
+        this.setConfig()
+      }
+    }
+    setConfig () {
+      let self = this
+      let storeInfo = self.storeInfo
+      let saveParam = {
+        logo_img: storeInfo.store_title_img,
+        nickname: self.userInfo.nickname,
+        store_id: storeInfo.store_id,
+        mobile: storeInfo.mobile,
+        action_type: 'update',
+        signature: storeInfo.signature,
+        store_name: storeInfo.store_name,
+        qrcode_img: self.qrcodeImg
+      }
+      // 发送请求
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/store.php?act=update`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: saveParam
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          wepy.setStorageSync('qrcode_img', self.qrcode_img)
+          if (wepy.getStorageSync('seller_id_nhh') === wepy.getStorageSync('user_nhh').user_id) {
+            wepy.setStorageSync('store_avatar_nhh', self.storeInfo.store_title_img)
+          }
+          self.returnUserCenter()
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    async returnUserCenter () {
+      let res = await wepy.showModal({
+        content: '设置成功',
+        showCancel: false
+      })
+      if (res.confirm) {
+        this.$switch(`./userCenter`)
+      }
+    }
+    storeInput(e) {
+      let val = e.detail.value
+      let key = e.currentTarget.dataset.key
+      this.$apply(() => {
+        this.storeInfo[key] = val
+      })
+    }
+    userInput(e) {
+      let val = e.detail.value
+      let key = e.currentTarget.dataset.key
+      this.$apply(() => {
+        this.userInfo[key] = val
+      })
+    }
+    alertInfo () {
+      wepy.showModal({
+        content: '此信息不可设置',
+        showCancel: false
+      })
+    }
+    // 展示二维码上传内容
+    toUploadQr () {
+      this.$apply(() => {
+        this.uploadShow = 'show'
+      })
+      this.uploadIsShow()
+      wepy.setNavigationBarTitle({ title: '' })
+    }
+    // 返回帐号管理内容
+    toManageContent () {
+      this.$apply(() => {
+        this.uploadShow = 'hide'
+      })
+      this.uploadIsShow()
+    }
+    /* 判断上传是否显示 */
+    uploadIsShow () {
+      var uploadClass
+      switch (this.uploadShow) {
+        case 'hide':
+          uploadClass = 'uploadQrCode uploadAniRight'
+          break
+        case 'show':
+          uploadClass = 'uploadQrCode uploadAniLeft'
+          break
+        default:
+          uploadClass = 'uploadQrCode uploadOriginal'
+          break
+      }
+      this.$apply(() => {
+        this.uploadClass = uploadClass
+      })
+    }
+    /* 上传图片 */
+    uploadQr(e) {
+      var currentTarget = e.currentTarget.dataset
+      let _this = this
+      wepy.chooseImage({
+        count: 1, // 默认9
+        sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+        sourceType: ['album', 'camera'] // 可以指定来源是相册还是相机，默认二者都有
+      }).then((res) => {
+        // 返回选定照片的本地文件路径列表，tempFilePath可以作为img标签的src属性显示图片
+        var tempFilePaths = res.tempFilePaths
+        _this.imgMediaUpload(currentTarget.type, tempFilePaths[0])
+      })
+    }
+    /* 上传图片至服务器 */
+    imgMediaUpload (type, mediaId) {
+      // 发送请求
+      let u = wepy.getStorageSync('user_nhh')
+      let uid = u.user_id || DEFAULT_UID
+      let timestamp = Date.parse(new Date()) / 1000
+      let md5Str = md5Util(uid + '' + timestamp + API_SIGNATURE)
+      let uploadParam = {
+        uid: uid,
+        timestamp: timestamp,
+        sign: md5Str,
+        sess_id: wepy.getStorageSync('sessId'),
+        act: 'upload',
+        type: type,
+        filePath: mediaId,
+        name: 'file'
+      }
+      let self = this
+      // 上传图片资源至服务器
+      wepy.uploadFile({
+        url: `${self.$parent.globalData.apiUrl}/wx_app/upload_img.php`,
+        filePath: mediaId,
+        name: 'file',
+        formData: uploadParam
+      }).then((res) => {
+        var resData = JSON.parse(res.data)
+        if (resData.errcode === 0) {
+          // 保存头像和二维码
+          if (type === 'avatar') {
+            let cStoreInfo = self.storeInfo
+            cStoreInfo.store_title_img = resData.data.file
+            self.$apply(() => {
+              self.storeInfo = cStoreInfo
+            })
+          } else {
+            self.$apply(() => {
+              self.qrcodeImg = resData.data.file
+            })
+          }
+        } else {
+          wepy.showModal({
+            content: resData.msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.list {
+  background-color: #fff;
+}
+
+.list .list-item {
+  height: 100rpx;
+  line-height: 100rpx;
+  border-bottom: 1px solid #f1f1f1;
+  display: flex;
+}
+
+.list .list-item text {
+  width: 240rpx;
+  text-align: left;
+  padding-right: 16rpx;
+  padding-left: 30rpx;
+  font-size: 30rpx;
+}
+
+.list .list-item input {
+  flex: 1;
+  height: 100rpx;
+  line-height: 100rpx;
+  font-size: 28rpx;
+}
+
+.list .list-item .offset_gold {
+  display: inline-block;
+  width: 50%;
+  padding: 0;
+}
+
+.list .list-item .use_detail {
+  display: inline-block;
+  padding: 0 30rpx;
+  line-height: 2.3;
+  font-size: 26rpx;
+  background-color: #ed3366;
+  color: #fff;
+}
+
+.btn {
+  width: 70%;
+  margin: 36rpx auto;
+  height: 72rpx;
+  line-height: 72rpx;
+  padding: 0;
+  background-color: #ed3366;
+  color: #fff;
+  font-size: 28rpx;
+  border-radius: 0;
+}
+
+.store_avatar_img{
+  position: relative;
+}
+.store_avatar_img image{
+  position:absolute;
+  width: 66rpx;
+  height: 66rpx;
+  border-radius: 50%;
+  right: 70rpx;
+  top: 14rpx;
+}
+.list-item .store_avatar_img text{
+  width:auto;
+  position: absolute;
+  right: 5px;
+  top: 0;
+  color: #aaa;
+  font-size: 38rpx;
+}
+.list-item .qrcode{
+  position: relative;
+}
+.list-item .qrcode .arrow{
+  width:auto;
+  position: absolute;
+  right: 5px;
+  top: 0;
+  color: #aaa;
+  font-size: 38rpx;
+}
+
+.setting .uploadWxCode{
+  color: #ccc;
+  text-align: right;
+}
+.uploadQrCode{
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  background: #f4f4f4;
+  height:100%;
+  width:100%;
+}
+.codeImg{
+  width: 400rpx;
+  padding: 10px;
+  min-height: 400rpx;
+  background: #fff;
+  margin: 0 auto;
+  margin-top: 140rpx;
+}
+.codeImg image{
+  width: 100%;
+}
+.whyUpload{
+  text-align: center;
+  font-size: 14px;
+}
+.whyUpload .question{
+  margin:56rpx auto 38rpx;
+  font-weight: bold;
+}
+.whyUpload .answer{
+  line-height: 1.8;
+  color: #aaa;
+}
+.uploadQrCode .button{
+  width: 80%;
+  height: 84rpx;
+  line-height: 84rpx;
+  display: block;
+  margin: 0 auto;
+  background: #333;
+  color: #c8975c;
+  text-align: center;
+  margin-top: 46rpx;
+  border-radius: 0;
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  border-radius: 4px;
+}
+
+  /* 动画 (跟订单详情重复，可放入公共文件)*/
+.uploadAniLeft {
+  transition: left 0.3s;
+  left: 0;
+}
+.uploadAniRight {
+  transition: left 0.3s;
+  left: 100%;
+}
+.uploadOriginal{
+  display: none;
+}
+
+.saveQrCode{
+  display:block;
+  box-sizing: border-box;
+  text-align:center;
+  background:#333;
+  width:48px;
+  height:26px;
+  line-height:28px;
+  border-radius:4px;
+  margin-top:8px;
+}
+</style>
