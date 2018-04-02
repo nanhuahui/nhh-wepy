@@ -1,0 +1,222 @@
+<template>
+  <view style="overflow: hidden;height: {{canvasHeight * 1.1}}px;">
+    <swiper indicator-dots="{{false}}" autoplay="{{false}}" interval="{{5000}}"
+      duration="{{500}}" current="{{currentIndex}}" bindchange="swiperCanv">
+      <block wx:for="{{swiperList}}" wx:key="img">
+        <swiper-item class="qrImg">
+          <image src="{{item}}" bindtap="previewImage"></image>
+        </swiper-item>
+      </block>
+    </swiper>
+    <scroll-view scroll-x="true" style="height: 200rpx;white-space: nowrap;"
+      scroll-left="{{left}}" scroll-with-animation="{{true}}" bindscrolltolower="loadMore" >
+      <block wx:for="{{slideList}}" wx:key="img">
+        <view class="cell {{currentIndex === index ? 'activeCell' : ''}}" data-width="{{width}}" data-index="{{index}}" bindtap="clickFn">
+          <image src="{{item.url}}" data-index="{{index}}" binderror="loadError"></image>
+        </view>
+      </block>
+    </scroll-view>
+
+    <canvas canvas-id="posterCanvas" binderror="canvasIdErrorCallback" wx:if="{{!hiddenCanvas}}"
+      style="width: {{canvasWidth}}px;height: {{canvasHeight}}px;margin-top: 200%;"></canvas>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import { STATIC_IMG_PATH } from '../../../src/config'
+  import composeData from '../../utils/data'
+  import { drawingMiniQr } from '../../utils'
+
+  export default class posterShare extends wepy.page {
+    config = {
+      navigationBarTitleText: '店铺分享'
+    }
+    data = {
+      slideList: [],
+      swiperList: [],
+      currentIndex: 0,
+      pageSize: 6,
+      pageNum: 0,
+      pageStatus: true,
+      left: 0,
+      link: null,
+      param: null,
+      x: null,
+      y: null,
+      size: null,
+      canvasWidth: wepy.getSystemInfoSync().windowWidth,
+      canvasHeight: wepy.getSystemInfoSync().windowHeight,
+      cellWidth: 60
+    }
+    onLoad() {
+      let self = this
+      wepy.getSystemInfo()
+      .then((res) => {
+        if (res.screenWidth <= 320) {
+          self.data.cellWidth = 49
+        } else if (res.screenWidth > 320 && res.screenWidth <= 375) {
+          self.data.cellWidth = 60
+        } else {
+          self.data.cellWidth = 66
+        }
+      })
+      this.cellWidth = self.data.cellWidth
+      this.$apply()
+      this.loadScrollImg()
+      // 默认加载第一个合图
+      this.loadShareQr(0)
+    }
+    // 组装缩略图
+    loadScrollImg() {
+      let self = this
+      if (this.data.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.data.pageNum + 1
+      this.$apply(() => {
+        this.pageNum = num
+        this.pageStatus = true
+      })
+      let tempList = []
+      // 每次加载6个数据
+      for (let k = (self.data.pageNum - 1) * self.data.pageSize; k < (self.data.pageNum * self.data.pageSize); k++) {
+        // 获取图片的路径
+        let nextObj = composeData.placardPreImg(k)
+        tempList.push(nextObj)
+        // 填充swiper数组
+        self.data.swiperList.push(`${STATIC_IMG_PATH}/placard`)
+      }
+      this.$apply(() => {
+        this.pageNum = num
+        this.pageStatus = false
+        this.slideList = self.data.slideList.concat(tempList)
+      })
+    }
+    // 缩略图滑动到最右加载分页
+    loadMore() {
+      this.loadScrollImg()
+    }
+    // 处理无效图片
+    loadError(e) {
+      let vm = this
+      let index = e.currentTarget.dataset.index
+      let arr = vm.data.slideList
+      // 删除无效图片
+      arr.splice(index, 1)
+      vm.$apply(() => {
+        vm.pageNum = -1
+        vm.slideList = arr
+      })
+    }
+    // 点击滑动居中
+    clickFn(e) {
+      let index = e.currentTarget.dataset.index
+      this.$apply(() => {
+        this.currentIndex = index
+        this.left = (index - 2) > 0 ? (index - 2) * (this.data.cellWidth + 6) : 0
+      })
+      this.loadShareQr(index)
+    }
+    swiperCanv(e) {
+      let current = e.detail.current
+      this.$apply(() => {
+        this.currentIndex = e.detail.current
+        this.left = (current - 2) > 0 ? (current - 2) * (this.data.cellWidth + 6) : 0
+      })
+      this.loadShareQr(current)
+    }
+    loadShareQr(k) {
+      if (this.data.slideList[k].render) {
+        return
+      }
+      let shopImg = composeData.placardDrawImg(k)
+      let shopText = composeData.placardDrawText
+      // 设置贴图的图片和文字
+      shopImg[1].src = wepy.getStorageSync('store_nhh').avatar ? wepy.getStorageSync('store_nhh').avatar : wepy.getStorageSync('user_wx').avatarUrl
+      console.log(13, shopImg[1].src)
+      shopText[0].text = wepy.getStorageSync('store_nhh') ? wepy.getStorageSync('store_nhh').name : '南华汇商城'
+      console.log(14, shopText[0].text)
+      let vm = this
+      let w = wepy.getSystemInfoSync().windowWidth
+      let h = wepy.getSystemInfoSync().windowHeight
+      let qr = {
+        link: 'pages/shopping/index/index',
+        param: wepy.getStorageSync('sellerId') ? `?s=${wepy.getStorageSync('sellerId')}` : '',
+        bgColor: '#ffffff',
+        x: w * 0.74,
+        y: h * 0.74,
+        size: w / 5
+      }
+      const ctx = wepy.createCanvasContext('posterCanvas', vm)
+      wepy.showLoading({title: '绘制中', mask: true})
+      drawingMiniQr(shopImg, shopText, qr, ctx).then(() => {
+        // 把当前画布指定区域的内容导出生成指定大小的图片，并返回文件路径(此路径指在小程序环境下生效)
+        setTimeout(() => {
+          wepy.canvasToTempFilePath({
+            canvasId: 'posterCanvas'
+          }).then((res) => {
+            vm.data.swiperList.splice(k, 1, res.tempFilePath)
+            vm.data.slideList[k].render = true
+            vm.$apply(() => {
+              vm.swiperList = vm.data.swiperList
+              vm.slideList = vm.data.slideList
+            })
+          }, this)
+        }, 500)
+        wepy.hideLoading()
+      }).catch((e) => {
+        console.log('合成小程序码图片出错', e)
+      })
+    }
+    previewImage() {
+      wepy.previewImage({
+        // 需要预览的图片http链接  使用split把字符串转数组。不然会报错
+        urls: [this.data.swiperList[this.data.currentIndex]],
+        success: (res) => {
+          console.log('预览成功', res)
+        },
+        fail: (res) => {
+          console.log('预览失败', res)
+        },
+        complete: (res) => {
+          console.log('预览完成', res)
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+page{
+  padding:0 30rpx;
+  background: #000;
+}
+swiper{
+  height:980rpx;
+}
+.qrImg{
+  display: inline-block;
+  width:100%;
+  text-align: center;
+  margin-top:11%;
+}
+.qrImg image{
+  width:552rpx;
+  height:90%;
+}
+.cell{
+  display: inline-block;
+  width:120rpx;
+  margin:0 6rpx;
+  opacity: 0.4;
+}
+.cell image{
+  width:100% !important;
+  height:200rpx !important;
+}
+.activeCell{
+  opacity: 1
+}
+</style>
