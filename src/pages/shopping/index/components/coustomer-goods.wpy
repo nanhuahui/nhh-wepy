@@ -1,5 +1,5 @@
 <template>
-  <navigator wx:if="{{loadComplete && sevenActive}}" class="consumerActivity" url="./coustomGoods">
+  <navigator wx:if="{{loadComplete && sevenActive}}" class="consumerActivity" url="../coustomGoods">
     <image src="{{img_domain + sevenActive.banner}}" mode="widthFix" style="width:100%" />
     <view class="consumer_list row">
       <view class="col-xs-4">

@@ -43,10 +43,7 @@ export default class indexCategory extends wepy.component {
     // 菜单点击事件
     toCategory(e) {
       let cid = e.currentTarget.dataset.item.id
-      this.$parent.$navigate('../category/category', {cid: cid})
-      // this.$parent.$navigate({
-      //   url: `../category/category?cid=${cid}`
-      // })
+      this.$parent.$navigate('../category', {cid: cid})
     }
   }
   onLoad() {}
