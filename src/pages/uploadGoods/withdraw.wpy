@@ -1,0 +1,147 @@
+<template>
+  <view class="withDraw">
+    <view class="comiNumber clearfix" style="overflow: hidden;">
+      <text>提现账号</text>
+      <view>{{commiAccount.card_bank}}({{commiAccount.account_number}})</view>
+    </view>
+    <view class="hasMoney">
+      <view class="c1">可提现金额</view>
+      <view class="amount">￥{{commiAccount.cash_available}}</view>
+    </view>
+    <navigator class="rightCash" bindtap="rightCash">
+      立即提现
+    </navigator>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class withdraw extends wepy.page {
+    config = {
+      navigationBarTitleText: '提现'
+    }
+    data = {
+      imgUrl: null,
+      nowMoney: '',
+      commiAccount: []
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.getAccount()
+    }
+    getAccount() {
+      let self = this
+      wepy.showLoading({ title: '加载中' })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/order/order_amount.php`,
+        data: {
+          act: 'cash'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          self.data.commiAccount = data
+          self.data.commiAccount.account_number = self.removeSpace(this.data.commiAccount.account_number)
+          self.$apply(() => {
+            self.commiAccount = self.data.commiAccount
+          })
+        } else {
+          console.error(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    rightCash() {
+      if (this.getFiv() < 1) {
+        wepy.showModal({
+          title: '提示',
+          content: '请于每月15号之后提现',
+          showCancel: false
+        })
+      } else {
+        wepy.request({
+          url: `${self.$parent.globalData.apiUrl}/shop/order/order_amount.php`,
+          data: {
+            act: 'get_cash',
+            account_id: this.data.commiAccount.account_id
+          }
+        }).then(({data: {errcode, data, msg}}) => {
+          wepy.hideLoading()
+          if (errcode === 0) {
+            wepy.showModal({
+              title: '提示',
+              content: data.result,
+              showCancel: false
+            })
+            wepy.navigateBack({
+              delta: 1
+            })
+          } else {
+            console.error(msg)
+          }
+        }).catch((error) => {
+          console.log('请求失败', error)
+        })
+      }
+    }
+    /* 判断是否为15号之前 */
+    getFiv () {
+      var nowTime = new Date()
+      return nowTime.getDate()
+    }
+    /* 去除字符串空格 */
+    removeSpace(str) {
+      let newStr
+      newStr = str ? str.replace(/\s/ig, '') : ''
+      return newStr.substring(newStr.length - 4)
+    }
+  }
+</script>
+
+<style lang="less">
+  .comiNumber{
+    height: 92rpx;
+    line-height: 92rpx;
+    background: #fff;
+    margin-bottom: 10px;
+    padding:0 30rpx;
+    font-size: 28rpx;
+  }
+  .comiNumber text{
+    float: left;
+    color: #999;
+  }
+  .comiNumber view{
+    float: right;
+    color: #333;
+  }
+  .hasMoney{
+    padding:20rpx 30rpx;
+    background: #fff;
+  }
+  .hasMoney .amount{
+    font-size: 60rpx;
+    font-weight: bold;
+    color: #000;
+    line-height: 60rpx;
+    padding: 20rpx 0 10rpx;
+  }
+  .rightCash{
+    display:block;
+    background: #4870f6;
+    width:90%;
+    height: 84rpx;
+    line-height:  84rpx;
+    color:#fff;
+    margin:0 auto;
+    text-align: center;
+    border-radius:4px;
+    margin-top: 84rpx;
+    margin-bottom: 30px;
+  }
+  .rightCash:hover, .rightCash:active, .rightCash:visited, .rightCash:link{
+    color:#fff;
+  }
+
+</style>

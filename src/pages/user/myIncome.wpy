@@ -17,7 +17,7 @@
           </view>
         </view>
       </view>
-      <view class="tips" style="color: #666;font-size: 24rpx;">用户每月从该月15日起到该月的29日可以对上月底之前的所有佣金进行提现。</view>
+      <view class="tips" style="color: #666;font-size: 24rpx;">用户每月从该月15日起到该月的19日上午12点可以对上月底之前的所有佣金进行提现。</view>
     </view>
   </scroll-view>
 </template>

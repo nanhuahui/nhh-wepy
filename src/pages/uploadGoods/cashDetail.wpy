@@ -1,0 +1,99 @@
+<template>
+  <view>
+    <view class="recordDet">
+      <view class="table">
+        <view class="table-tr">
+          <view class="table-th">订单号</view>
+          <view class="table-th">下单时间</view>
+          <view class="table-th">提现金额</view>
+        </view>
+        <view class="table-tr" wx:for="{{cashDetail}}" wx:key="*this">
+          <view class="table-td" style="width:35%;">{{item.order_sn}}</view>
+          <view class="table-td" style="width:40%;">{{item.add_time}}</view>
+          <view class="table-td" style="width:25%;">￥{{item.goods_amount}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class cashRecord extends wepy.page {
+    config = {
+      navigationBarTitleText: '提现明细'
+    }
+    data = {
+      cid: null,
+      cashDetail: []
+    }
+    onLoad(options) {
+      this.$apply(() => {
+        this.cid = options.id
+      })
+      this.loadDetail()
+    }
+    loadDetail() {
+      let self = this
+      wepy.showLoading({ title: '加载中' })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/order/order_amount.php`,
+        data: {
+          act: 'cash_record_detail',
+          id: this.data.cid
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.cashDetail = data
+          })
+        } else {
+          console.error(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.cashRecord{
+  background: #fff;
+  padding:0 0 0 40rpx;
+  overflow:hidden;
+}
+.cashRecord .col-xs-6{
+  box-sizing: border-box;
+  padding:0;
+  border-bottom: 1px solid #f1f1f1;
+  height: 94rpx;
+  line-height: 94rpx;
+  color: #333;
+}
+.recordDet .table{
+  width:100%;
+}
+.recordDet .table .table-td,.recordDet .table .table-th{
+  text-align: center;
+  height:94rpx;
+  line-height: 94rpx;
+}
+.recordDet .table .table-td{
+  border-top:1px solid #f8f8f8;
+}
+.recordDet{
+  margin-top:10px;
+  background: #fff;
+}
+.leftCount{
+  text-align: left;
+  font-size: 28rpx;
+}
+.cashRecord .rightCount{
+  text-align: right;
+  padding-right: 48rpx;
+  font-size: 32rpx;
+}
+</style>

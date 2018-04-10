@@ -35,7 +35,7 @@ export default class extends wepy.app {
       'pages/shopping/searchGoods',
       'pages/shopping/coustomGoods',
       'pages/shopping/todaySpecial',
-      'pages/shopping/category',
+      'pages/shopping/cart',
       'pages/user/userCenter',
       'pages/user/myCollect',
       'pages/user/sellerIncome',
@@ -44,6 +44,7 @@ export default class extends wepy.app {
       'pages/user/myIncome',
       'pages/user/myCoupon',
       'pages/user/stroll',
+      'pages/user/messageList',
       'pages/user/posterShare',
       'pages/user/accountManage',
       'pages/order/orderList',
@@ -52,7 +53,14 @@ export default class extends wepy.app {
       'pages/uploadGoods/uploadBanner',
       'pages/uploadGoods/orderList',
       'pages/uploadGoods/goodsInfo/goodsInfo',
-      'pages/uploadGoods/upperGoodsList'
+      'pages/uploadGoods/upperGoodsList',
+      'pages/uploadGoods/cashRecord',
+      'pages/uploadGoods/cashDetail',
+      'pages/uploadGoods/withdrawIndex',
+      'pages/uploadGoods/withdraw',
+      'pages/commission/withdrawInstruction',
+      'pages/commission/withdrawIndex',
+      'pages/commission/cashRecord'
     ],
     window: {
       navigationBarBackgroundColor: '#f7f7f8',
@@ -72,7 +80,7 @@ export default class extends wepy.app {
         selectedIconPath: 'assets/icon/iconfont-shop.png',
         text: '特卖'
       }, {
-        pagePath: 'pages/shopping/index/index',
+        pagePath: 'pages/shopping/cart',
         iconPath: 'assets/icon/iconfont-cart.png',
         selectedIconPath: 'assets/icon/iconfont-cart-active.png',
         text: '购物车'

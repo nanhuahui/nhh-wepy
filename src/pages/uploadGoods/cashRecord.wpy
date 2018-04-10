@@ -1,0 +1,110 @@
+<template>
+  <scroll-view scroll-y="true" height="100%">
+    <view wx:if="{{cashRecord.count}} > 0">
+      <view class="cashRecord">
+        <view class="col-xs-6 leftCount">合计提现次数</view>
+        <view class="col-xs-6 rightCount">{{cashRecord.count}}次</view>
+        <view class="col-xs-6 leftCount">合计提现金额</view>
+        <view class="col-xs-6 rightCount">￥{{cashRecord.amount}}</view>
+      </view>
+      <view class="recordDet">
+        <view class="table">
+          <view class="table-tr">
+            <view class="table-th">提现时间</view>
+            <view class="table-th">提现金额</view>
+            <view class="table-th">状态</view>
+          </view>
+          <view class="table-tr" wx:for="{{cashRecord.user_account}}" wx:key="*this" bindtap="cashRoute" data-id="{{item.id}}">
+            <view class="table-td" style="width:45%;">{{item.add_time}}</view>
+            <view class="table-td" style="width:20%;">￥{{item.amount}}</view>
+            <view class="table-td" style="width:35%;">{{item.status}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view wx:else style="text-align:center; padding-top:135px">
+      <view>---- <text style="padding: 0 10px;">暂时没有提现记录</text> ----</view>
+    </view>
+  </scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class cashRecord extends wepy.page {
+    config = {
+      navigationBarTitleText: '提现记录'
+    }
+    data = {
+      cashRecord: []
+    }
+    onLoad() {
+      this.loadRecord()
+    }
+    loadRecord() {
+      let self = this
+      wepy.showLoading({ title: '加载中' })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/order/order_amount.php`,
+        data: {
+          act: 'cash_record'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.cashRecord = data
+          })
+        } else {
+          console.error(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    cashRoute(e) {
+      console.log(123, e)
+      let id = e.currentTarget.dataset.id
+      wepy.navigateTo({url: `../uploadGoods/cashDetail?id=${id}`})
+    }
+  }
+</script>
+
+<style lang="less">
+.cashRecord{
+  background: #fff;
+  padding:0 0 0 40rpx;
+  overflow:hidden;
+}
+.cashRecord .col-xs-6{
+  box-sizing: border-box;
+  padding:0;
+  border-bottom: 1px solid #f1f1f1;
+  height: 94rpx;
+  line-height: 94rpx;
+  color: #333;
+}
+.recordDet .table{
+  width:100%;
+}
+.recordDet .table .table-td,.recordDet .table .table-th{
+  text-align: center;
+  height:94rpx;
+  line-height: 94rpx;
+}
+.recordDet .table .table-td{
+  border-top:1px solid #f8f8f8;
+}
+.recordDet{
+  margin-top:10px;
+  background: #fff;
+}
+.leftCount{
+  text-align: left;
+  font-size: 28rpx;
+}
+.cashRecord .rightCount{
+  text-align: right;
+  padding-right: 48rpx;
+  font-size: 32rpx;
+}
+</style>

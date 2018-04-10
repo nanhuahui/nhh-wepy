@@ -1,0 +1,69 @@
+<template>
+  <scroll-view scroll-y="true" height="100%">
+    <view class="instruction_whole">
+      <view class="instruction_header spacing_line">
+        亲爱的伙伴您好~
+      </view>
+      <view class="spacing_line">
+        关于申请提现的时间，南华汇在这里向大家进行说明。说明如下：
+      </view>
+      <view class="spacing_line">
+        用户们每月从该月15日起到该月的29日，可以对上月底之前的所有佣金进行提现。这里大家要注意啦，满100元才能进行提现哟！
+      </view>
+      <view class="spacing_line">
+        您的佣金到账时间在这里我们为您简单计算如下:
+      </view>
+      <view style="text-indent:1em">
+        1）当您在该月的15号到19号间发起的提现的申请，我们会在20号统一为您审核通过。审核通过后一般情况下在20号当日您就可以收到佣金啦~
+      </view>
+      <view class="spacing_line" style="text-indent:1em">
+        2）若您在该月20号到29号间发起的的提现申请，我们会在30号统一为您您审核通过。审核通过后一般情况下在30号当日您就可以收到佣金啦~
+      </view>
+      <view class="spacing_line fontB">备注：</view>
+      <view style="text-indent:2em">如果提现申请审核日（20日，30日）遇国家规定法定节假日，则申请受理时间会顺延至假期后第一个工作日为您审核通过。</view>
+      <view style="text-indent:2em;padding-bottom:46rpx;">
+        审核通过当日佣金则会到账。如果没有及时到账有可能是银行进行审核或是系统升级等问题，请您耐心等待。或者您的提现申请填写时的账户信息有误，请您拨打客服热线
+          <navigator style="color: #333;display: inline;">400-622-6777</navigator>与我们联系。届时可能您的申请需要重新更改提交，再次提交后您的申请会在规定时间内尽快为您进行审核工作。
+      </view>
+    </view>
+  </scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class withdrawInstruction extends wepy.page {
+    config = {
+      navigationBarTitleText: '提现须知'
+    }
+  }
+</script>
+
+<style lang="less">
+page {
+  background-color: #fff;
+}
+
+.instruction_whole {
+  font-size: 28rpx;
+  text-align: justify;
+  padding: 0 30rpx;
+}
+
+.instruction_whole>view {
+  font-size: 28rpx;
+}
+
+.instruction_whole .instruction_header {
+  margin-top: 21rpx;
+}
+
+.instruction_whole .spacing_line {
+  padding-bottom: 10rpx;
+}
+
+.instruction_whole .spacing_line.fontB {
+  font-weight: bold;
+  padding-top: 20rpx;
+}
+
+</style>

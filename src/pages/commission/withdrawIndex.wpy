@@ -1,0 +1,240 @@
+<template>
+  <view class="cashIndex cashTotal">
+    <view class="cash_available h10 c11">{{withDrawData.cash_available ? withDrawData.cash_available : '0.00'}}</view>
+    <view class="withdraw h6 c11" bindtap="getCash">
+      提现
+      <icon class="iconfont-yzg icon-yzg-arrow" style="position: relative;top:-6rpx;"></icon>
+    </view>
+    <navigator class="tip h6 c11" url="/pages/commission/withdrawInstruction">
+      提现须知
+    </navigator>
+  </view>
+  <view class="cashIndex">
+    <view class="table">
+      <view class="table-tr">
+        <view class="table-td">
+          <image src="{{imgUrl}}/noSettlement.png" mode="widthFix"></image>
+          未结算收入
+        </view>
+        <view class="table-td">
+          <text class="pendingIncome">￥{{withDrawData.no_income ? withDrawData.no_income : '0.00'}}</text>
+        </view>
+      </view>
+      <view class="table-tr">
+        <view class="table-td">
+          <image src="{{imgUrl}}/txjl.png" mode="widthFix"></image>
+          提现记录
+        </view>
+        <view class="table-td">
+          <navigator url="/pages/commission/cashRecord">
+            <icon class="iconfont-yzg icon-yzg-arrow" style="display:block"></icon>
+          </navigator>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view class="cashIndex">
+    <view class="table">
+      <view class="table-tr">
+        <view class="table-td">
+          绑定银行卡
+        </view>
+        <view class="table-td">
+          <navigator url="../user/bankBind/bankBind">
+            {{withDrawData.is_binding ? withDrawData.account_number_format : '去设置'}}
+            <icon class="iconfont-yzg icon-yzg-arrow"></icon>
+          </navigator>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class withdrawIndex extends wepy.page {
+    config = {
+      navigationBarTitleText: '提现记录'
+    }
+    data = {
+      imgUrl: null,
+      withDrawData: ''
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.withdrawGet()
+    }
+    withdrawGet() {
+      let self = this
+      wepy.showLoading({ title: '加载中' })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/lncome_union.php`,
+        data: {
+          act: 'cash'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.withDrawData = data
+          })
+        } else {
+          console.error(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    getCash () {
+      if (this.data.withDrawData.is_binding === 1 && this.data.withDrawData.cash_available > 0 && !this.data.withDrawData.is_black) {
+        wepy.navigateTo({
+          url: `../withdraw/withdraw`
+        })
+      } else if (this.data.withDrawData.is_black) { // 提现黑名单
+        wepy.showModal({
+          title: '提示',
+          content: '抱歉，您不可以提现',
+          showCancel: false
+        })
+      } else if (this.data.withDrawData.cash_available <= 0) {
+        wepy.showModal({
+          title: '提示',
+          content: '亲爱的伙伴，您的金额还不能提现呦~',
+          showCancel: false
+        })
+      } else {
+        wepy.showModal({
+          title: '提示',
+          content: '您还未设置银行卡，请先去设置',
+          confirmText: '去设置',
+          cancelText: '暂不提现'
+        }).then((res) => {
+          if (res.confirm) {
+            wepy.navigateTo({
+              url: '../user/bankBind/bankBind'
+            })
+          } else if (res.cancel) {
+            return false
+          }
+        })
+      }
+    }
+  }
+</script>
+
+<style lang="less">
+.availMoney {
+  font-size: 18px;
+  font-weight: bold;
+  padding-top: 5px;
+  display: inline-block;
+}
+
+.blueColor {
+  color: #09902d;
+}
+
+.cashIndex {
+  margin-bottom: 10px;
+  background: #fff;
+}
+
+.cashIndex .table {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.cashIndex .table .table-td {
+  padding: 0 30rpx;
+  position: relative;
+  height: 90rpx;
+  line-height: 90rpx;
+}
+
+.cashIndex .table .table-td:before {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 1px;
+  background: #f1f1f1;
+  bottom: 0;
+  right: 0;
+}
+
+.cashIndex .table .table-td:first-child:before {
+  width: 90%;
+}
+
+.cashIndex .table .table-td:first-child {
+  width: 50%;
+  text-align: left;
+  padding-right: 5px;
+  font-size: 28rpx;
+}
+
+.cashIndex .table .table-td:last-child {
+  width: 50%;
+  text-align: right;
+}
+
+.cashIndex .table .table-tr:last-child .table-td:before {
+  background: #fff;
+}
+
+.cashTotal {
+  position: relative;
+  padding: 0;
+  height: 334rpx;
+  background: #333;
+}
+
+.cashTotal .cash_available {
+  font-size: 96rpx;
+  text-align: center;
+  line-height: 314rpx;
+  font-weight: bold;
+}
+
+.cashTotal .cash_available:before {
+  position: absolute;
+  content: "可提现金额(元)";
+  font-size: 24rpx;
+  color: #c8975c;
+  top: 30rpx;
+  left: 30rpx;
+  line-height: 24rpx;
+  font-weight: normal;
+}
+
+.cashTotal .withdraw {
+  position: absolute;
+  bottom: 33rpx;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  display: inline-block;
+  text-align: center;
+  font-size: 28rpx;
+}
+
+.cashTotal .tip {
+  position: absolute;
+  top: 30rpx;
+  right: 30rpx;
+  font-size: 24rpx;
+  line-height: 24rpx;
+}
+
+.cashIndex .table-td>image {
+  vertical-align: middle;
+  width: 48rpx;
+  margin-right: 10rpx;
+  margin-top: -3px;
+}
+
+.pendingIncome {
+  font-weight: bold;
+  font-size: 28rpx;
+}
+
+</style>
