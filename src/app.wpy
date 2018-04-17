@@ -48,6 +48,8 @@ export default class extends wepy.app {
       'pages/user/messageList',
       'pages/user/posterShare',
       'pages/user/accountManage',
+      'pages/user/addressList',
+      'pages/user/newAddress',
       'pages/order/orderList',
       'pages/uploadGoods/uploadGood',
       'pages/uploadGoods/goodList',

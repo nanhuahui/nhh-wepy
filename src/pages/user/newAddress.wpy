@@ -1,0 +1,240 @@
+<template>
+<view class="mainContent">
+  <view class="receiverInfor">
+    <view class="addressDetails">
+      <view class="table addFillIn">
+        <view class="table-tr">
+          <view class="table-td">收 货 人:</view>
+          <view class="table-td">
+            <input type="text" class="form-control" value="{{addressInfo.consignee}}" data-key="consignee" bindinput="addressInput"/>
+          </view>
+        </view>
+        <view class="table-tr">
+          <view class="table-td">手 机 号:</view>
+          <view class="table-td">
+            <input type="tel" class="form-control" value="{{addressInfo.mobile}}" data-key="mobile" bindinput="addressInput"/>
+          </view>
+        </view>
+        <view class="table-tr">
+          <view class="table-td">配送区域:</view>
+          <view class="table-td" bindtap="openAddressPicker">
+            <text style="margin-left:22rpx;">{{addressInfo.province_name}} {{addressInfo.city_name}} {{addressInfo.district_name}}</text>
+          </view>
+          <areaPicker></areaPicker>
+        </view>
+        <view class="table-tr">
+          <view class="table-td">详细地址:</view>
+          <view class="table-td">
+            <input type="text" class="form-control" value="{{addressInfo.address}}" data-key="address" bindinput="addressInput"/>
+          </view>
+        </view>
+        <view class="table-tr">
+          <view class="table-td">身份证号:</view>
+          <view class="table-td">
+            <input type="text" class="form-control" value="{{addressInfo.idcard}}" data-key="idcard" bindinput="addressInput"/>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+<view class="saveNew">
+  <button class="darkBgColor" bindtap="saveAddress">保存并使用</button>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import areaPicker from '../../components/picker-city'
+  import { checkIdcard } from '../../utils'
+
+  export default class newAddress extends wepy.page {
+    config = {
+      navigationBarTitleText: '新增地址'
+    }
+    components = {
+      areaPicker
+    }
+    data = {
+      imgUrl: '',
+      addressInfo: {
+        consignee: '',
+        mobile: '',
+        address: '',
+        idcard: '',
+        region: ''
+      } // 编辑的地址
+    }
+    events = {
+      'areaArray': (...args) => {
+        this.areaPickerArray(args[0], args[1], args[2])
+      }
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.$apply()
+    }
+    onShow() {}
+    methods = {}
+    /**
+     * 保存地址
+     */
+    saveAddress() {
+      let self = this
+      let ta = this.data.addressInfo
+      if (Object.keys(ta).length < 5 || ta.consignee === '' || ta.region === '' || ta.address === '' || ta.mobile === '' || ta.idcard === '') {
+        wepy.showModal({
+          content: '请填写完整地址信息',
+          showCancel: false
+        })
+        return false
+      } else if (!(/^1[3456789]\d{9}$/.test(ta.mobile))) {
+        wepy.showModal({
+          content: '手机号码填写不正确',
+          showCancel: false
+        })
+        return false
+      }
+      let checkIDResult = checkIdcard(ta.idcard)
+      if (checkIDResult === '1') {
+        // 校验通过
+        let saveParam = {
+          pcd: ta.province_name + '-' + ta.city_name + '-' + ta.district_name,
+          address: ta.address,
+          consignee: ta.consignee,
+          mobile: ta.mobile,
+          submit: '保存',
+          act: 'act_edit_address',
+          address_id: '0',
+          idcard: ta.idcard
+        }
+        // 提交请求
+        wepy.request({
+          url: `${self.$parent.globalData.apiUrl}/user.php`,
+          method: 'POST',
+          header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          data: saveParam
+        }).then(({data: {errcode, data, msg}}) => {
+          if (errcode === 0) {
+            wepy.showModal({
+              content: '添加地址成功，是否继续添加？'
+            }).then((res) => {
+              if (res.confirm) {
+                self.$apply(() => {
+                  self.addressInfo = {}
+                })
+              } else if (res.cancel) {
+                self.$navigate(`./addressList`)
+              }
+            })
+          } else {
+            wepy.showModal({
+              title: '添加地址失败',
+              content: msg,
+              showCancel: false
+            })
+          }
+        })
+      } else {
+        wepy.showModal({
+          content: checkIDResult,
+          showCancel: false
+        })
+      }
+    }
+    addressInput(e) {
+      let val = e.detail.value
+      let key = e.currentTarget.dataset.key
+      this.data.addressInfo[key] = val
+      this.$apply(() => {
+        this.editAddress = this.data.editAddress
+      })
+    }
+    openAddressPicker() {
+      this.$invoke('areaPicker', 'openAddressPicker')
+    }
+    areaPickerArray(province, city, area) {
+      this.data.addressInfo.province_name = province.name
+      this.data.addressInfo.city_name = city.name
+      this.data.addressInfo.district_name = area.name
+      this.data.addressInfo.region = '中国' + '-' + province.name + '-' + city.name + '-' + area.name
+      this.$apply(() => {
+        this.addressInfo = this.data.addressInfo
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+@import '../../assets/styles/orderStyles.wxss';
+page {
+  /*background: #eee;*/
+  color: #3a3a3a;
+  font-size: 14px
+}
+
+.saveNew {
+  width: 100px;
+  height: 38px;
+  text-align: center;
+  margin: 30px auto 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.saveNew button {
+  color: #fff;
+  font-size: 28rpx;
+  display: block;
+  height: 38px;
+  line-height: 38px;
+}
+
+.addFillIn .cell_box {
+  width: 80%;
+}
+
+.table {
+  border-collapse: collapse;
+}
+
+.addFillIn .table-tr {
+  border-bottom: 2rpx solid #f1f1f1;
+  height: 92rpx;
+}
+
+.addFillIn .table-tr .table-td:first-child {
+  color: #999999;
+  line-height: 72rpx;
+}
+
+.addFillIn .table-tr input.form-control {
+  border: 0;
+  outline: 0;
+  box-sizing: border-box;
+}
+
+input.form-control {
+  border: 0;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0);
+}
+
+.saveNew {
+  width: 692rpx;
+  height: 88rpx;
+  margin: 396rpx auto 0 auto;
+}
+
+.grayBgColor {
+  background: #999;
+  margin: 0 auto;
+  border-radius: 6rpx;
+}
+
+.darkBgColor {
+  background: #333;
+  margin: 0 auto;
+  border-radius: 6rpx;
+}
+
+</style>

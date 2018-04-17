@@ -1,0 +1,587 @@
+<template>
+  <scroll-view scroll-y="true" height="100%">
+    <view class="container">
+      <view class="address" wx:if="{{addressList}}">
+        <view class="singleAddress" wx:for="{{addressList}}" wx:key="address_id">
+          <view class="name">
+            <text>{{item.consignee}}</text>
+            <text>{{item.mobile}}</text>
+          </view>
+          <view class="ads">
+            {{item.province_name}}-{{item.city_name}}-{{item.district_name}}
+          </view>
+          <view class="con">{{item.consignee}}收</view>
+          <view class="edit">
+            <view class="col-xs-6" style="font-size: 12px;">
+              <image class="icon-sel" bindtap="setDefaultAdd" data-id="{{item.address_id}}"
+              src="{{imgUrl}}/address/{{item.address_id===defaultId?'select.png':'select_gray.png'}}"></image>
+              <text>默认地址</text>
+            </view>
+            <view class="col-xs-6" style="font-size: 12px;">
+              <view class="deleteBtn" bindtap="deleteAddress" data-id="{{item.address_id}}">
+                <image class="icon" src="{{imgUrl}}/address/delete.png"></image>
+                <text> 删除</text>
+              </view>
+              <view class="editBtn" bindtap="editOn" data-id="{{item.address_id}}">
+                <image class="icon" src="{{imgUrl}}/address/edit.png"></image>
+                <text> 编辑</text>
+              </view>
+            </view>
+          </view>
+          <view class="fillAddress" style="font-size:14px;" wx:if="{{editState && editAddress.address_id===item.address_id}}">
+            <view class="infoBox">
+              <text class="infoTitle">配送区域:</text>
+              <text class="infoTitle" style="width:50%;" bindtap="openAddressPicker">{{editAddress.province_name}} {{editAddress.city_name}} {{editAddress.district_name}}</text>
+              <areaPicker></areaPicker>
+            </view>
+            <view class="infoBox">
+              <text class="infoTitle">详细地址:</text>
+              <input value="{{editAddress.address}}" class="form-control infoContent" data-key="address" bindinput="addressInput"/>
+            </view>
+            <view class="infoBox">
+              <text class="infoTitle">收货人:</text>
+              <input value="{{editAddress.consignee}}" class="form-control infoContent" data-key="consignee" bindinput="addressInput"/>
+            </view>
+            <view class="infoBox">
+              <text class="infoTitle">身份证号:</text>
+              <input value="{{editAddress.idcard}}" type="idcard" class="form-control infoContent" data-key="idcard" bindinput="addressInput"/>
+            </view>
+            <view class="infoBox">
+              <text class="infoTitle">电话:</text>
+              <input value="{{editAddress.mobile}}" type="number" class="form-control infoContent" data-key="mobile" bindinput="addressInput"/>
+            </view>
+            <view class="saveAdd">
+              <button class="redAllBorCol form-control" bindtap="saveAddress">保存</button>
+              <button class="redAllBorCol form-control" bindtap="editOff">取消</button>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="no_msg" wx:else>
+        <image src="{{imgUrl}}/address/no_msg.png"></image>
+        <text class="no_msg_txt">暂时还没有您的收货信息</text>
+      </view>
+      <button type="primary" class="addBtn" bindtap="goNewAddress">添加新地址</button>
+    </view>
+  </scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import areaPicker from '../../components/picker-city'
+  import { checkIdcard } from '../../utils'
+
+  export default class addressList extends wepy.page {
+    config = {
+      navigationBarTitleText: '管理收货地址'
+    }
+    components = {
+      areaPicker
+    }
+    data = {
+      imgUrl: '',
+      pickCity: null, // 临时装载选择的地址
+      editAddress: {
+        consignee: '',
+        mobile: '',
+        address: '',
+        idcard: '',
+        region: ''
+      }, // 编辑的地址
+      defaultId: null,
+      addressList: [],
+      editState: false
+    }
+    events = {
+      'areaArray': (...args) => {
+        this.areaPickerArray(args[0], args[1], args[2])
+      }
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.$apply()
+      this.loadAddressList()
+    }
+    onShow() {}
+    methods = {}
+    /**
+     * 获取地址数据
+     */
+    loadAddressList() {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/user.php`,
+        method: 'POST',
+        header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        data: {
+          act: 'address_list'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          // 剔除id为空的地址
+          data.consignee_list.find((value, index) => {
+            if (value.address_id === undefined) {
+              data.consignee_list.splice(index, 1)
+            }
+            if (value.last_use === '1') {
+              // 默认地址赋值
+              self.$apply(() => {
+                self.defaultId = value.address_id
+              })
+            }
+          })
+          // 赋值
+          self.$apply(() => {
+            self.addressList = data.consignee_list
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    /**
+     * 设置默认地址
+     */
+    setDefaultAdd(e) {
+      let id = e.currentTarget.dataset.id
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/default_address.php`,
+        method: 'POST',
+        header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        data: {
+          address_id: id
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.defaultId = id
+          })
+          wepy.showModal({
+            content: '默认地址已更改',
+            showCancel: false
+          })
+        } else {
+          wepy.showModal({
+            content: '默认地址更改失败',
+            showCancel: false
+          })
+        }
+      })
+    }
+    /**
+     * 保存地址
+     */
+    saveAddress(e) {
+      let self = this
+      let ta = this.data.editAddress
+      if (ta.consignee === '' || ta.region === '' || ta.address === '' || ta.mobile === '' || ta.idcard === '') {
+        wepy.showModal({
+          content: '请填写完整收货信息',
+          showCancel: false
+        })
+        return false
+      } else if (!(/^1(3|4|5|7|8)\d{9}$/.test(ta.mobile))) {
+        wepy.showModal({
+          content: '手机号码填写不正确',
+          showCancel: false
+        })
+        return false
+      }
+      let checkIDResult = checkIdcard(ta.idcard)
+      if (checkIDResult === '1') {
+        // 校验通过
+        let saveParam = {
+          pcd: ta.province_name + '-' + ta.city_name + '-' + ta.district_name,
+          address: ta.address,
+          consignee: ta.consignee,
+          mobile: ta.mobile,
+          submit: '保存',
+          act: 'act_edit_address',
+          address_id: ta.address_id,
+          idcard: ta.idcard
+        }
+        // 提交请求
+        wepy.request({
+          url: `${self.$parent.globalData.apiUrl}/user.php`,
+          method: 'POST',
+          header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          data: saveParam
+        }).then(({data: {errcode, data, msg}}) => {
+          if (errcode === 0) {
+            // 反向更新地址
+            for (let i in self.addressList) {
+              if (self.addressList[i].address_id === ta.address_id) {
+                self.addressList[i]['address_id'] = ta.address_id
+                self.addressList[i]['consignee'] = ta.consignee
+                self.addressList[i]['address'] = ta.address
+                self.addressList[i]['mobile'] = ta.mobile
+                self.addressList[i]['idcard'] = ta.idcard
+                self.addressList[i]['province_name'] = ta.province_name
+                self.addressList[i]['city_name'] = ta.city_name
+                self.addressList[i]['district_name'] = ta.district_name
+              }
+            }
+            self.$apply(() => {
+              self.addressList = self.addressList
+            })
+            // 关闭编辑状态
+            self.editOff()
+            wepy.showModal({
+              content: '更新地址成功',
+              showCancel: false
+            })
+          } else {
+            wepy.showModal({
+              content: msg,
+              showCancel: false
+            })
+          }
+        })
+      } else {
+        wepy.showModal({
+          content: checkIDResult,
+          showCancel: false
+        })
+      }
+    }
+    /**
+     * 删除地址
+     */
+    async deleteAddress(e) {
+      let id = e.currentTarget.dataset.id
+      let self = this
+      let res = await wepy.showModal({
+        title: '提示',
+        content: '确定要删除当前收货地址吗？',
+        confirmText: '确定',
+        cancelText: '取消'
+      })
+      if (res.confirm) {
+        wepy.request({
+          url: `${self.$parent.globalData.apiUrl}/user.php?act=drop_consignee`,
+          data: {
+            id: id
+          }
+        }).then(({data: {errcode, data, msg}}) => {
+          if (errcode === 0) {
+            // 删除缓存中的对象
+            let tempList = self.data.addressList
+            for (let [index, item] of tempList.entries()) {
+              if (item.address_id === id) {
+                tempList.splice(index, 1)
+              }
+            }
+            self.$apply(() => {
+              self.addressList = tempList
+            })
+            // 关闭编辑状态
+            self.editOff()
+            wepy.showModal({
+              content: '删除成功',
+              showCancel: false
+            })
+            // 如果删除的是默认地址 则重新设置默认地址
+            if (data !== null) {
+              self.$apply(() => {
+                self.defaultId = data.address_id
+              })
+            }
+          } else {
+            wepy.showModal({
+              content: '删除地址失败',
+              showCancel: false
+            })
+          }
+        })
+      }
+    }
+    editOn(e) {
+      let id = e.currentTarget.dataset.id
+      let self = this
+      for (let [index, item] of self.addressList.entries()) {
+        if (item.address_id === id) {
+          console.log(index)
+          // 标记编辑地址
+          self.data.editAddress['address_id'] = item.address_id
+          self.data.editAddress['consignee'] = item.consignee
+          self.data.editAddress['address'] = item.address
+          self.data.editAddress['mobile'] = item.mobile
+          self.data.editAddress['idcard'] = item.idcard
+          self.data.editAddress['province_name'] = item.province_name
+          self.data.editAddress['city_name'] = item.city_name
+          self.data.editAddress['district_name'] = item.district_name
+          self.$apply(() => {
+            self.editAddress = self.data.editAddress
+          })
+        }
+      }
+      self.$apply(() => {
+        self.editState = true
+      })
+    }
+    editOff() {
+      let self = this
+      self.$apply(() => {
+        self.editState = false
+      })
+    }
+    goNewAddress(e) {
+      this.$navigate(`./newAddress`)
+    }
+    addressInput(e) {
+      let val = e.detail.value
+      let key = e.currentTarget.dataset.key
+      this.data.editAddress[key] = val
+      this.$apply(() => {
+        this.editAddress = this.data.editAddress
+      })
+    }
+    openAddressPicker() {
+      this.$invoke('areaPicker', 'openAddressPicker')
+    }
+    areaPickerArray(province, city, area) {
+      this.data.editAddress.province_name = province.name
+      this.data.editAddress.city_name = city.name
+      this.data.editAddress.district_name = area.name
+      this.data.editAddress.region = '中国' + '-' + province.name + '-' + city.name + '-' + area.name
+      this.$apply(() => {
+        this.editAddress = this.data.editAddress
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.address .singleAddress {
+  background: #fff;
+  padding: 20rpx 0px 0 0px;
+  position: relative;
+}
+
+.con {
+  border-bottom: 2rpx solid #eee;
+  padding-bottom: 14rpx;
+}
+
+.address .col-xs-6 {
+  line-height: 40px;
+  height: 40px;
+}
+
+.address .col-xs-6:last-child {
+  text-align: right;
+}
+
+.singleAddress {
+  margin-top: 20rpx;
+}
+
+.singleAddress>view {
+  line-height: 25px;
+  height: 26px;
+  margin-left: 30rpx;
+  position: relative;
+}
+
+.singleAddress .col-xs-6 {
+  cursor: pointer;
+  box-sizing: border-box;
+  height: 80rpx;
+  line-height: 70rpx;
+}
+
+.singleAddress .col-xs-6 image {
+  width: 36rpx;
+  height: 36rpx !important;
+}
+
+.singleAddress navigator {
+  color: #555;
+}
+
+.singleAddress .edit {
+  margin-left: 0;
+  height: 80rpx;
+}
+.singleAddress .edit .col-xs-6>image {
+  padding-left: 30rpx;
+}
+.singleAddress .edit .col-xs-6>view {
+  float: right;
+  height: 80rpx;
+  padding-right: 30rpx;
+}
+
+.singleAddress .edit .col-xs-6 .editBtn {
+  line-height: 70rpx;
+}
+
+.singleAddress .edit .col-xs-6>view .icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.singleAddress table {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.singleAddress table td {
+  padding: 5px;
+}
+
+.singleAddress table td:first-child {
+  width: 90px;
+  padding-left: 15px;
+}
+
+.singleAddress table td:last-child {
+  padding-right: 50px;
+}
+
+.singleAddress table .saveAdd {
+  text-align: center;
+  padding-bottom: 10px;
+}
+
+.saveAdd input {
+  display: inline-block;
+  width: 80px;
+  margin: 0 10px;
+  cursor: pointer;
+}
+
+.address .loginBtn {
+  height: 40px;
+  line-height: 30px;
+  color: #fff;
+}
+
+.districtSel {
+  overflow: hidden;
+  line-height: 24px;
+}
+
+.no_msg {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.no_msg image {
+  width: 260rpx;
+  height: 260rpx;
+  margin: 280rpx auto 290rpx;
+}
+
+.no_msg_txt {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.addBtn {
+  margin: 0 15px;
+  background-color: #333 !important;
+  margin-top: 30rpx;
+  font-size: 28rpx;
+}
+
+.redBgColor {
+  background: #333;
+  border-radius: 3px !important;
+  margin-top: 7.2826667rem;
+}
+
+.redBgColor-sel {
+  background: #333;
+  border-radius: 3px !important;
+  margin-top: 30rpx !important;
+}
+
+.name {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: bold;
+}
+
+.name text:last-child {
+  margin-left: 56rpx;
+}
+
+.ads, .con {
+  font-size: 24rpx;
+  color: #333;
+}
+
+image.icon {
+  width: 36rpx;
+  height: 36rpx;
+  vertical-align: sub;
+}
+
+.icon-sel {
+  width: 32rpx;
+  height: 32rpx;
+  vertical-align: sub;
+  margin-right: 20rpx;
+}
+
+.address .singleAddress:before {
+  position: absolute;
+  content: "";
+  background: url(http://wxassets.xf66.com/address/stripe.png) no-repeat top center;
+  height: 8rpx;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+
+.address .singleAddress:after {
+  position: absolute;
+  content: "";
+  background: url(http://wxassets.xf66.com/address/stripe.png) no-repeat bottom center;
+  height: 8rpx;
+  width: 100%;
+  bottom: 0;
+  left: 0;
+}
+
+.singleAddress .fillAddress {
+  height: auto;
+}
+
+.fillAddress .infoBox {
+  display: flex;
+}
+
+.fillAddress .infoBox .infoTitle {
+  width: 180rpx;
+  padding: 10rpx 30rpx 10rpx 10rpx;
+  line-height: 34px;
+}
+
+.fillAddress .infoBox .infoContent {
+  flex: 1;
+  margin: 10rpx 100rpx 10rpx 10rpx;
+  padding: 6px 12px;
+  box-sizing: border-box;
+}
+
+.fillAddress .saveAdd {
+  padding: 10rpx 50px 10rpx 15px;
+  text-align: center;
+}
+
+.fillAddress .saveAdd .redAllBorCol {
+  display: inline-block;
+  width: 160rpx;
+  margin: 0 20rpx;
+}
+
+</style>
