@@ -1,0 +1,781 @@
+<template>
+<scroll-view scroll-y="true" height="100%">
+  <!-- 购物车商品 -->
+  <view class="cart-contain" wx:if="{{goods_list}}">
+    <view class="goods-box" wx:for="{{goods_list}}" wx:for-item="g" wx:key="*this" wx:for-index="idx">
+      <view class="weui-cells weui-cells_checkbox goods-box_title">
+        <label class="weui-cell weui-check__label">
+          <view class="weui-cell__hd cart_checkbox {{g.is_suppliers_select_all ? 'checked' : 'unchecked'}}" bindtap="checkChange" data-id="{{idx}}" data-type="0" data-value="{{!g.is_suppliers_select_all}}">
+            <checkbox checked="{{g.is_suppliers_select_all}}" class="weui-check"/>
+            <text class="weui-icon-checked"></text>
+          </view>
+          <view class="weui-cell__bd">
+            <view>{{g.suppliers}}</view>
+          </view>
+        </label>
+      </view>
+      <view class="goods-box_body" wx:for="{{g.data}}" wx:for-item="pro" wx:key="pro.rec_id">
+        <view class="product-list" style="left:{{pro.left + 'rpx'}}">
+          <view class="product-list_wrap" data-index="{{pro.rec_id}}"
+            bindtouchstart="touchS" bindtouchmove="touchM" bindtouchend="touchE">
+            <view class="weui-cells weui-cells_checkbox product-list_checkbox">
+              <label class="weui-cell weui-check__label">
+                <view class="weui-cell__hd cart_checkbox {{pro.is_uncheckout === '0' ? 'checked' : 'unchecked'}}" bindtap="checkChange" data-id="{{pro.rec_id}}" data-type="1" data-value="{{pro.is_uncheckout}}">
+                  <checkbox checked="{{pro.is_uncheckout}}" class="weui-check"/>
+                  <text class="weui-icon-checked"></text>
+                </view>
+              </label>
+            </view>
+            <view class="product-content">
+              <view class="product-box">
+                <view class="product-pic">
+                  <image src="{{pro.img_url?pro.img_url:imgUrl+'/no_picture.jpg'}}"></image>
+                </view>
+                <view class="product-con">
+                  <text class="product-title">{{pro.goods_name}}</text>
+                  <view class="cell-price">{{pro.goods_price}}</view>
+                </view>
+                <view class="product-option">
+                  <view class="product-num">
+                    <navigator class="num-reduce" bindtap="updateCartNum" data-pro="{{pro}}" data-type="{{-1}}">-</navigator>
+                    <input type="number" class="num-value" value="{{pro.goods_number}}" style="z-index: 0;" bindblur="inputCartNum" data-pro="{{pro}}" />
+                    <navigator class="num-add" bindtap="updateCartNum" data-pro="{{pro}}" data-type="{{1}}">+</navigator>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view class="product-list_oper" catchtap="itemDelete" data-index="{{pro.rec_id}}">
+              <view class="oper-delete">删除</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</scroll-view>
+
+<!-- 为空提示 -->
+<view class="goods-alert_title" wx:if="{{showTips}}">
+  <view class="goods-alert_pic">
+    <image src="{{imgUrl}}/noGoods.png" mode="widthFix"></image>
+  </view>
+  <view class="goods-alert_content">
+    <view class="no-goods_cart">您的购物车还没有添加任何商品</view>
+    <navigator class="random-stroll_shop" bindtap="toCategory">
+      随便逛逛
+    </navigator>
+  </view>
+</view>
+
+<!-- 底部 -->
+<view class="cart-footer" wx:if="{{!showTips}}">
+  <view class="col-xs-12 layout-footer" style="padding-left: 15px;">
+    <view class="weui-cells weui-cells_checkbox checkAll">
+      <label class="weui-cell weui-check__label">
+        <view class="weui-cell__hd cart_checkbox {{is_select_all ? 'checked' : 'unchecked'}}"  bindtap="checkChange" data-id="null" data-type="2" data-value="{{!is_select_all}}">
+          <checkbox checked="{{is_select_all}}" class="weui-check"/>
+          <text class="weui-icon-checked"></text>
+        </view>
+        <view class="weui-cell__bd">
+          <view>全选</view>
+        </view>
+      </label>
+    </view>
+    <view class="checkout-info">
+      <view>
+        合计：<text class="red">{{total.goods_price}}</text>
+      </view>
+    </view>
+    <view class="btn btn-checkout redBgColor" bindtap="checkoutCart">
+      去结算({{total.real_goods_count}})
+    </view>
+  </view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import Touches from '../../assets/js/touches.js'
+
+  export default class cart extends wepy.page {
+    config = {
+      navigationBarTitleText: '购物车'
+    }
+    data = {
+      imgUrl: '',
+      check: true,
+      goods_list: [],
+      is_select_all: false,
+      total: null,
+      // cartNum: null, // tabBar购物车小圆点
+      showTips: false,
+      img_domain: '',
+      selectedRecId: [],
+      startX: null
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.$apply()
+    }
+    onShow() {
+      // 加载数据
+      this.loadCart()
+    }
+    methods = {}
+    touches = new Touches()
+    bindTapProduct() {
+      this.$navigate(`./goods/goods?id=1`)
+    }
+    /**
+     * 获取购物车数据
+     */
+    loadCart() {
+      // wepy.showLoading({title: '加载中'})
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/flow.php`,
+        data: {
+          step: 'cart'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        // wepy.hideLoading()
+        if (errcode === 0) {
+          let tips = false
+          if (Object.keys(data.goods_list).length > 0) {
+            tips = false
+          } else {
+            tips = true
+          }
+          self.$apply(() => {
+            self.showTips = tips
+            self.total = data.total
+            self.goods_list = data.goods_list
+            self.is_select_all = data.is_select_all
+            self.img_domain = data.img_domain
+            self.selectedRecId = data.rec_id_uncheckout
+            // self.cartNum = data.total.real_goods_count
+          })
+          self.$parent.getCartNum()
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    /*
+     * 结算
+     */
+    checkoutCart() {
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/flow.php`,
+        data: {
+          step: 'checkout',
+          code: 1
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          console.log('结算数据', data)
+          // 跳转至订单结算
+          this.$navigate(`../order/orderSubmit?one_step_buy=0`)
+        } else {
+          console.error('结算失败', msg)
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    /*
+     * touchStart
+     */
+    touchS(e) {
+      let startX = this.touches.getClientX(e)
+      startX && this.$apply(() => { this.startX = startX })
+    }
+    /*
+     * touchMove
+     */
+    touchM(e) {
+      let itemData = this.touches.touchM(e, this.goods_list, this.startX)
+      itemData && this.$apply(() => { this.goods_list = itemData })
+    }
+    /*
+     * touchEnd
+     */
+    touchE(e) {
+      const width = 150 // 定义操作列表宽度
+      let itemData = this.touches.touchE(e, this.goods_list, this.startX, width)
+      itemData && this.$apply(() => { this.goods_list = itemData })
+    }
+    /*
+     * 滑动删除
+     */
+    itemDelete(e) {
+      let self = this
+      let delId = e.currentTarget.dataset.index
+      wepy.showModal({
+        title: '提示',
+        content: '您确实要把选中的商品移出购物车吗?'
+      }).then((res) => {
+        if (res.confirm) {
+          // 执行删除
+          self.delGoodById(delId)
+        } else if (res.cancel) {
+          console.log('用户点击取消')
+        }
+      })
+    }
+    delGoodById(id) {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/flow.php`,
+        data: {
+          step: 'drop_goods',
+          id: id // 商品ID
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          console.log(data)
+        } else {
+          console.error('删除商品失败:' + msg)
+        }
+        // 重新获取数据
+        self.loadCart()
+      })
+    }
+    /**
+     * 跳转至列表页
+     */
+    toCategory(event) {
+      this.$navigate(`../category`)
+    }
+    /**
+     * 商品选中切换 is_uncheckout->是否被选中结算(0：没有；1：是)
+     */
+    checkChange(e) {
+      this.$apply(() => {
+        this.check = e.currentTarget.dataset.value
+      })
+      // op->
+      // 全选/全不选：all_checkout/all_uncheckout,此时不用传第一个参数；
+      // 单选/单不选：single_checkout/single_uncheckout；
+      // 供应商选择/供应商取消选择：suppliers_checkout/suppliers_uncheckout，此时第一个参数是供应商编号
+      let op = ''
+      if (e.currentTarget.dataset.type === '0') { // 根据供应商选择
+        op = this.check ? 'suppliers_checkout' : 'suppliers_uncheckout'
+      } else if (e.currentTarget.dataset.type === '1') { // 单选/单不选
+        op = (this.check === '0') ? 'single_uncheckout' : 'single_checkout'
+      } else if (e.currentTarget.dataset.type === '2') { // 全选/全不选
+        op = this.check ? 'all_checkout' : 'all_uncheckout'
+      }
+      // op不为空才去发送请求
+      if (op) {
+        let self = this
+        wepy.request({
+          url: `${self.$parent.globalData.apiUrl}/flow.php`,
+          data: {
+            step: 'select_cart_goods',
+            id: e.currentTarget.dataset.id, // 商品ID
+            op: op
+          }
+        }).then(({data: {errcode, data, msg}}) => {
+          if (errcode === 0) {
+            this.loadCart()
+          } else {
+            wepy.showModal({
+              content: msg,
+              showCancel: false
+            })
+            console.error(msg)
+          }
+        })
+      }
+    }
+    /*
+     * 商品数量输入
+     */
+    inputCartNum(e) {
+      let validAmount = 0
+      if (e.detail.value > 0) {
+        validAmount = parseFloat(e.detail.value)
+      } else if (e.detail.value === '' || parseFloat(e.detail.value) === 0) {
+        e.detail.value = 1
+        validAmount = 1
+      }
+      this.submiUpdateCartNum(e.currentTarget.dataset.pro.rec_id, validAmount)
+    }
+    /*
+     * 商品数量加减
+     */
+    updateCartNum(e) {
+      console.log(e)
+      let self = this
+      let delId = e.currentTarget.dataset.pro.rec_id
+      let num = parseFloat(e.currentTarget.dataset.pro.goods_number) + e.currentTarget.dataset.type
+      this.submiUpdateCartNum(e.currentTarget.dataset.pro.rec_id, num)
+      if (num === 0) {
+        wepy.showModal({
+          title: '提示',
+          content: '您确实要把选中的商品移出购物车吗?'
+        }).then((res) => {
+          if (res.confirm) {
+            // 执行删除
+            self.delGoodById(delId)
+          }
+        })
+      }
+    }
+    /*
+     * 商品数量加减发送请求
+     */
+    submiUpdateCartNum(rid, num) {
+      // 发送请求
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/flow.php`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: {
+          step: 'update_cart_number',
+          rec_id: rid,
+          goods_number: num
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          if (data.message !== 1) {
+            // 友情提示
+            wepy.showModal({
+              content: data.message,
+              showCancel: false
+            })
+          }
+          this.loadCart()
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.red {
+  color: #ed3366;
+}
+
+.goods-alert_title {
+  text-align: center;
+}
+
+.goods-alert_title .goods-alert_pic {
+  width: 150px;
+  margin: 40px auto 10px;
+}
+
+.goods-alert_title .goods-alert_pic image {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.goods-alert_title .goods-alert_content .no-goods_cart {
+  font-size: 28rpx;
+  color: #999;
+  margin-bottom: 5px;
+}
+
+.goods-alert_title .goods-alert_content .random-stroll_shop {
+  display: inline-block;
+  box-sizing: border-box;
+  padding: 4px 14px;
+  border: 1px solid #666;
+  border-radius: 4px;
+  color: #000;
+  font-size: 28rpx;
+}
+
+.cart-contain {
+  padding-bottom: 52px;
+}
+
+.goods-box {}
+
+.goods-box .goods-box_title {
+  background: #f6f6f6;
+  margin-top: 10px;
+}
+
+.goods-box .goods-box_body {
+  position: relative;
+}
+
+.goods-box .goods-box_body .product-list {
+  display: -webkit-flex;
+  display: flex;
+  padding: 10px 10rpx 10rpx 15px;
+  background: #fff;
+  height: 244rpx;
+}
+
+.goods-box .goods-box_body::after {
+  position: absolute;
+  content: '';
+  height: 1px;
+  width: 422rpx;
+  background: #ddd;
+  bottom: 0;
+  right: 0
+}
+
+.goods-box .goods-box_body:last-child::after {
+  background: none
+}
+
+.goods-box .goods-box_title label {
+  position: relative;
+  margin-bottom: 0;
+  padding: 7px 15px;
+}
+
+.goods-box .goods-box_body .uncheck-label:before, .layout-footer .uncheck-label:before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background: transparent;
+  border-radius: 50%;
+  border: 1px solid #aaa;
+  left: 0;
+  top: 50%;
+  margin-top: -9px;
+  position: absolute;
+}
+
+.goods-box .checked-label:before, .layout-footer .checked-label:before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background: #ef0021;
+  border-radius: 50%;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  margin-top: -9px;
+  border: 1px solid #ef0021;
+}
+
+.goods-box .checked-label:after, .layout-footer .checked-label:after {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: 50%;
+  margin-top: -3px;
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  -webkit-transform: rotate(-45deg);
+  -ms-transform: rotate(-45deg);
+  transform: rotate(-45deg);
+}
+
+.goods-box .check-box, .layout-footer .check-box {
+  visibility: hidden;
+}
+
+.goods-box .goods-box_body .product-list_wrap {
+  display: -webkit-flex;
+  display: flex;
+}
+
+.goods-box .goods-box_body .product-list {
+  position: relative;
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-box {
+  display: -webkit-flex;
+  display: flex;
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-pic {
+  margin-right: 10rpx;
+  flex: none;
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-pic image {
+  width: 206rpx;
+  height: 206rpx;
+  background-size: cover;
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-con {
+  flex: auto;
+  position: relative;
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-con .product-title {
+  display: block;
+  height: 40px;
+  overflow: hidden;
+  font-size: 13px;
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-con .cell-price {
+  font-size: 28rpx;
+  color: #ef4b4b;
+  position: absolute;
+  bottom: 20rpx;
+  font-weight: bold
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-option .product-del {
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-option .product-del image {
+  width: 34px;
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-option .product-num {
+  position: absolute;
+  right: 15px;
+  bottom: 10px;
+  border: 1px solid #999;
+  width: 207rpx;
+  height: 54rpx;
+  line-height: 37rpx;
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-option .product-num .num-reduce {
+  box-sizing: border-box;
+  margin: 0;
+  text-align: center;
+  display: block;
+  border: none;
+  border-radius: 0;
+  position: absolute;
+  top: 0px;
+  left: 0;
+  width: 60rpx;
+  height: 54rpx;
+  line-height: 48rpx;
+  font-size: 35px;
+  font-weight: lighter;
+  z-index: 1;
+  border-right: 1px solid #999;
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-option .product-num .num-add {
+  box-sizing: border-box;
+  font-size: 21px;
+  font-weight: lighter;
+  margin: 0;
+  text-align: center;
+  display: block;
+  border: none;
+  border-radius: 0;
+  position: absolute;
+  right: 0;
+  top: 0px;
+  width: 60rpx;
+  height: 54rpx;
+  line-height: 54rpx;
+  z-index: 1;
+  border-left: 1px solid #999;
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-option .product-num .num-value {
+  box-sizing: border-box;
+  position: relative;
+  top: 1px;
+  border: 0;
+  width: 40px;
+  font-size: 24rpx;
+  color: #333;
+  text-align: center;
+  border-radius: 10px;
+  width: 80rpx;
+  height: 54rpx;
+  margin-left: 60rpx;
+  text-align: center;
+  font-family: '微软雅黑';
+}
+
+.cart-footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  max-width: 640px;
+  min-width: 320px;
+  z-index: 999;
+}
+
+.layout-footer {
+  display: -webkit-flex;
+  display: flex;
+  height: 45px;
+  line-height: 45px;
+  background: #f8f8f8;
+  padding-right: 0;
+}
+
+.layout-footer .checkAll {
+  margin-right: 10px;
+  margin-top: 0;
+  align-self: center;
+}
+
+.layout-footer label {
+  position: relative;
+  margin-bottom: 0;
+  padding: 0;
+}
+
+.layout-footer .checkout-info {
+  -webkit-flex: 1;
+  flex: 1;
+  font-size: 14px;
+}
+
+.layout-footer .checkout-info .price {
+  color: #ed3366;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.layout-footer .btn-checkout {
+  display: block;
+  background: #ed3366;
+  color: #fff;
+  align-self: center;
+  width: 188rpx;
+}
+
+.btn-checkout {
+  padding: 0 12px;
+  border-radius: 0;
+}
+
+.weui-cells {
+  background-color: transparent;
+}
+
+.weui-cells_checkbox .weui-icon-checked:before {
+  font-size: 18px;
+}
+
+.goods-box .weui-cell__bd view, .layout-footer .weui-cell__bd view {
+  font-size: 14px;
+  padding-top: 2px;
+}
+
+.goods-box .goods-box_body .product-list_wrap .product-list_checkbox {
+  align-self: center;
+  margin-top: 0;
+}
+
+.goods-box .goods-box_body .product-list_checkbox label {
+  padding: 0;
+}
+
+.cart-contain .weui-check__label:active, .layout-footer .weui-check__label:active {
+  background: none;
+}
+
+.cart-contain .weui-cells {
+  overflow: initial;
+}
+
+.cart-contain .weui-cells:before, .cart-contain .weui-cells:after, .layout-footer .weui-cells:before, .layout-footer .weui-cells:after {
+  border: none;
+}
+
+.goodsNum {
+  position: absolute;
+  right: 15px;
+  bottom: 15px;
+}
+
+.shop-bag navigator {
+  color: #333
+}
+
+.shop-bag navigator:hover, .shop-bag navigator:active {
+  color: #333;
+}
+
+.shop-bag navigator view {
+  text-align: center
+}
+
+.weui-cells_checkbox .checked .weui-icon-checked:before {
+  content: '\EA06';
+  color: #333;
+  font-size: 23px;
+  display: block;
+}
+
+.weui-cells_checkbox .unchecked .weui-icon-checked:before {
+  content: '\EA01';
+  color: #c9c9c9;
+  font-size: 23px;
+  display: block;
+}
+
+[class*=" weui-icon-"], [class^=weui-icon-] {
+  display: inline-block;
+  vertical-align: middle;
+  font: normal normal normal 14px/1 weui;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+}
+
+[class*=" weui-icon-"]:before, [class^=weui-icon-]:before {
+  display: inline-block;
+  margin-left: 9rpx;
+  margin-right: 9rpx;
+}
+
+.goods-box_body {
+  position: relative;
+  width: 100%;
+  transition: all 0.3s linear;
+}
+
+.goods-box_body .product-list {
+  box-sizing: border-box;
+}
+
+.goods-box_body .product-list .product-list_wrap {
+  display: flex;
+}
+
+.goods-box_body .product-list .product-list_oper {
+  box-sizing: border-box;
+  position: absolute;
+  text-align: center;
+  top: 0;
+  letter-spacing: 4px;
+  text-indent: 4px;
+  right: -148rpx;
+  z-index: 1;
+  height: 244rpx;
+  padding-top: 100rpx;
+  width: 144rpx;
+  background: #333;
+  color: #fff;
+}
+
+.cart_checkbox {
+  margin: 0 8px 0 -8rpx;
+}
+
+</style>

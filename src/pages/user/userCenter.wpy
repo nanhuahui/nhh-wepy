@@ -289,14 +289,13 @@
       clearStorage() {
         wepy.showModal({
           title: '确定要删除缓存对象吗？',
-          content: JSON.stringify(wepy.getStorageInfoSync().keys),
-          success: function(res) {
-            if (res.confirm) {
-              wepy.clearStorage()
-              wepy.clearStorageSync()
-            } else if (res.cancel) {
-              console.log('用户点击取消')
-            }
+          content: JSON.stringify(wepy.getStorageInfoSync().keys)
+        }).then((res) => {
+          if (res.confirm) {
+            wepy.clearStorage()
+            wepy.clearStorageSync()
+          } else if (res.cancel) {
+            console.log('用户点击取消')
           }
         })
       }
