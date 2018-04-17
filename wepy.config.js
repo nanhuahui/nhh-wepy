@@ -5,13 +5,6 @@ module.exports = {
   wpyExt: '.wpy',
   eslint: true,
   cliLogs: !prod,
-  build: {
-    web: {
-      htmlTemplate: path.join('src', 'index.template.html'),
-      htmlOutput: path.join('web', 'index.html'),
-      jsOutput: path.join('web', 'index.js')
-    }
-  },
   resolve: {
     alias: {
       counter: path.join(__dirname, 'src/components/counter'),
@@ -26,15 +19,14 @@ module.exports = {
     },
     /* sass: { outputStyle: 'compressed' }, */
     babel: {
-      sourceMap: true,
+      sourceMap: false,
       presets: [
         'env'
       ],
       plugins: [
-        'transform-class-properties',
-        'transform-decorators-legacy',
-        'transform-object-rest-spread',
-        'transform-export-extensions'
+        'babel-plugin-transform-class-properties',
+        'transform-export-extensions',
+        'syntax-export-extensions'
       ]
     }
   },
@@ -46,8 +38,13 @@ module.exports = {
 }
 
 if (prod) {
+  module.exports.cliLogs = false
+  delete module.exports.compilers.babel.sourcesMap
   // 压缩sass
-  // module.exports.compilers['sass'] = {outputStyle: 'compressed'}
+  // module.exports.compilers['sass'] = { outputStyle: 'compressed' }
+
+  // 压缩less
+  module.exports.compilers['less'] = { compress: true }
 
   // 压缩js
   module.exports.plugins = {
