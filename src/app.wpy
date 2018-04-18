@@ -320,7 +320,9 @@ export default class extends wepy.app {
             wepy.setStorageSync('sellerId', data.user_info.user_id)
           }
 
-          var pages = self.$pages // 获取加载的页面
+          /*eslint-disable */
+          var pages = getCurrentPages() // 获取加载的页面
+          /*eslint-enable */
           var currentPage = pages[pages.length - 1] // 获取当前页面的对象
           if (currentPage) {
             var url = currentPage.route // 当前页面url
