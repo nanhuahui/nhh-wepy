@@ -113,10 +113,10 @@
 
 <script>
 import wepy from 'wepy'
-import { getGoods } from '@/utils/api'
 import WxParse from '@/utils/wxParse/wxParse'
 import qrPatchLayer from '@/components/qrPatch-layer'
 import {composeImageForGoods, composeTextForGoods} from '@/utils/data'
+import { getGoods, addCollection, addCart, conversionGoodsVideo } from '@/utils/api'
 
 let w = wepy.getSystemInfoSync().windowWidth
 let h = wepy.getSystemInfoSync().windowHeight
@@ -368,13 +368,7 @@ export default class Goods extends wepy.page {
   addToCollection() {
     let self = this
     // 请求数据
-    wepy.request({
-      url: `${self.$parent.globalData.apiUrl}/user.php`,
-      data: {
-        id: self.data.id,
-        act: 'collect'
-      }
-    }).then(({data: {errcode, data, msg}}) => {
+    addCollection(self.data.id).then(({data: {errcode, data, msg}}) => {
       if (errcode === 0) {
         self.isCollect = true
         self.$apply()
@@ -410,12 +404,7 @@ export default class Goods extends wepy.page {
       from_id: self.data.uid ? self.data.uid : ''
     }
     // 发送请求
-    wepy.request({
-      method: 'POST',
-      header: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      url: `${self.$parent.globalData.apiUrl}//flow.php?step=add_to_cart`,
-      data: params
-    }).then(({data: {errcode, data, msg}}) => {
+    addCart(params).then(({data: {errcode, data, msg}}) => {
       console.log('添加购物车成功！', data)
       if (errcode === 0) {
         if (data.buy_type === 0) {
@@ -532,9 +521,7 @@ export default class Goods extends wepy.page {
         console.log(vid)
       }
       let self = this
-      wepy.request({
-        url: `https://vv.video.qq.com/getinfo?vids=${vid}&platform=101001&charge=0&otype=json`
-      }).then((res) => {
+      conversionGoodsVideo(vid).then((res) => {
         // 去除开头的QZOutputJson=
         let c1 = res.data.split('QZOutputJson=')[1]
         // 去除结尾的;
@@ -543,9 +530,8 @@ export default class Goods extends wepy.page {
           let json = JSON.parse(c2)
           let videoJson = json.vl.vi[0]
           let videoUrl = `${videoJson.ul.ui[0].url}${videoJson.fn}?vkey=${videoJson.fvkey}`
-          self.setData({
-            videoUrl: videoUrl
-          })
+          self.videoUrl = videoUrl
+          console.log('转换后的视频地址', videoUrl)
         }
       }).catch((error) => {
         console.log('获取腾讯视频地址失败', error)
