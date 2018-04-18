@@ -31,7 +31,7 @@
 <script>
   import wepy from 'wepy'
   import md5 from 'md5'
-  import { DEFAULT_UID, API_SIGNATURE } from '../../../src/config'
+  import { DEFAULT_UID, API_SIGNATURE } from '@/utils/config'
 
   export default class uploadBanner extends wepy.page {
     config = {

@@ -25,7 +25,7 @@
 <script>
 import wepy from 'wepy'
 import composeImage from './compose-image'
-import { IMG_URL } from '../config'
+import { IMG_URL } from '@/utils/config'
 
 export default class qrPatchLayer extends wepy.component {
   components = { composeImage }

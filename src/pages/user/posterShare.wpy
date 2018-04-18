@@ -24,9 +24,9 @@
 
 <script>
   import wepy from 'wepy'
-  import { STATIC_IMG_PATH } from '../../../src/config'
-  import composeData from '../../utils/data'
-  import { drawingMiniQr } from '../../utils'
+  import { STATIC_IMG_PATH } from '@/utils/config'
+  import composeData from '@/utils/data'
+  import { drawingMiniQr } from '@/utils'
 
   export default class posterShare extends wepy.page {
     config = {

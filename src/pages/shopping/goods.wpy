@@ -113,9 +113,10 @@
 
 <script>
 import wepy from 'wepy'
-import WxParse from '../../utils/wxParse/wxParse'
-import qrPatchLayer from '../../components/qrPatch-layer'
-import {composeImageForGoods, composeTextForGoods} from '../../utils/data'
+import { getGoods } from '@/utils/api'
+import WxParse from '@/utils/wxParse/wxParse'
+import qrPatchLayer from '@/components/qrPatch-layer'
+import {composeImageForGoods, composeTextForGoods} from '@/utils/data'
 
 let w = wepy.getSystemInfoSync().windowWidth
 let h = wepy.getSystemInfoSync().windowHeight
@@ -241,12 +242,7 @@ export default class Goods extends wepy.page {
     wepy.showLoading({title: '加载中'})
     let self = this
     // 请求数据
-    wepy.request({
-      url: `${self.$parent.globalData.apiUrl}/goods.php`,
-      data: {
-        id: self.id
-      }
-    }).then(({data: {errcode, data, msg}}) => {
+    getGoods(self.id).then(({data: {errcode, data, msg}}) => {
       wepy.hideLoading()
       if (errcode === 0) {
         // 判断是否在参加拼团活动，在参加就跳转到该商品的拼团商品详情页面

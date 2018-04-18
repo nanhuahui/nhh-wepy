@@ -36,7 +36,7 @@
 
 <script>
   import wepy from 'wepy'
-  import { IMG_URL } from '../config'
+  import { IMG_URL } from '@/utils/config'
 
   export default class scrollMenu extends wepy.component {
     props = {

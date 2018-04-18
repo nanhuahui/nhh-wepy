@@ -1,5 +1,5 @@
 import wepy from 'wepy'
-import { STATIC_IMG_PATH } from '../config'
+import { STATIC_IMG_PATH } from './config'
 
 let device = wepy.getSystemInfoSync()
 let w = device.windowWidth

@@ -1,5 +1,5 @@
 import wepy from 'wepy'
-import { API_URL } from '../config'
+import { API_URL } from './config'
 
 function formatTime(time) {
   if (typeof time !== 'number' || time < 0) {

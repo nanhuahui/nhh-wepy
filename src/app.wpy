@@ -13,7 +13,7 @@
 <script>
 import md5 from 'md5'
 import wepy from 'wepy'
-import { API_URL, IMG_URL, DEFAULT_UID, API_SIGNATURE } from './config'
+import { API_URL, IMG_URL, DEFAULT_UID, API_SIGNATURE } from '@/utils/config'
 import 'wepy-async-function'
 
 // 1001->发现栏小程序主入口;
