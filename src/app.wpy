@@ -171,7 +171,7 @@ export default class extends wepy.app {
           wepy.showLoading({ title: '登录中...' })
           // 用户不存在 或 重新登录
           wepy.removeStorageSync('user_nhh')
-          wepy.removeStorageSync('store_nhh')
+          // wepy.removeStorageSync('store_nhh')
           // this.doWxLogin()
         }
       }
@@ -213,32 +213,6 @@ export default class extends wepy.app {
         wepy.setStorageSync('sellerId', u.user_id)
       }
     }
-    let self = this
-    // 应用启动,获得店铺名称和店主头像
-    wepy.request({
-      url: `${self.globalData.apiUrl}/store_index.php`,
-      data: {
-        uid: wepy.getStorageSync('sellerId')
-      }
-    }).then(({data: {errcode, data, msg}}) => {
-      // console.info(errcode, msg, data)
-      if (errcode === 0) {
-        // 正常返回
-        let info = data.storeinfo
-        let detail = data.store_detail
-        let storeJson = {}
-        // 存储店铺头像,店铺名称,店铺二维码
-        storeJson.name = (detail.store_name && detail.store_name !== 'undefined') ? detail.store_name : ''
-        storeJson.qrcode = (detail.qrcode_img && detail.qrcode_img !== 'undefined') ? detail.qrcode_img : ''
-        storeJson.avatar = info ? info.avatar : ''
-        wepy.setStorageSync('store_nhh', storeJson)
-      } else {
-        // 接口返回错误
-        console.error(errcode, msg, data)
-      }
-    }).catch((error) => {
-      console.log('获得店铺名称和店主头像异常', error)
-    })
     // 记录是否关闭汇商通知的新消息
     if (!wepy.getStorageSync('closeMsg')) {
       wepy.setStorage({
@@ -246,8 +220,9 @@ export default class extends wepy.app {
         data: false
       })
     }
-    // 进入页面，tabBar显示小圆点
+    // 小程序显示时:1、获取店铺信息;2、设置底部菜单购物车数量
     let api = require('@/utils/api')
+    api.setSellerInfo()
     api.setCartNum()
   }
 

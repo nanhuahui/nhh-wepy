@@ -205,9 +205,6 @@ export default class Goods extends wepy.page {
         self.loadGood()
       }
     }
-
-    // 头部组件初始化,完成方法传递
-    // $header.init();
   }
 
   onShow() {}

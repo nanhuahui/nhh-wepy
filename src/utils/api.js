@@ -46,6 +46,34 @@ export function conversionGoodsVideo(vid) {
   return request({url: `${videoUrl}?vids=${vid}&platform=101001&charge=0&otype=json`})
 }
 
+/* 设置店铺名称和店主头像至缓存 */
+export async function setSellerInfo() {
+  request({
+    url: `${API_URL}/store_index.php`,
+    data: {
+      uid: wepy.getStorageSync('sellerId')
+    }
+  }).then(({data: { errcode, data, msg }}) => {
+    // console.info(errcode, msg, data)
+    if (errcode === 0) {
+      // 正常返回
+      let info = data.storeinfo
+      let detail = data.store_detail
+      let storeJson = {}
+      // 存储店铺头像,店铺名称,店铺二维码
+      storeJson.name = (detail.store_name && detail.store_name !== 'undefined') ? detail.store_name : ''
+      storeJson.qrcode = (detail.qrcode_img && detail.qrcode_img !== 'undefined') ? detail.qrcode_img : ''
+      storeJson.avatar = info ? info.avatar : ''
+      wepy.setStorageSync('store_nhh', storeJson)
+    } else {
+      // 接口返回错误
+      console.error(errcode, msg, data)
+    }
+  }).catch((error) => {
+    console.log('获得店铺名称和店主头像异常', error)
+  })
+}
+
 /* 设置底部菜单的购物车数量 */
 export async function setCartNum() {
   // 优先抹掉数量,通过响应判断是否需要请求接口去获取真正的购物车数量
@@ -126,6 +154,8 @@ async function login() {
           // 跳转首页
           wepy.reLaunch({url: '/pages/shopping/index/index'})
         }
+        // 登录成功后获取购物车数量
+        setCartNum()
       } else {
         console.error('登录失败', msg)
       }
