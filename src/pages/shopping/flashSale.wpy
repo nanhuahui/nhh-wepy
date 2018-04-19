@@ -1,0 +1,216 @@
+<template>
+<!-- 限时抢购 -->
+<view class="flashSale">
+  <!-- 滑动菜单 -->
+  <scroll-view scroll-x="true" class="scrollView" scroll-into-view="{{toView}}" scroll-with-animation="true">
+    <view id="item-{{index + 1}}" class="list-item {{limit.act_id === (limitData.limit_id + '') ? 'item-active' : ''}}" wx:for="{{limitMenu}}" wx:for-item="limit" wx:key="{{index}}" bindtap="reloadDataFun" data-id="{{limit.act_id}}">
+      <view class="timePoint">
+        <view class="h3 c3">
+          {{limit.start_time}}
+        </view>
+        <view class="c2 h7">
+          {{limit.start}}
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+  <!-- 滑动菜单end -->
+  <!-- 特卖商品展示 -->
+  <view class="showGoods">
+    <image src="{{acRes.banner ? imgDomain + acRes.banner : ''}}" mode="widthFix"></image>
+    <view class="goodsListUl goods-lists" style="overflow: hidden;">
+      <view class="list-item sub-goods_list" wx:for="{{goodsList}}" wx:for-item="goods" wx:key="{{*this}}" style="overflow: hidden;">
+        <navigator url="./goods?gid={{goods.upc_id}}&limit_id={{limitData.limit_id}}">
+          <view class="goods-img" style="position: relative;">
+            <image src="{{goods.master_img ? goods.master_img : ''}}" mode="widthFix"></image>
+            <view class="flashState" wx:if="{{limitData.start === 3}}">已结束</view>
+            <view class="flashState" wx:if="{{limitData.start === 1}}">即将开始</view>
+          </view>
+        </navigator>
+        <view class="goods-price">
+          {{goods.shop_price}}
+          <span class="goods-price_origin">
+            {{goods.market_price ? goods.market_price : ''}}
+          </span>
+        </view>
+        <view class="goods-brief">{{goods.goods_brief}}</view>
+        <view class="goods-title">{{goods.goods_name}}</view>
+      </view>
+    </view>
+    <view wx:if="{{limitData.previous_id}}" class="reviewAct" bindtap="reloadDataFun" data-id="{{limitData.previous_id}}">
+      {{arrowsIcon}}回顾上一场精彩
+    </view>
+  </view>
+  <!-- 特卖商品展示end -->
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class flashSale extends wepy.page {
+    config = {
+      navigationBarTitleText: ''
+    }
+    components = {
+    }
+    data = {
+      goodsList: [],  // 商品列表
+      limitMenu: [],  // 整点特卖菜单列表
+      limitData: {},   // 限时特卖所有data数据（从接口data获得）
+      imgDomain: '',
+      titleName: '',
+      acRes: {},
+      pageNum: 0,
+      limitId: '',     // 当前特卖id
+      arrowsIcon: '<<',
+      toView: null // 滑动菜单滑动到指定一子元素
+    }
+    onLoad(q) {
+      this.$apply(() => {
+        this.limitId = q.id
+      })
+      this.reloadDataFun()
+    }
+    onShow() {}
+    methods = {}
+    /*
+     * 重新加载数据 （切换特卖场）
+     */
+    reloadDataFun (e) {
+      if (e) { // 有e时
+        this.$apply(() => {
+          this.limitId = e.currentTarget.dataset.id
+        })
+      }
+      this.$apply(() => {
+        this.goodsList = []
+        this.pageNum = 0
+      })
+      this.loadMore()
+    }
+    // 查看更多
+    loadMore() {
+      let self = this
+      self.$apply(() => {
+        self.goodsList = []
+        self.pageNum = 0
+      })
+      if (self.data.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.data.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
+        self.hidden = false
+      })
+      console.log('当前加载页码:' + self.data.pageNum)
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/limit_activity.php`,
+        data: {
+          limit_id: self.data.limitId,
+          page: self.data.pageNum
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          console.log('查询结果为:', data)
+          if (data.goods_list.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+              self.hidden = true
+            })
+            return
+          }
+          // 数据组装
+          let list = self.data.goodsList
+          for (var i = 0; i < data.goods_list.length; i++) {
+            list.push(data.goods_list[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.goodsList = list
+            self.limitData = data
+            self.limitMenu = data.fav_limit
+            self.imgDomain = data.img_domain
+            self.titleName = data.title_name
+            self.acRes = data.ac_res
+            self.hidden = true
+          })
+          wepy.setNavigationBarTitle({ title: self.titleName })
+          // 滑动菜单：当前时间滚动到中间
+          for (var l = 0; l < data.fav_limit.length; l++) {
+            if (data.fav_limit[l].act_id === data.limit_id + '') {
+              self.$apply(() => {
+                self.toView = 'item-' + (l - 1)
+              })
+            }
+          }
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+@import '../../assets/styles/public.wxss';
+@import '../../assets/styles/store.wxss';
+.flashSale {
+  /*padding-top:96px;*/
+  padding-top:46px;
+}
+.flashSale .timePoint text, .flashSale .timePoint text{ display: block; text-align: center}
+.flashSale .timePoint text{font-style: normal; font-weight: bold;}
+.flashSale .timePoint{
+  /*padding-top: 9rpx;*/
+  padding-top: 4rpx;
+}
+.flashSale .timePoint view:last-child {
+  line-height: 12px;
+}
+/*特卖商品展示*/
+.goodsListUl{ background: #fff}
+.goodsListUl image{width: 100%; background-size: 100%}
+.goodsListUl .list-item{padding-bottom: 14rpx; border-right: 1px solid #e5e8f1; border-bottom: 1px solid #e5e8f1}
+.originalPrice{ text-decoration: line-through ; color: #999; padding-left: 9rpx;}
+.goodsBrief{ text-overflow:ellipsis; overflow: hidden; white-space: nowrap; padding: 4rpx 0 9rpx; height: 56rpx}
+.goodsTitle{line-height: 1.2; height: 56rpx; overflow: hidden}
+.loading_now{text-align: center; padding-top: 24rpx;}
+.fixedTop{position: fixed; top: 0; max-width: 640px; min-width: 320px; width: 100%; margin: 0 auto;z-index: 1000}
+
+
+.flashSale .swiper-container{height: 116rpx; padding-top: 0;} 
+.flashSale .slide_active text, .flashSale .slide_active text{ color: #c8975c;}
+.showGoods{margin-top: -18rpx;}
+.showGoods > image{width: 100%}
+
+.flashState{position: absolute; width: 112rpx; height: 112rpx; text-align: center; line-height: 112rpx; background: rgba(0,0,0,.7); color: #fff; left: 0; right: 0; top: 0; bottom: 0; margin: auto; border-radius: 50%; font-size: 24rpx;}
+.reviewAct{text-align: center; padding-top: 18px; padding-bottom: 18px;}
+
+.flashSale .scrollView {
+  position: fixed;
+  top:0;left:0;
+  z-index: 100;
+  /*height: 120rpx;*/
+  height: 94rpx;
+  white-space: nowrap;
+  width:100%;}
+.flashSale .scrollView .list-item{
+  /*width: 188rpx;*/
+  width: 150rpx;
+  /*height: 102rpx;*/
+  height: 80rpx;
+  display: inline-block;
+  background-color: #fff;
+  text-align: center;}
+.flashSale .scrollView .list-item.item-active{background-color: #333;color: #c8975c;position: relative;}
+.flashSale .scrollView .list-item.item-active:before{position:absolute; content:''; width: 0; height: 0; border-width: 12px 7px; border-color:#333 transparent transparent transparent; border-style: solid; bottom: -38rpx; left: 0; right: 0; margin: 0 auto;}
+.flashSale .scrollView .list-item.item-active view{color: #c8975c;}
+
+</style>
