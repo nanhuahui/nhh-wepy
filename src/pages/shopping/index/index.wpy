@@ -16,7 +16,7 @@
     <coustomerGoods :sevenActive.sync="sevenActive" :img_domain.sync="img_domain" :loadComplete.sync="loadComplete" componentId="coustomerGoods"></coustomerGoods>
 
     <!-- 今日特卖 -->
-    <specialSale :active.sync="active" :imgDomain.sync="img_domain" componentId="specialSale"></specialSale>
+    <specialSale :active.sync="active" :imgDomain.sync="img_domain" :isActivity.sync="isActivity" componentId="specialSale"></specialSale>
 
     <!-- 今日精选 -->
     <todaySpecial :special.sync="special" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="tadaySpecial"></todaySpecial>
@@ -66,6 +66,7 @@ export default class Index extends wepy.page {
     imgUrl: '',
     goods_list: [],
     active: [],
+    isActivity: null,
     add_new_list: [],
     composeFloorArr: [],
     storeInfo: null,
@@ -143,6 +144,12 @@ export default class Index extends wepy.page {
         // 转发失败
         console.log('fail', res)
       }
+    }
+  }
+
+  events = {
+    'navigatAct': (...args) => {
+      this.navigatAct(args[0], args[1])
     }
   }
 
@@ -227,6 +234,7 @@ export default class Index extends wepy.page {
       // 设置数据
       self.$apply(() => {
         self.active = data.active
+        self.isActivity = true
         self.add_new_list = data.add_new_list
         self.turnsInfo = data.turns_info
         self.img_domain = data.img_domain
@@ -311,6 +319,29 @@ export default class Index extends wepy.page {
         self.hidden = false
       })
       self.loadRecommend()
+    }
+  }
+  // 今日特卖跳转
+  navigatAct(isAct, item) {
+    let self = this
+    let len = isAct ? item.act_range_ext : item.count
+    let actId = item.act_id
+    if (len.split(',').length === 1) {
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/favourable_goods.php`,
+        data: {
+          id: actId
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.$navigate(`../goods?gid=${data.goods_list[0].upc_id}`)
+        } else {
+          console.error('获取商品列表失败:' + msg)
+        }
+      })
+    }
+    if (len.split(',').length > 1) {
+      self.$navigate(`../panicBuy?id=${actId}`)
     }
   }
 }

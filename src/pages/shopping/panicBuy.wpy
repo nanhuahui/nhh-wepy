@@ -1,0 +1,219 @@
+<template>
+<scroll-view scroll-y="true" height="100%">
+  <view class="panic-buying_activity">
+    <view class="recommend-goods">
+      <navigator class="goods-banner_pic" href="javascript:void(0)">
+        <image src="{{ac_res ? (img_domain + ac_res.banner) : (imgUrl + '/no_picture.jpg')}}" mode="widthFix"></image>
+      </navigator>
+      <view class="time-count_down">
+        <text>{{desc}}</text>
+        <text wx:if="{{desc !== '活动已结束'}}">{{actTime}}</text>
+      </view>
+    </view>
+    <view style="overflow: hidden;">
+      <view class="goods-lists" style="overflow: hidden;">
+        <navigator class="sub-goods_list" wx:for="{{goods_list}}" wx:key="{{item.upc_id}}" url="/pages/shopping/goods/goods?gid={{item.upc_id}}">
+          <view class="goods-img">
+            <image src="{{item.img_url ? item.img_url : (imgUrl + '/no_picture.jpg')}}" mode="widthFix"></image>
+            <span class="vedio_icon" wx:if="{{item.video_url}}">
+              <image src="{{imgUrl}}/vedio_icon.png" mode="widthFix"></image>
+            </span>
+          </view>
+          <view class="goods-brief">{{item.goods_brief}}</view>
+          <view class="goods-title">{{item.goods_name}}</view>
+          <view class="goods-price">
+            {{item.promote_price}}
+            <text class="goods-price_origin">{{item.market_price}}</text>
+          </view>
+          <view class="btn-panic_buy">
+            <button>立即抢购</button>
+          </view>
+        </navigator>
+      </view>
+    </view>
+    <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}" style="height:4.2em;">
+      <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+    </view>
+  </view>
+</scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import CountDown from '../../components/countdown'
+
+  export default class panicBuy extends wepy.page {
+    config = {
+      navigationBarTitleText: ''
+    }
+    components = {}
+    data = {
+      imgUrl: '',
+      goods_list: [],
+      img_domain: '',
+      ac_res: null,
+      titleName: '',
+      pageNum: 0,
+      aid: null,
+      start_time: '', // 活动开始时间
+      end_time: '', // 活动结束时间
+      actTime: '', // 页面显示的活动时间
+      desc: ''
+    }
+    methods = {}
+    onLoad(q) {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.aid = q.id
+      this.$apply()
+      this.loadMore()
+    }
+    onShow() {}
+    loadMore() {
+      let self = this
+      if (self.data.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      self.$apply(() => {
+        self.pageNum = self.data.pageNum + 1
+      })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/favourable_goods.php`,
+        data: {
+          id: self.data.aid,
+          page: self.data.pageNum
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.ac_res = data.ac_res
+            self.img_domain = data.img_domain
+            self.titleName = data.title_name
+            self.start_time = data.ac_res.start_time
+            self.end_time = data.ac_res.end_time
+          })
+          this.$parent.setTitle(this.titleName)
+          // 倒计时start
+          let actTime, desc
+          let countDown = new CountDown({
+            start: self.data.start_time * 1000,
+            end: self.data.end_time * 1000,
+            render(date) {
+              const days = this.leadingZeros(date.days, 2) === '00' ? '' : `${this.leadingZeros(date.days, 2)} 天`
+              const hours = this.leadingZeros(date.hours, 2) + ' 时 '
+              const min = this.leadingZeros(date.min, 2) + ' 分 '
+              const sec = this.leadingZeros(date.sec, 2) + ' 秒 '
+              let text
+              switch (this.options.flag) {
+                case -1:
+                  text = '距离开始：'
+                  break
+                case 0:
+                  text = '距离结束：'
+                  break
+                case 1:
+                  text = '活动已结束'
+                  break
+                default:
+                  text = '未知状态'
+              }
+              actTime = days + hours + min + sec
+              desc = text
+              self.$apply(() => {
+                self.actTime = actTime
+                self.desc = desc
+              })
+            }
+          })
+          console.log(countDown)
+          if (data.goods_list.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+            })
+            return
+          }
+          // 数据组装
+          let list = self.data.goods_list
+          for (var i = 0; i < data.goods_list.length; i++) {
+            list.push(data.goods_list[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.goods_list = list
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+@import '../../assets/styles/store.wxss';
+.recommend-goods {
+  padding-top: 0
+}
+
+.btn-panic_buy {
+  padding: 4px 8px;
+  border-top: 1px solid #eee;
+}
+
+.btn-panic_buy button {
+  background: #ed3366;
+  border: 1px solid #ed3366;
+  border-radius: 4px;
+  color: #fff;
+  width: 100%;
+  padding: 6px 0;
+  line-height: 1.15;
+  font-size: 14px;
+}
+
+.panic-buying_activity {
+  margin-bottom: 10px;
+  margin-top:0;
+}
+
+.goods-lists .sub-goods_list {
+  margin-top: 4px;
+}
+
+.time-count_down {
+  text-align: center;
+  height: 62px;
+  line-height: 62px;
+  background-color: #fff;
+}
+
+/*.time-count_down text:last-child{
+  color:#fff;
+  background: #ef0021;
+  padding:4px;
+  border-radius: 3px;
+  margin:0 3px;
+}
+.time-count_down text:nth-child(3) , .time-count_down text:nth-child(4){
+  color:#fff;
+  background: #ef0021;
+  padding:4px;
+  margin:0 3px;
+  border-radius: 4px
+}*/
+
+.weui-loadmore_line .weui-loadmore__tips {
+  position: relative;
+  top: -.9em;
+  padding: 0 .55em;
+  background-color: #fff;
+  color: #999;
+}
+
+</style>
