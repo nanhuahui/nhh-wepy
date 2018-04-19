@@ -14,7 +14,7 @@
       <view>所得佣金</view>
     </view>
     <view class="scrollView">
-      <scroll-view style="height:100%;display:block;overflow:hidden;" scroll-y="true" scroll-top="{{scrollTop}}"
+      <scroll-view style="height:100%;display:block;overflow:hidden;" scroll-y="true" scroll-top="0"
         bindscrolltolower="loadMore" bindscroll="scroll" wx:if="{{order_list.length > 0}}">
         <view class="weui-flex white list-item order_list" wx:for="{{order_list}}" wx:key="*this" bindtap="toOrdDetail" data-orderId="{{item.order_sn}}">
           <view>{{item.order_sn}}</view>

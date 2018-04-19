@@ -2,7 +2,7 @@
 <view height="100%">
   <!-- 头部标签 -->
   <view class="mescroll coustom_goods">
-    <scroll-view scroll-y="true" scroll-top="{{scrollTop}}"
+    <scroll-view scroll-y="true" scroll-top="0"
       bindscrolltolower="loadMore" bindscroll="scroll"
       class="goods-lists data-list clearfix"
       style="height: 100%;display: block;overflow: hidden;">
