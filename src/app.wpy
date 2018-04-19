@@ -172,7 +172,7 @@ export default class extends wepy.app {
           // 用户不存在 或 重新登录
           wepy.removeStorageSync('user_nhh')
           wepy.removeStorageSync('store_nhh')
-          this.doWxLogin()
+          // this.doWxLogin()
         }
       }
     })
@@ -181,7 +181,6 @@ export default class extends wepy.app {
   onLaunch() {}
 
   onShow(options) {
-    this.getCartNum()
     console.log(716, options)
     // 1.从参数判断
     if (options.query.s) {
@@ -247,43 +246,13 @@ export default class extends wepy.app {
         data: false
       })
     }
+    // 进入页面，tabBar显示小圆点
+    let api = require('@/utils/api')
+    api.setCartNum()
   }
 
   onHide() {
     wepy.removeStorageSync('closeMsg')
-  }
-
-  /**
-   * 封装请求购物车商品数量
-   */
-  getCartNum() {
-    let self = this
-    // 首次进入页面，tabBar显示小圆点
-    wepy.request({
-      url: `${self.globalData.apiUrl}/flow.php`
-    }).then(({ data: { errcode, data, msg } }) => {
-      if (errcode === 0) {
-        // 正常返回
-        let cartNum = data.total.real_goods_count
-        // cartNum需要转化成字符串
-        let cartNumStr = cartNum.toString()
-        wepy.setTabBarBadge({
-          index: 1,
-          text: cartNumStr
-        })
-        // cartNum为零时隐藏tabBar小圆点
-        if (!cartNum) {
-          wepy.hideTabBarRedDot({
-            index: 1
-          })
-        }
-      } else {
-        // 接口返回错误
-        console.error(errcode, msg, data)
-      }
-    }).catch((error) => {
-      console.log('获得购物车商品数量异常', error)
-    })
   }
 
   /**

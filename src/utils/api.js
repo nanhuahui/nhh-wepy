@@ -1,9 +1,7 @@
 import wepy from 'wepy'
-import { API_URL } from './config'
+import {API_URL} from './config'
 
-/*
- * 统一封装
- */
+/* 统一封装 */
 function request(config) {
   if (!wepy.getStorageSync('sessId')) {
     login()
@@ -15,7 +13,9 @@ function request(config) {
 export function getGoods(id) {
   return request({
     url: `${API_URL}/goods.php`,
-    data: {id: id}
+    data: {
+      id: id
+    }
   })
 }
 
@@ -43,12 +43,37 @@ export function addCart(data) {
 // 转换商品的视频地址
 export function conversionGoodsVideo(vid) {
   let videoUrl = 'https://vv.video.qq.com/getinfo'
-  return request({
-    url: `${videoUrl}?vids=${vid}&platform=101001&charge=0&otype=json`
+  return request({url: `${videoUrl}?vids=${vid}&platform=101001&charge=0&otype=json`})
+}
+
+/* 设置底部菜单的购物车数量 */
+export async function setCartNum() {
+  // 优先抹掉数量,通过响应判断是否需要请求接口去获取真正的购物车数量
+  await wepy.removeTabBarBadge({index: 1}).then(({errMsg}) => {
+    if (errMsg === 'removeTabBarBadge:ok') {
+      request({url: `${API_URL}/flow.php`}).then(({data: { errcode, data, msg }}) => {
+        if (errcode === 0) {
+          // 正常返回
+          let cartNum = data.total.real_goods_count
+          wepy.setTabBarBadge({index: 1, text: `${cartNum}`})
+          // cartNum为零时隐藏tabBar小圆点
+          if (!cartNum) {
+            wepy.hideTabBarRedDot({index: 1})
+          }
+        } else {
+          // 接口返回错误
+          console.error(errcode, msg, data)
+        }
+      }).catch((error) => {
+        console.log('获得购物车商品数量异常', error)
+      })
+    }
+  }).catch((error) => {
+    console.log(error)
   })
 }
 
-// 登录方法
+/* 登录方法 */
 async function login() {
   console.log('登录请求')
   let loginInfo = await wepy.login()
@@ -58,7 +83,7 @@ async function login() {
   // 存储微信的用户信息
   wepy.setStorageSync('user_wx', wxUser.userInfo)
   if (wxUser) {
-    wepy.showLoading({ title: '登录中...' })
+    wepy.showLoading({title: '登录中...'})
     wepy.request({
       url: `${API_URL}/wx_app/login.php`,
       data: {
@@ -68,7 +93,7 @@ async function login() {
         raw_data: wxUser.rawData,
         signature: wxUser.signature
       }
-    }).then(({ data: { errcode, data, msg } }) => {
+    }).then(({data: { errcode, data, msg }}) => {
       if (errcode === 0) {
         console.log(data)
         // 存储数据
@@ -79,9 +104,9 @@ async function login() {
           wepy.setStorageSync('sellerId', data.user_info.user_id)
         }
 
-        /*eslint-disable */
+        /* eslint-disable */
         var pages = getCurrentPages() // 获取加载的页面
-        /*eslint-enable */
+        /* eslint-enable */
         var currentPage = pages[pages.length - 1] // 获取当前页面的对象
         if (currentPage) {
           var url = currentPage.route // 当前页面url
@@ -96,22 +121,18 @@ async function login() {
               i++
             }
           }
-          wepy.reLaunch({
-            url: newPath
-          })
+          wepy.reLaunch({url: newPath})
         } else {
           // 跳转首页
-          wepy.reLaunch({
-            url: '/pages/shopping/index/index'
-          })
+          wepy.reLaunch({url: '/pages/shopping/index/index'})
         }
       } else {
         console.error('登录失败', msg)
       }
-      // wepy.hideLoading()
+      wepy.hideLoading()
     }).catch((error) => {
       console.log('登录异常', error)
-      // wepy.hideLoading()
+      wepy.hideLoading()
     })
   }
 }
