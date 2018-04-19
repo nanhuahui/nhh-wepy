@@ -6,9 +6,9 @@
     indicator-dots="true" autoplay="true" interval="4500" duration="1000" circular="true">
     <block wx:for="{{turnsInfo}}" wx:key="id">
       <swiper-item>
-        <navigator url="{{item.turns_link}}" style="height: 100%;">
+        <view style="height: 100%;" data-item="{{item.turns_link}}" bindtap="toBanner">
           <image class="slide-img" src="{{imgDomain + item.banner}}" mode="scaleToFill"/>
-        </navigator>
+        </view>
       </swiper-item>
     </block>
   </swiper>
@@ -23,7 +23,13 @@ export default class indexSwiper extends wepy.component {
     imgDomain: Object
   }
   data = {}
-  methods = {}
+  methods = {
+    toBanner(e) {
+      // 轮播点击事件
+      let url = e.currentTarget.dataset.item
+      this.$emit('toBanner', url)
+    }
+  }
   onLoad() {}
 }
 </script>

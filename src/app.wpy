@@ -40,6 +40,7 @@ export default class extends wepy.app {
       'pages/shopping/newDailyList',
       'pages/shopping/allDayHot',
       'pages/shopping/flashSale',
+      'pages/shopping/panicBuy',
       'pages/user/userCenter',
       'pages/user/myCollect',
       'pages/user/sellerIncome',
@@ -69,7 +70,8 @@ export default class extends wepy.app {
       'pages/uploadGoods/withdraw',
       'pages/commission/withdrawInstruction',
       'pages/commission/withdrawIndex',
-      'pages/commission/cashRecord'
+      'pages/commission/cashRecord',
+      'pages/thirdWebView/thirdWebView'
     ],
     window: {
       navigationBarBackgroundColor: '#f7f7f8',

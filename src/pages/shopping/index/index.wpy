@@ -150,6 +150,9 @@ export default class Index extends wepy.page {
   events = {
     'navigatAct': (...args) => {
       this.navigatAct(args[0], args[1])
+    },
+    'toBanner': (...args) => {
+      this.toBanner(args[0])
     }
   }
 
@@ -219,41 +222,53 @@ export default class Index extends wepy.page {
         uid: wepy.getStorageSync('sellerId')
       }
     }).then(({data: {errcode, data, msg}}) => {
-      // console.log('首页数据', errcode, data, msg)
-      // 组装各个楼层数据
-      let tempFloor = []
-      tempFloor.push(
-        Object.assign(data.hufu, {'banner': 'skin_care.jpg', 'title': '护肤专场'}),
-        Object.assign(data.getixihu, {'banner': 'individual_care.jpg', 'title': '个人护理'}),
-        Object.assign(data.yinyang, {'banner': 'nutrition.jpg', 'title': '营养保健'}),
-        Object.assign(data.shipin, {'banner': 'food.jpg', 'title': '进口食品'}),
-        Object.assign(data.meizhuang, {'banner': 'beauty.jpg', 'title': '美妆专场'}),
-        Object.assign(data.shenghuo, {'banner': 'quality_life.jpg', 'title': '品质生活'}),
-        Object.assign(data.muyin, {'banner': 'child_care.jpg', 'title': '母婴专场'})
-      )
-      // 设置数据
-      self.$apply(() => {
-        self.active = data.active
-        self.isActivity = true
-        self.add_new_list = data.add_new_list
-        self.turnsInfo = data.turns_info
-        self.img_domain = data.img_domain
-        self.storeInfo = data.storeinfo
-        self.storeDetail = data.store_detail
-        self.composeFloorArr = tempFloor
-        self.loadComplete = true
-        self.flashSaleArr = self.data.flashSaleArr
-        self.limitEle = self.data.limitEle
-        self.fa_limit = self.data.fa_limit
-        self.special = data.special
-        self.new_daily = self.data.new_daily
-        self.allDayHot = data.hot_list
-        self.shopperChoose = data.shop_best_goods
-        self.ptList = data.pt_list
-        self.ptTotalNum = data.pt_total_num
-        self.special = data.special
-        // self.groupGoodsNumber = groupGoodsNumber
-      })
+      if (errcode === 0) {
+        // 转换链接地址
+        data.turns_info.map((t) => {
+          let link = t.turns_link
+          if (link.indexOf('panicBuy') > -1) {
+            // 抢购地址转换
+            t.turns_link = `../panicBuy${link.split('panicBuy')[1]}`
+          }
+        })
+        // console.log('首页数据', errcode, data, msg)
+        // 组装各个楼层数据
+        let tempFloor = []
+        tempFloor.push(
+          Object.assign(data.hufu, {'banner': 'skin_care.jpg', 'title': '护肤专场'}),
+          Object.assign(data.getixihu, {'banner': 'individual_care.jpg', 'title': '个人护理'}),
+          Object.assign(data.yinyang, {'banner': 'nutrition.jpg', 'title': '营养保健'}),
+          Object.assign(data.shipin, {'banner': 'food.jpg', 'title': '进口食品'}),
+          Object.assign(data.meizhuang, {'banner': 'beauty.jpg', 'title': '美妆专场'}),
+          Object.assign(data.shenghuo, {'banner': 'quality_life.jpg', 'title': '品质生活'}),
+          Object.assign(data.muyin, {'banner': 'child_care.jpg', 'title': '母婴专场'})
+        )
+        // 设置数据
+        self.$apply(() => {
+          self.active = data.active
+          self.isActivity = true
+          self.add_new_list = data.add_new_list
+          self.turnsInfo = data.turns_info
+          self.img_domain = data.img_domain
+          self.storeInfo = data.storeinfo
+          self.storeDetail = data.store_detail
+          self.composeFloorArr = tempFloor
+          self.loadComplete = true
+          self.flashSaleArr = self.data.flashSaleArr
+          self.limitEle = self.data.limitEle
+          self.fa_limit = self.data.fa_limit
+          self.special = data.special
+          self.new_daily = self.data.new_daily
+          self.allDayHot = data.hot_list
+          self.shopperChoose = data.shop_best_goods
+          self.ptList = data.pt_list
+          self.ptTotalNum = data.pt_total_num
+          self.special = data.special
+          // self.groupGoodsNumber = groupGoodsNumber
+        })
+      } else {
+        console.error(msg)
+      }
     }).catch((error) => {
       console.log('获取首页数据失败！', error)
     })
@@ -342,6 +357,15 @@ export default class Index extends wepy.page {
     }
     if (len.split(',').length > 1) {
       self.$navigate(`../panicBuy?id=${actId}`)
+    }
+  }
+  // 轮播点击事件
+  toBanner(url) {
+    if (url.indexOf('aiwall') !== -1) {
+      // 第三方链接
+      this.$navigate(`../../thirdWebView/thirdWebView?url=${url}`)
+    } else {
+      this.$navigate(`${url}`)
     }
   }
 }

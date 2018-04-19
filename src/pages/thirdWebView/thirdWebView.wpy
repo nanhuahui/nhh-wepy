@@ -1,0 +1,30 @@
+<template>
+  <web-view wx:if="{{url}}" src="{{url}}"></web-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class thirdWebView extends wepy.page {
+    config = {
+      navigationBarTitleText: ''
+    }
+    components = {}
+    data = {
+      url: ''
+    }
+    onLoad(q) {
+      this.$apply(() => {
+        this.url = q.url
+      })
+      if (!wepy.canIUse('web-view')) {
+        wepy.showModal({
+          title: '提示',
+          content: '当前微信版本过低，无法使用该功能，请升级到最新微信版本后重试。'
+        })
+      }
+    }
+    onShow() {}
+    methods = {}
+  }
+</script>
