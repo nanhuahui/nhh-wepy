@@ -1,0 +1,125 @@
+<template>
+<!-- 24小时热销 -->
+<view class="weui-flex all_day_hot">
+  <view style="flex: 1;position: relative;">
+    <view class="scrollView">
+      <scroll-view class="goods-lists" style="height: 100%;" scroll-y="true" scroll-top="0" bindscrolltolower="loadMore" bindscroll="scroll">
+        <view style="overflow: hidden;">
+          <navigator class="sub-goods_list" wx:for="{{goodsList}}" wx:for-item="g" wx:key="{{g.upc_id}}" url="./goods?gid={{g.upc_id}}">
+            <view class="goods-img">
+              <image src="{{g.master_img}}" mode="widthFix"></image>
+              <view class="vedio_icon" wx:if="{{g.video}}">
+                <image src='{{imgUrl}}/vedio_icon.png' mode="widthFix" style="width: 39px;"></image>
+              </view>
+            </view>
+            <view class="goods-brief">{{g.goods_brief}}</view>
+            <view class="goods-title">{{g.goods_name}}</view>
+            <view class="goods-price">
+              {{g.promote_price}}
+              <text class="goods-price_origin">{{g.market_price}}</text>
+            </view>
+          </navigator>
+        </view>
+        <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}" style="height:4.2em;">
+          <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class allDayHot extends wepy.page {
+    config = {
+      navigationBarTitleText: '24小时人气王'
+    }
+    components = {
+    }
+    data = {
+      imgUrl: '',
+      hotId: null,
+      goodsList: [],
+      pageNum: 0
+    }
+    onLoad(q) {
+      this.$apply(() => {
+        this.imgUrl = this.$parent.globalData.imgUrl
+        this.hotId = q.id
+      })
+      this.loadMore()
+    }
+    onShow() {}
+    methods = {}
+    // 查看更多
+    loadMore() {
+      let self = this
+      if (self.data.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.data.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
+        self.hidden = false
+      })
+      console.log('当前加载页码:' + self.data.pageNum)
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/hot_goods.php`,
+        data: {
+          hot_id: self.data.hotId,
+          page: self.data.pageNum
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          console.log('查询结果为:', data)
+          if (data.goods_list === null) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+              self.hidden = true
+            })
+            return
+          }
+          // 数据组装
+          let list = self.data.goodsList
+          for (var i = 0; i < data.goods_list.length; i++) {
+            list.push(data.goods_list[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.goodsList = list
+            self.hidden = true
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    scroll(event) {
+      // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+      this.$apply(() => {
+        this.scrollTop = event.detail.scrollTop
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+@import '../../assets/styles/store.wxss';
+
+.all_day_hot {
+  width: 100%;height:100%; flex-direction: column;position: fixed;top:0;left:0;margin-top: 0;
+}
+.all_day_hot .goods-banner_pic {
+  margin-bottom: -7px;
+}
+.scrollView {
+  position: absolute;top:2px;bottom: 2px;width:100%;height: auto;
+}
+</style>

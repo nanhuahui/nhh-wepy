@@ -38,6 +38,7 @@ export default class extends wepy.app {
       'pages/shopping/category',
       'pages/shopping/cart',
       'pages/shopping/newDailyList',
+      'pages/shopping/allDayHot',
       'pages/user/userCenter',
       'pages/user/myCollect',
       'pages/user/sellerIncome',
