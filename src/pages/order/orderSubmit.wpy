@@ -1,0 +1,1244 @@
+<template>
+  <!--订单填写-->
+  <view class="orderSubmit" wx:if="{{pageSwitch === 'fill'}}">
+    <!--收货人信息-->
+    <view class="addressFill receiverInfor">
+      <text class="titleInfor">收货人信息</text>
+      <view class="addNewPng" wx:if="{{!editAddress && addressList.length===0}}" bindtap="editOn">
+        <view>
+          <image src="{{imgUrl}}/location.png" mode="aspectFit" />
+        </view>
+        <text>您还没有收货地址，点击这里添加</text>
+      </view>
+      <!--收货人信息展示-->
+      <view class="showAddress" wx:if="{{!editAddress && addressList.length>0}}">
+        <text> {{activityAddress.consignee}}  {{activityAddress.mobile}}</text>
+        <text>{{activityAddress.region}}</text>
+        <text>{{activityAddress.address}}</text>
+        <view class="editBtn" bindtap="editOn">
+          <i class="iconfont-yzg icon-yzg-chevron"></i>
+        </view>
+      </view>
+      <!--收货人信息修改-->
+      <view class="addressAlter" wx:if="{{editAddress}}">
+        <label style="padding-left:20px;font-weight:bold;">请选择您的收货地址</label>
+        <radio-group bindchange="addressChange">
+          <!-- 地址列表 -->
+          <view wx:for="{{addressList}}" wx:key="address_id" class="listStyle">
+            <view class="addressTitle">
+              <radio value="{{item.address_id}}" name="consigneeAdd" checked="{{item.last_use==='1'}}" />
+              <text>{{item.address_id!=='0'?item.consignee:'新增收货地址'}}</text>
+              <text bindtap="deleteAdd" wx:if="{{item.address_id!=='0'}}"
+                data-aid="{{item.address_id}}" data-index="{{index}}">[删除当前地址]</text>
+            </view>
+            <block wx:if="{{item.last_use==='1'}}">
+              <view class="addressInfo">
+                <text>*收 货 人：</text>
+                <input type="text" value="{{item.consignee}}"
+                  data-key="consignee" data-index="{{index}}" bindinput="addressInput"/>
+              </view>
+              <view class="addressInfo">
+                <text>*省  市  区：</text>
+                <text bindtap="openAddressPicker" data-aid="{{item.address_id}}"
+                  style="width: 66%;text-align:left;margin-bottom:-6px;">{{item.region}}</text>
+                <areaPicker></areaPicker>
+              </view>
+              <view class="addressInfo">
+                <text>*详细地址：</text>
+                <input type="text" value="{{item.address}}"
+                  data-key="address" data-index="{{index}}" bindinput="addressInput"/>
+              </view>
+              <view class="addressInfo">
+                <text>*身份证号：</text>
+                <input type="text" value="{{item.idcard}}"
+                  data-key="idcard" data-index="{{index}}" bindinput="addressInput"/>
+              </view>
+              <view class="addressInfo">
+                <text>*手机号码：</text>
+                <input type="text" value="{{item.mobile}}"
+                  data-key="mobile" data-index="{{index}}" bindinput="addressInput"/>
+              </view>
+            </block>
+          </view>
+        </radio-group>
+        <button class="redBg saveAdd" bindtap="saveNext">保存并下一步</button>
+      </view>
+    </view>
+    <!--商品展示-->
+    <view class="goodsShow">
+      <text class="titleInfor">商品详情</text>
+      <view class="imgPrice" wx:for="{{orderInfo.cart_goods_list}}" wx:for-item="good" wx:key="*this">
+        <image src="{{good.img_url}}"></image>
+        <view class="goodsName">
+          <text>{{good.goods_name}}</text>
+        </view>
+        <view class="goodsNumber">
+          <text class="goodsQuantity">x{{good.goods_number}}</text>
+          <text class="redColor">{{good.goods_price}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="couponUse" wx:if="{{!auction_id}}">
+      <label style="padding-left:10px;">优惠券</label>
+      <!--有可点击使用的优惠券-->
+      <text wx:if="{{orderInfo.bonus_list_use}}" bindtap="toBonusList">
+        <text>{{presentBonus ? ' ¥ ' + presentBonus.bonus : '选择优惠券'}}</text>
+        <text class="iconfont-yzg icon-yzg-arrow" style="font-size: 16px;"></text>
+      </text>
+      <!--没有可使用的优惠券 不可用优惠券不为空。仍显示-->
+      <text wx:elif="{{orderInfo.bonus_list_not_use && !orderInfo.bonus_list_use}}" style="color:#999" bindtap="bonusListShow">
+        无可用优惠券
+      </text>
+      <!--优惠券列表为空。可用不可用优惠券均为空。-->
+      <text style="color:#999" wx:else>
+        无可用优惠券
+      </text>
+    </view>
+    <!--订单结算-->
+    <view class="orderPrice" wx:if="{{!auction_id}}">
+      <text class="titleInfor">订单结算</text>
+      <view>
+        商品总价： {{orderInfo.total.goods_price_formated}}
+      </view>
+      <view wx:if="{{orderInfo.offset > 0}}">
+        可用抵用金： {{orderInfo.offset_formated}}
+      </view>
+      <view wx:if="{{orderInfo.total.shipping_fee > 0}}">
+        运费： {{orderInfo.total.shipping_fee_formated}}
+      </view>
+      <view>
+        应付款金额： {{orderInfo.order_price}}
+      </view>
+    </view>
+    <view class="orderPrice" wx:else>
+      <view>
+        商品金额： {{orderInfo.total.goods_price_formated}}
+      </view>
+      <view wx:if="{{!!orderInfo.total.auction_deposit}}">
+        保证金： -￥{{orderInfo.total.auction_deposit}}
+      </view>
+      <view wx:if="{{orderInfo.total.shipping_fee > 0}}">
+        运费： {{orderInfo.total.shipping_fee_formated}}
+      </view>
+    </view>
+    <view class="orderSubmitSub">
+      <text style="margin-left:20px;">应付金额：<text style="color: #ed3366;">{{orderInfo.order_price}}</text></text>
+      <input type="button" value="提交订单" class="btn btn-danger loginBtn" bindtap="submitOrder"/>
+    </view>
+  </view>
+  <!--提交订单成功-->
+  <view class="orderSubmit" wx:if="{{pageSwitch === 'submitSuc'}}">
+    <view class="receiverInfor payment">
+      <view class="title_p">支持以下支付平台付款</view>
+      <view>
+        <view style="position: relative;padding-left: 10px;">
+          <radio value="alipay" checked="{{true}}" style="width: 38px;"/>微信支付
+          <view class="iconfont-yzg icon-yzg-wxPay selectSign"></view>
+        </view>
+      </view>
+    </view>
+    <view class="orderDetail" wx:for="{{orderSuccess.order_all}}" wx:key="*this">
+      <text>订单号：{{item.order.order_sn}}</text>
+      <text>订单总额：{{item.total_fee}}</text>
+      <text wx:if="{{item.order.offset}}">抵用金抵扣：-{{item.order.offset}}</text>
+      <text wx:if="{{item.order.bonus}}">优惠券：-{{item.order.bonus}}</text>
+      <text wx:if="{{item.total.auction_deposit}}">保证金：-￥{{item.total.auction_deposit}}</text>
+      <text>还需支付：{{item.total.amount_formated}}</text>
+      <navigator class="seeInfor" url="./orderInfo?id={{item.order.order_id}} & type=0">
+        查看详细信息
+      </navigator>
+    </view>
+    <view class="totalMoney">
+      总金额：<text style="color:#ed3366;">{{orderSuccess.summoney}}</text>
+    </view>
+    <view class="button-sp-area">
+      <button class="weui-btn" type="primary" bindtap="payNow">微信支付</button>
+    </view>
+  </view>
+  <!-- 错误展示 -->
+  <view wx:if="{{pageSwitch === 'errormsg'}}" class="errWarning">
+    <view class="iconfont-yzg icon-yzg-information"></view>
+    <text>{{errorMsg}}</text>
+    <navigator class="navTarget" url="../../shopping/category/category">
+      随便逛逛
+    </navigator>
+  </view>
+  <!--可用优惠券列表-->
+  <view wx:if="{{bonusListShow === 'show'}}">
+    <view class="yzg-title">
+      <!-- 左侧图标 -->
+      <view class="col-xs-2 backBtn">
+        <a bindtap="toFillContent">
+          <i class="iconfont-yzg icon-yzg-back"></i>
+        </a>
+      </view>
+      <!-- 默认title -->
+      <view class="col-xs-8 shop-name" wx:if="title">
+        <text>选择优惠券</text>
+      </view>
+      <!-- 右侧图标 -->
+      <view class="col-xs-2 shop-bag" style="padding-left: 0;">
+      </view>
+    </view>
+  </view>
+  <view class="{{bonusClass}}">
+    <view class="list">
+      <view class="list-item" wx:for="{{orderInfo.bonus_list_use}}" wx:key="*this" wx:for-item="bonus" bindtap="selectBonus" data-id="{{bonus.bonus_id}}" style="overflow: hidden;">
+        <text class="col-xs-4"><i class="moneySymbol">￥</i>{{bonus.type_money}}</text>
+        <view class="col-xs-8">
+          <view>订单满{{bonus.min_goods_amount}}元可用</view>
+          <text>有效期至{{bonus.use_end_date}}</text>
+        </view>
+      </view>
+      <view class="list-item unused" wx:for="{{orderInfo.bonus_list_not_use}}" wx:key="*this"  wx:for-item="bonus">
+        <text class="col-xs-4"><i class="moneySymbol">￥</i>{{bonus.type_money}}</text>
+        <view class="col-xs-8">
+          <view>订单满{{bonus.min_goods_amount}}元可用</view>
+          <text>有效期至{{bonus.use_end_date}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import areaPicker from '../../components/picker-city'
+  import { checkIdcard } from '../../utils'
+
+  export default class orderSubmit extends wepy.page {
+    config = {
+      navigationBarTitleText: '提交订单'
+    }
+    components = {
+      areaPicker
+    }
+    data = {
+      imgUrl: '',
+      oneBuyType: null,
+      buyType: null, // 购买类型 0：单独购买 1：参团购买
+      editAddress: false,
+      orderInfo: null, // 订单数据
+      orderSuccess: null, // 提交订单后的数据
+      addressList: [], // 地址列表
+      activityAddress: null, // 标记地址
+      pickCity: null, // 临时装载选择的地址
+      presentBonus: false,
+      titleName: '',
+      pageSwitch: 'fill',
+      bonusListShow: 'hide',  // 优惠券是否显示，init表示页面初始化，没有动画效果，不显示，show显示，hide优惠券选择完成 消失
+      bonusClass: 'bonusList bonusOriginal', // 优惠券样式
+      auction_id: null,
+      addressId: null,
+      auction_log_id: null
+    }
+    onLoad(q) {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.data.oneBuyType = q.one_step_buy ? q.one_step_buy : 0
+      this.data.buyType = q.buy_type ? q.buy_type : 0
+      this.$apply(() => {
+        this.oneBuyType = this.data.oneBuyType
+        this.buyType = this.data.buyType
+        this.bonusListShow = 'hide'
+        this.auction_id = q.auction_id
+        this.auction_log_id = q.log_id
+      })
+      // 获取订单
+      this.loadOrder()
+    }
+    events = {
+      'areaArray': (...args) => {
+        this.areaPickerArray(args[0], args[1], args[2])
+      }
+    }
+    /**
+     * 获取订单
+     */
+    loadOrder() {
+      let self = this
+      let checkParam = {
+        one_step_buy: self.data.oneBuyType,
+        buy_type: self.data.buyType,
+        auction_id: self.data.auction_id,
+        auction_log_id: self.data.auction_log_id
+      }
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/flow.php?step=checkout`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: checkParam
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          data.consignee_list.find((value, index) => {
+            // 剔除id为空的地址
+            if (value.address_id === undefined) {
+              data.consignee_list.splice(index, 1)
+            }
+            if (value.last_use === '1') {
+              // 标记地址赋值
+              self.$apply(() => {
+                self.activityAddress = value
+              })
+            }
+          })
+          // 赋值
+          self.$apply(() => {
+            self.orderInfo = data
+            self.addressList = data.consignee_list
+            self.titleName = data.title_name
+          })
+          // 设置页面标题
+          wepy.setNavigationBarTitle({ title: data.title_name })
+        } else {
+          // 展示错误
+          self.$apply(() => {
+            self.pageSwitch = 'errormsg'
+            self.errorMsg = msg
+            self.titleName = '错误提示'
+          })
+        }
+      }).catch((error) => {
+        console.log('添加订单失败', error)
+      })
+    }
+    /**
+     * 提交订单
+     */
+    submitOrder(e) {
+      let self = this
+      let sd = self.data
+      let ad = self.data.activityAddress
+      wepy.showLoading({title: '加载中'})
+      try {
+        if (!ad || sd.editAddress) {
+          // 如果最终提交的地址为空或者地址处于编辑状态
+          wepy.showModal({
+            title: '提示',
+            content: '请先保存您的收货地址',
+            showCancel: false
+          })
+        } else {
+          // 提交操作
+          let orderParam = {
+            liulanqi: 'iphone',
+            send_type: 0,
+            pcd_current_address_id: '',
+            one_step_buy: sd.oneBuyType,
+            buy_type: sd.buyType,
+            auction_id: sd.auction_id,
+            auction_log_id: sd.auction_log_id,
+            consignee_hid: ad.consignee,
+            address_hid: ad.address,
+            mobile_hid: ad.mobile,
+            pcd: ad.province_name + '-' + ad.city_name + '-' + ad.district_name,
+            country_hid: ad.country_name,
+            province_hid: ad.province_name,
+            city_hid: ad.city_name,
+            district_hid: ad.district_name,
+            idcard_hid: ad.idcard,
+            zipcode_hid: '',
+            payment: '',
+            enterprise_discount: '',
+            shipping: '4',
+            shipping_address: ad.address_id,
+            offset: sd.orderInfo.offset,
+            bonus: sd.presentBonus ? sd.presentBonus.bonus_id : ''
+          }
+          // 发送请求
+          wepy.request({
+            url: `${self.$parent.globalData.apiUrl}/flow.php?step=done`,
+            method: 'POST',
+            header: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data: orderParam
+          }).then(({data: {errcode, data, msg}}) => {
+            if (errcode === 0) {
+              // 因后台在提交订单后直接返回数据,故无法做跳转
+              self.$apply(() => {
+                self.pageSwitch = 'submitSuc'
+                self.orderSuccess = data
+                self.titleName = data.title_name
+              })
+              // 设置页面标题
+              wepy.setNavigationBarTitle({ title: data.title_name })
+            } else {
+              wepy.showModal({
+                title: '提示',
+                content: msg,
+                showCancel: false
+              })
+            }
+          }).catch((error) => {
+            console.log('提交订单失败', error)
+          })
+        }
+      } finally {
+        wepy.hideLoading()
+      }
+    }
+    /**
+     * 立即支付
+     */
+    payNow () {
+      wepy.showLoading({title: '加载中'})
+      try {
+        let self = this
+        let orderList = ''
+        // 遍历订单 获取所有订单号
+        for (var i in self.data.orderSuccess.order_all) { // 不使用过滤
+          orderList += self.data.orderSuccess.order_all[i].order.order_id + ','
+        }
+        // 去掉拼接订单字符串的最后一个逗号
+        let lastIndex = orderList.lastIndexOf(',')
+        if (lastIndex > -1) {
+          orderList = orderList.substring(0, lastIndex)
+        }
+        let payParams = {
+          str: orderList,
+          pay_id: '3'
+        }
+        // 发送请求至后台
+        wepy.request({
+          url: `${self.$parent.globalData.apiUrl}/flow.php?step=make_big`,
+          method: 'POST',
+          header: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          data: payParams
+        }).then(({data: {errcode, data, msg}}) => {
+          // console.log(data);
+          if (errcode === 0) {
+            if (data.jsApiParameters) {
+              let payJson = JSON.parse(data.jsApiParameters)
+              wepy.requestPayment({
+                timeStamp: payJson.timeStamp,
+                nonceStr: payJson.nonceStr,
+                package: payJson.package,
+                signType: payJson.signType,
+                paySign: payJson.paySign
+              }).then((res) => {
+                /*
+                 * 支付成功
+                 */
+                if (res.errMsg === 'requestPayment:ok') {
+                  if (self.data.buyType === '1') {
+                    wepy.request({
+                      url: `${self.$parent.globalData.apiUrl}/flow.php?step=success_wx_pay`,
+                      data: {
+                        did_sn: data.message
+                      }
+                    }).then(({data: {errcode, data, msg}}) => {
+                      if (errcode === 0) {
+                        wepy.showToast({
+                          type: 'success',
+                          timer: 2000,
+                          color: '#fff',
+                          text: '支付成功'
+                        }).then(() => {
+                          console.log('支付成功')
+                          // 跳转至已付款
+                          wepy.navigateTo({
+                            url: `../../user/groupInfo/groupInfo?orderSn=${self.data.orderSuccess.order_all[0].order.order_sn}&groupNo=${data.group_no}`
+                          })
+                        })
+                      } else {
+                        wepy.showModal({
+                          title: '提示',
+                          content: msg,
+                          showCancel: false
+                        })
+                      }
+                    }).catch((error) => {
+                      console.log('请求失败', error)
+                    })
+                  } else {
+                    wepy.showToast({
+                      type: 'success',
+                      timer: 2000,
+                      color: '#fff',
+                      text: '支付成功'
+                    }).then(() => {
+                      console.log('支付成功')
+                      // 跳转至已付款
+                      wepy.navigateTo({
+                        url: './orderList?orderAct=2'
+                      })
+                    })
+                  }
+                } else {
+                  wepy.showModal({
+                    title: 'jssdk支付失败',
+                    content: res.errMsg,
+                    showCancel: false
+                  })
+                  // window.location.href = 'http://union.huahuishang.com/flow.php?step=wx_pay&did_sn=' + data.message
+                }
+              }, (res) => {
+                /*
+                 * 支付失败
+                 */
+                // 取消
+                wepy.showToast({
+                  type: 'cancel',
+                  timer: 2000,
+                  color: '#fff',
+                  text: '支付失败'
+                }).then(() => {
+                  console.log('支付失败', res.errMsg)
+                })
+              }, (res) => {
+                /*
+                 * 支付完成
+                 */
+              })
+            } else {
+              wepy.showModal({
+                title: '提示',
+                content: '没有获取到支付参数',
+                showCancel: false
+              })
+            }
+          } else {
+            wepy.showModal({
+              title: '支付失败',
+              content: msg,
+              showCancel: false
+            })
+            console.error(msg)
+          }
+        }).catch((error) => {
+          console.log('请求失败', error)
+        })
+      } catch (e) {
+        wepy.showToast({
+          type: 'forbidden',
+          timer: 1500,
+          color: '#fff',
+          text: '支付异常,请刷新重试!'
+        }).then((res) => {
+          console.log('支付失败', res.errMsg)
+        })
+        console.error(e)
+      } finally {
+        wepy.hideLoading()
+      }
+    }
+    /*
+     * 重置地址数据
+     */
+    resetAddressList() {
+      let self = this
+      self.$apply(() => {
+        self.activityAddress = null
+      })
+      let list = self.data.addressList
+      for (let [index, item] of list.entries()) {
+        console.log(item, index)
+        if (item.last_use === '1') {
+          // 标记地址赋值
+          self.$apply(() => {
+            self.activityAddress = item
+          })
+        }
+      }
+      // 查找是否存在待用的新增地址
+      let _add = list.find((n) => n.address_id === '0')
+      if (!_add) {
+        // 新增地址
+        list.push({
+          address_id: '0'
+        })
+        self.$apply(() => {
+          self.addressList = list
+        })
+      }
+    }
+    /*
+     * 删除地址
+     */
+    deleteAdd(e) {
+      let id = e.currentTarget.dataset.aid
+      let index = e.currentTarget.dataset.index
+      let self = this
+      wepy.showModal({
+        title: '提示',
+        content: '确定要删除当前收货地址吗？'
+      }).then((res) => {
+        if (res.confirm) {
+          wepy.request({
+            url: `${self.$parent.globalData.apiUrl}/flow.php?step=del_address`,
+            data: {
+              address_id: id
+            }
+          }).then(({data: {errcode, data, msg}}) => {
+            if (errcode === 0) {
+              // 删除地址列表对应的对象
+              self.data.addressList.splice(index, 1)
+              self.$apply(() => {
+                self.addressList = self.data.addressList
+              })
+              wepy.showModal({
+                title: '提示',
+                content: '删除成功',
+                showCancel: false
+              })
+            } else {
+              wepy.showModal({
+                title: '提示',
+                content: msg,
+                showCancel: false
+              })
+            }
+          })
+        } else if (res.cancel) {
+          return false
+        }
+      })
+    }
+    editOn(e) {
+      this.$apply(() => {
+        this.editAddress = true
+      })
+      // 重置地址数据
+      this.resetAddressList()
+    }
+    /*
+     * 地址信息保存
+     */
+    saveNext(e) {
+      // 同步数据到标记地址
+      this.resetAddressList()
+      let self = this
+      let d = this.data.activityAddress
+      if (!d) {
+        wepy.showModal({
+          title: '提示',
+          content: '您还没有选择地址',
+          showCancel: false
+        })
+        return false
+      }
+      // 数据校验
+      let check = self.dataValid(d)
+      // 身份证校验
+      let checkIDResult = checkIdcard(d.idcard)
+      if (checkIDResult !== '1') {
+        wepy.showModal({
+          title: '提示',
+          content: checkIDResult,
+          showCancel: false
+        })
+      }
+      // 处理逻辑
+      if (check && checkIDResult === '1') {
+        let addressParam = {
+          consignee: d.consignee,
+          pcd: d.province_name + '-' + d.city_name + '-' + d.district_name, // 省市区(以-分开)
+          shipping: 4, // 配送方式,默认市内快递
+          is_pc: 1,
+          one_step_buy: self.data.oneBuyType, // 是否立即购买,默认为0
+          buy_type: self.data.buyType,
+          address: d.address,
+          mobile: d.mobile,
+          idcard: d.idcard,
+          shipping_address: d.address_id // 地址id
+        }
+        wepy.request({
+          url: `${self.$parent.globalData.apiUrl}/flow.php?step=change_address`,
+          method: 'POST',
+          header: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          data: addressParam
+        }).then(({data: {errcode, data, msg}}) => {
+          if (errcode === 0) {
+            // 地址修改之后替换订单信息中的total和order_price
+            self.data.orderInfo.total = data.total
+            self.data.orderInfo.order_price = data.total.amount_formated
+            // 变更编辑状态和订单数据
+            self.$apply(() => {
+              self.editAddress = false
+              self.orderInfo = self.data.orderInfo
+            })
+          } else {
+            // 展示错误
+            wepy.showModal({
+              title: '提示',
+              content: msg,
+              showCancel: false
+            })
+          }
+        }).catch((error) => {
+          console.log('请求失败', error)
+        })
+      }
+    }
+    /**
+     * 地址选择
+     */
+    openAddressPicker(e) {
+      this.addressId = e.currentTarget.dataset.aid
+      this.$apply()
+      this.$invoke('areaPicker', 'openAddressPicker')
+    }
+    areaPickerArray(province, city, area) {
+      let self = this
+      let tempList = self.data.addressList
+      for (let [index, item] of tempList.entries()) {
+        console.log('避免报错', index)
+        if (item.address_id === self.data.addressId) {
+          // 地址赋值
+          item.province_name = province.name
+          item.city_name = city.name
+          item.district_name = area.name
+          item.region = '中国' + '-' + province.name + '-' + city.name + '-' + area.name
+          self.$apply(() => {
+            self.addressList = tempList
+          })
+        }
+      }
+    }
+    /*
+     * 地址单选
+     */
+    addressChange(e) {
+      let aid = e.detail.value
+      let list = this.data.addressList
+      for (let i in list) {
+        if (list[i].address_id === aid) {
+          list[i].last_use = '1'
+        } else {
+          list[i].last_use = '2'
+        }
+      }
+      this.$apply(() => {
+        this.addressList = list
+      })
+      // 重置地址数据
+      this.resetAddressList()
+    }
+    /*
+     * 地址填写验证
+     */
+    dataValid (d) {
+      if (!d.consignee || !d.region || !d.address || !d.mobile || !d.idcard) {
+        wepy.showModal({
+          title: '提示',
+          content: '请填写完整收货信息',
+          showCancel: false
+        })
+        return false
+      }
+      if (!(/^1[3456789]\d{9}$/.test(d.mobile))) {
+        wepy.showModal({
+          title: '提示',
+          content: '手机号码填写不正确',
+          showCancel: false
+        })
+        return false
+      }
+      return true
+    }
+    /* 选择切换优惠券 */
+    selectBonus (e) {
+      let self = this
+      let bonusId = e.currentTarget.dataset.id
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/flow.php`,
+        data: {
+          step: 'change_bonus',
+          bonus: bonusId,
+          offset: self.data.orderInfo.offset,
+          one_step_buy: self.data.oneBuyType
+        }
+      }).then(({data: { total, error, content }}) => {
+        self.data.orderInfo.order_price = total.amount_formated // 地址修改之后使用amount_formated字段
+        if (error !== '-1') {
+          self.$apply(() => {
+            self.bonusListShow = 'hide'
+            self.orderInfo = self.data.orderInfo
+            self.presentBonus = total
+          })
+          self.getBonusIsShow()
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: content,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /* 判断优惠券列表是否显示 */
+    getBonusIsShow () {
+      let bonusClass
+      switch (this.data.bonusListShow) {
+        case 'hide':
+          bonusClass = 'bonusList bonusListAniRight'
+          break
+        case 'show':
+          bonusClass = 'bonusList bonusListAniLeft'
+          break
+        default:
+          bonusClass = 'bonusList bonusOriginal'
+          break
+      }
+      this.$apply(() => {
+        this.bonusClass = bonusClass
+      })
+    }
+    // 展示用户拥有的优惠券
+    toBonusList () {
+      this.$apply(() => {
+        this.bonusListShow = 'show'
+      })
+      this.getBonusIsShow()
+    }
+    // 返回填写订单内容
+    toFillContent () {
+      this.$apply(() => {
+        this.bonusListShow = 'hide'
+      })
+      this.getBonusIsShow()
+    }
+    methods = {
+      /*
+       * input值变更
+       */
+      addressInput(e) {
+        let val = e.detail.value
+        let index = e.currentTarget.dataset.index
+        let key = e.currentTarget.dataset.key
+        this.data.addressList[index][key] = val
+        this.$apply(() => {
+          this.addressList = this.data.addressList
+        })
+      }
+    }
+  }
+</script>
+
+<style lang="less">
+.orderSubmit {
+  font-size: 14px;
+  font-family: '微软雅黑';
+  color: #333;
+  padding-bottom: 50px;
+}
+
+.showAddress {
+  position: relative;
+}
+
+.titleInfor {
+  padding: 2px 10px 0 20px;
+  display: block;
+  height: 34px;
+  line-height: 34px;
+  border-bottom: 1px solid #eee;
+}
+
+.editBtn {
+  position: absolute;
+  right: 20px;
+  top: 34px;
+}
+
+.addressFill, .goodsShow, .orderPrice {
+  background: #fff;
+  margin: 10px auto;
+}
+
+.editBtn image {
+  width: 20px;
+  height: 20px;
+}
+
+.showAddress text {
+  display: block;
+  padding: 8px 10px 0 20px;
+}
+
+.goodsShow {
+  overflow: hidden;
+}
+
+.imgPrice {
+  position: relative;
+  padding: 0 0 10px 110px;
+  margin: 10px 0 10px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.goodsShow image {
+  width: 80px;
+  height: 80px;
+  position: absolute;
+  left: 20px;
+  border: 1px solid #eee;
+}
+
+.goodsShow .goodsName {
+  vertical-align: middle;
+  height: 56px;
+}
+
+.goodsShow .goodsNumber {
+  height: 24px;
+}
+
+.goodsName text {
+  font-size: 14px;
+}
+
+.showBottom {
+  text-align: right;
+  padding-top: 10px;
+}
+
+.orderPrice view {
+  text-align: right;
+  color: #777;
+  padding: 0 14px 8px 0;
+}
+
+.addressAlter {
+  padding-top: 10px;
+}
+
+.addressAlter text {
+  display: inline-block;
+  height: 20px;
+  line-height: 20px;
+  padding-right: 5px;
+}
+
+.addressAlter input {
+  z-index: 0;
+  display: inline-block;
+  font-family: '微软雅黑';
+  height: 10px;
+  line-height: 10px;
+  color: #333;
+  overflow: inherit;
+  padding: 3px 0 0 3px;
+  width: 220px;
+}
+
+.listStyle {
+  padding-top: 10px;
+}
+
+.listStyle label{
+  padding-left: 20px;
+}
+
+.saveAdd {
+  width: 150px;
+  height: 38px;
+  line-height: 38px;
+  border-radius: 6px;
+  font-size: 14px;
+  display:inline-block;
+  margin:20px 0 0 20px;
+}
+
+.goodsQuantity {
+  color: #aaa;
+  position: absolute;
+  right: 0.8547rem;
+}
+
+.addNewPng {
+  text-align: center;
+}
+
+.addNewPng image {
+  width: 40px;
+  height: 40px;
+  margin-top: 10px;
+}
+
+.addNewPng text {
+  color: #333;
+  font-size: 0.598rem;
+  font-weight: bold;
+  font-family: '微软雅黑';
+  padding-bottom: 0.5rem
+}
+
+.payment view {
+  margin: 0;
+  height: 34px;
+  line-height: 40px;
+}
+
+.payment ul li {
+  height: 34px;
+  line-height: 40px;
+}
+
+.selectSign {
+  font-size: 20px;
+  color: #2ecc71;
+  position: absolute;
+  right: 15px;
+  top: 0
+}
+
+.totalMoney span {
+  color: #ed3366;
+}
+
+.errWarning {
+  margin: 60px auto 20px;
+  background: #fefcf0;
+  padding: 40px 0 50px 0;
+  border: 1px dotted #f5beb3;
+  border-radius: 10px;
+  text-align: center;
+  color: #ed3366;
+}
+
+.errWarning text {
+  font-size: 20px;
+  margin-top: 10px;
+}
+
+.errWarning .icon-yzg-information {
+  font-size: 40px;
+}
+
+.navTarget {
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-top: 15px;
+  color: #ed3366;
+}
+
+.orderDetail {
+  background: #fff;
+  margin: 10px auto;
+  padding: 10px;
+  font-size: 28rpx;
+  line-height: 1.8;
+}
+
+.orderDetail text {
+  padding: 4px 0;
+  display: block;
+}
+
+.totalMoney {
+  background: #fff;
+  padding: 10px;
+}
+
+.seeInfor {
+  color: #e38;
+}
+
+.receiverInfor {
+  position: relative;
+  text-align: left;
+  margin-top: 15px;
+  background: url('http://wxassets.xf66.com/icon_shoppingcat_mailer.png') no-repeat top center #fff;
+  padding: 0 0 20px 0;
+}
+
+.receiverInfor:after {
+  position: absolute;
+  content: "";
+  background: url('http://wxassets.xf66.com/icon_shoppingcat_mailer.png') no-repeat bottom center;
+  height: 4px;
+  width: 100%;
+  bottom: 1px;
+  left: 0
+}
+
+.title_p {
+  border-bottom: 1px solid #eee;
+  color: #3a3a3a;
+  padding-left: 10px
+}
+
+.orderSubmitSub {
+  position: fixed;
+  max-width: 640px;
+  min-width: 320px;
+  width: 100%;
+  bottom: 0;
+  padding: 0;
+  height: 100rpx;
+  background: #fff;
+  text-align: left;
+  line-height: 100rpx;
+  font-size: 14px;
+  border-top: 1px solid #f8f8f8
+}
+
+.orderSubmitSub input {
+  position: absolute;
+  right: 0;
+  width: 234rpx;
+  height: 100rpx;
+  line-height: 100rpx;
+  bottom: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.couponUse {
+  background: #fff;
+  padding: 15px;
+  margin: 10px auto;
+  position: relative;
+  padding: 0.5rem !important
+}
+
+.couponUse>text {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.5rem
+}
+
+/* 优惠券 */
+
+.bonusList {
+  box-sizing: border-box;
+  padding: 30rpx 30rpx 70rpx;
+  position: fixed;
+  width: 100%;
+  top: 30px;
+  height: 100%;
+  overflow: hidden;
+  background: #e5e8f1;
+}
+
+.bonusList .list {
+  overflow: hidden;
+}
+
+.bonusList .list .list-item {
+  background: url(http://wxassets.xf66.com/usingCoupon.png);
+  background-size: 100%;
+  color: #c8975c;
+  margin: 5px 0;
+}
+
+.bonusList .list .list-item.unused {
+  background: url(http://wxassets.xf66.com/unusedCoupon.png);
+  color: #999
+}
+
+.bonusList .unused .col-xs-4:before {
+  background: #999
+}
+
+.bonusList .col-xs-4 {
+  box-sizing: border-box;
+  font-size: 72rpx;
+  padding-left: 56rpx;
+  padding-top: 28rpx;
+  position: relative;
+  width: 42%;
+}
+
+.bonusList .col-xs-4:before {
+  position: absolute;
+  content: '';
+  width: 1px;
+  height: 86%;
+  background: #c8975c;
+  top: 24rpx;
+  right: 0
+}
+
+.moneySymbol {
+  font-size: 28rpx;
+  font-style: normal;
+}
+
+.bonusList .col-xs-8 {
+  box-sizing: border-box;
+  text-align: right;
+  padding: 36rpx 56rpx 36rpx 36rpx;
+  width: 58%;
+}
+
+.bonusList .col-xs-8 view {
+  font-size: 28rpx;
+}
+
+.bonusList .col-xs-8 text {
+  font-size: 24rpx;
+  padding-top: 12rpx;
+  display: block;
+  opacity: 0.7
+}
+
+/* 动画 */
+
+.bonusListAniLeft {
+  transition: left 0.3s;
+  left: 0;
+}
+
+.bonusListAniRight {
+  transition: left 0.3s;
+  left: 100%;
+}
+
+.bonusOriginal {
+  left: 100%;
+}
+
+.shop-name {
+  padding: 0;
+  overflow: hidden;
+  height: 40px;
+}
+
+.yzg-title .backBtn .icon-yzg-back {
+  padding-left: 15px;
+}
+
+.shop-bag .icon-yzg-goods {
+  float: right;
+  padding-right: 20px;
+}
+
+.addressInfo {
+  margin-left: 36px;
+  font-size: 14px;
+  height: 50px;
+  line-height: 50px;
+  border-bottom: 1px solid #eee;
+}
+
+.addressTitle {
+  padding-left: 20px;
+}
+
+.addressTitle text{
+  padding-left: 10px;
+  width: auto;
+}
+/* 重定义滑动样式 */
+.wux-picker .wux-picker-view-column{
+  color: #333;
+}
+.button-sp-area{
+  width:100%;
+  position: fixed;
+  left:0;
+  bottom:0;
+  border-radius: 0;
+}
+</style>

@@ -1,0 +1,26 @@
+<template>
+  <web-view wx:if="{{invoice}}" src="https://m.kuaidi100.com/result.jsp?nu={{invoice}}"></web-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class kuaidi100 extends wepy.page {
+    config = {
+      navigationBarTitleText: '快递'
+    }
+    data = {
+      invoice: null
+    }
+    onLoad(q) {
+      console.log(11, q)
+      this.$apply(() => {
+        this.invoice = q.invoice || 'https://huahuishang.com'
+      })
+      if (!wepy.canIUse('web-view')) {
+        wepy.switchTab({
+          url: `../shopping/index/index`
+        })
+      }
+    }
+  }
+</script>

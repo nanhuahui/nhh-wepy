@@ -54,6 +54,9 @@ export default class extends wepy.app {
       'pages/user/addressList',
       'pages/user/newAddress',
       'pages/order/orderList',
+      'pages/order/orderInfo',
+      'pages/order/orderSubmit',
+      'pages/order/kuaidi100',
       'pages/uploadGoods/uploadGood',
       'pages/uploadGoods/goodList',
       'pages/uploadGoods/uploadBanner',
@@ -231,6 +234,39 @@ export default class extends wepy.app {
 
   onHide() {
     wepy.removeStorageSync('closeMsg')
+  }
+
+  /**
+   * 封装请求购物车商品数量
+   */
+  getCartNum() {
+    let self = this
+    // 首次进入页面，tabBar显示小圆点
+    wepy.request({
+      url: `${self.globalData.apiUrl}/flow.php`
+    }).then(({ data: { errcode, data, msg } }) => {
+      if (errcode === 0) {
+        // 正常返回
+        let cartNum = data.total.real_goods_count
+        // cartNum需要转化成字符串
+        let cartNumStr = cartNum.toString()
+        wepy.setTabBarBadge({
+          index: 1,
+          text: cartNumStr
+        })
+        // cartNum为零时隐藏tabBar小圆点
+        if (!cartNum) {
+          wepy.hideTabBarRedDot({
+            index: 1
+          })
+        }
+      } else {
+        // 接口返回错误
+        console.error(errcode, msg, data)
+      }
+    }).catch((error) => {
+      console.log('获得购物车商品数量异常', error)
+    })
   }
 
   /**

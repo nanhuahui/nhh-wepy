@@ -169,7 +169,7 @@
      */
     checkoutCart() {
       wepy.request({
-        url: `${self.$parent.globalData.apiUrl}/flow.php`,
+        url: `${this.$parent.globalData.apiUrl}/flow.php`,
         data: {
           step: 'checkout',
           code: 1

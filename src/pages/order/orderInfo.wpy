@@ -1,0 +1,471 @@
+<template>
+  <scroll-view scroll-y="true" height="100%" wx:if="{{orderDet.order}}">
+    <view class="deliveryState">
+      <view class="h1 c11">{{orderDet.order.shipping_time ? '卖家已发货' : orderDet.order.pay_time ? '等待卖家发货' : '未付款'}}</view>
+    </view>
+    <view class="mainDet">
+      <view class="shopDet">
+        <view class="h3 c3 list">
+          <view class="list-item o_consigneeName">
+            收货人姓名：{{orderDet.order.consignee}}
+            <text>{{orderDet.order.mobile}}</text>
+          </view>
+          <view class="list-item">
+            身份证号：{{orderDet.order.idcard}}
+          </view>
+          <view class="list-item">
+            详细地址：{{orderDet.order.address}}
+          </view>
+        </view>
+      </view>
+      <!-- 商品详情 -->
+      <view class="shopDet" style="padding:0" wx:if="{{orderDet.goods_list.length>0}}">
+        <view class="table">
+          <view class="table-tr" wx:for="{{orderDet.goods_list}}" wx:key="item.upc_id">
+            <view class="table-td">
+              <image src="{{item.img_url?item.img_url:imgUrl+'/no_picture.jpg'}}" mode="widthFix"></image>
+            </view>
+            <view class="table-td">
+              <view class="g_name">{{item.goods_name}}</view>
+              <text class="g_number">数量:{{item.goods_number}}</text>
+              <text class="g_price">{{item.goods_price}}</text>
+            </view>
+            <view class="table-td eval" wx:if="{{orderType === 0 && orderDet.order.shipping_status === '已发货'}}"
+              bindtap="evaluate" data-upc-id="{{item.upc_id}}" data-gid="{{item.goods_id}}">
+              <text>评价</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="shopDet">
+        <view class="h5 c2 list">
+          <view class="list-item">
+            订单编号：{{orderDet.order.order_sn}}
+          </view>
+          <view class="list-item" wx:if="{{orderType===0}}">
+            下单时间：{{orderDet.order.formated_add_time}}
+          </view>
+          <view class="list-item" wx:else>
+            下单时间：{{orderDet.order.add_time}}
+          </view>
+          <view class="list-item">
+            付款时间：{{orderDet.order.pay_time===0 ? '未付款' : orderDet.order.pay_time}}
+          </view>
+          <view class="list-item">
+            发货时间：{{orderDet.order.shipping_time===0 ? '未发货' : orderDet.order.shipping_time}}
+          </view>
+          <view class="list-item">
+            订单状态：<text>{{orderDet.order.order_status}}</text>
+          </view>
+        </view>
+      </view>
+      <!-- 物流详情 -->
+      <view class="shopDet" wx:if="{{orderDet.order.shipping_time}}">
+        <view class="h5 c2 list">
+          <!-- 购买订单详情 -->
+          <view class="list-item" wx:if="{{orderDet.invoice_arr}}"
+            wx:for="{{orderDet.invoice_arr}}" wx:for-item="i" wx:key="*this">
+            <text>
+              <text style="padding-right: 8px;">{{i.shipping_name}}</text>
+              <text>{{i.invoice_no}}</text>
+            </text>
+            <navigator style="color:#C00;border:0px;" url="../order/kuaidi100?invoice={{i.invoice_no}}">
+              【物流查询】
+            </navigator>
+          </view>
+          <!-- 销售订单详情 -->
+          <view class="list-item" wx:if="{{orderDet.invoice_no}}">
+            <text>{{orderDet.invoice_no}}</text>
+            <navigator style="color:#C00;border:0px;" url="../order/kuaidi100?invoice={{orderDet.invoice_no}}">
+              【物流查询】
+            </navigator>
+          </view>
+        </view>
+      </view>
+      <!-- 支付方式 -->
+      <view class="shopDet" wx:if="{{orderType===0 && orderDet.order}}">
+        <view class="h5 c2 list">
+          <view class="list-item">支付方式：{{orderDet.order.pay_name}}</view>
+          <view class="list-item">商品总价：{{orderDet.order.formated_goods_amount}}</view>
+          <view class="list-item" wx:if="{{orderDet.order.offset>0}}">抵佣金抵扣：-{{orderDet.order.offset}}</view>
+          <view class="list-item" wx:if="{{orderDet.order.bonus>0}}">优惠券抵扣：-{{orderDet.order.bonus}}</view>
+          <view class="list-item" wx:if="{{orderDet.order.auction_deposit>0}}">保证金：-￥{{orderDet.order.auction_deposit}}</view>
+          <view class="list-item">应付金额：{{orderDet.order.formated_order_amount}}</view>
+        </view>
+      </view>
+    </view>
+    <!-- 订单操作 -->
+    <view class="bottomCon">
+      <a class="h3 c11" bindtap="doWechatPay" wx:if="{{orderDet.order.pay_status === '未付款' && orderDet.order.order_status !== '已取消'}}">
+        立即支付
+      </a>
+      <a class="h3 c11" bindtap="promptDelivery" wx:if="{{orderDet.is_show_shipping_prompt === 1}}">
+        提醒发货
+      </a>
+      <a class="h3 c11" bindtap="switchWxCode" wx:if="{{orderDet.is_show_refund === 1}}">
+        申请退款
+      </a>
+      <a class="h3 c11" bindtap="switchWxCode" wx:elif="{{orderDet.is_show_return === 1}}">
+        申请退货
+      </a>
+      <a class="h3 c11" bindtap="cancelOrder" wx:elif="{{orderDet.order.pay_status === '已付款' && orderDet.order.shipping_time === 0 && orderDet.order.order_status !== '已取消，待返款'}}">
+        取消订单
+      </a>
+    </view>
+    <!-- 显示联系店主微信二维码 -->
+    <view class="contactShop" wx:if="{{showWxCode}}">
+      <view class="contactBg" bindtap="switchWxCode"></view>
+      <image src="{{orderDet.qrcode_img?orderDet.qrcode_img:imgUrl+'/no_picture.jpg'}}" mode="widthFix" bindtap="previewImage" data-src="{{orderDet.qrcode_img?orderDet.qrcode_img:imgUrl+'/no_picture.jpg'}}"></image>
+    </view>
+  </scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class orderInfo extends wepy.page {
+    config = {
+      navigationBarTitleText: '订单详情'
+    }
+    data = {
+      orderDet: null,
+      order_status: null,
+      imgUrl: null,
+      id: null, // 订单id
+      orderType: 0, // 订单类型:0->普通订单;1->销售订单
+      showWxCode: false // 是否展示店主微信二维码
+    }
+    onLoad(q) {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.$apply(() => {
+        this.id = q.id || decodeURIComponent(q.scene)
+        this.orderType = parseFloat(q.type) || 0
+      })
+      this.loadOrder()
+    }
+    /**
+     * 获取订单信息
+     */
+    loadOrder() {
+      wepy.showLoading({title: '加载中'})
+      let self = this
+      // 判断加载接口  /user.php?act=order_detail为买家订单详情  order_info_union.php 为卖家订单详情
+      let url = self.data.orderType === 0 ? '/user.php?act=order_detail' : '/order_info_union.php'
+      // 请求数据
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}${url}`,
+        data: {
+          order_id: self.data.id
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.orderDet = data
+            self.order_status = data.order.order_status
+          })
+          wepy.hideLoading()
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * 发起微信支付
+     */
+    doWechatPay() {
+      let self = this
+      // 发送请求
+      let postData = {
+        str: self.data.id, // 订单order_id：多个订单之间用','隔开
+        pay_id: '3' // 支付方式
+      }
+      wepy.showLoading({title: '加载中'})
+      try {
+        // 发送请求至后台
+        wepy.request({
+          url: `${self.$parent.globalData.apiUrl}/flow.php?step=make_big`,
+          method: 'POST',
+          header: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          data: postData
+        }).then(({data: {errcode, data, msg}}) => {
+            // console.log(data);
+          if (errcode === 0) {
+            if (data.jsApiParameters) {
+              let payJson = JSON.parse(data.jsApiParameters)
+              wepy.requestPayment({
+                timeStamp: payJson.timeStamp,
+                nonceStr: payJson.nonceStr,
+                package: payJson.package,
+                signType: payJson.signType,
+                paySign: payJson.paySign
+              }).then((res) => {
+                /*
+                 * 支付成功
+                 */
+                console.log('支付成功结果', res)
+                if (res.errMsg === 'requestPayment:ok') {
+                  wepy.showToast({
+                    type: 'success',
+                    timer: 2000,
+                    color: '#fff',
+                    text: '支付成功',
+                    success: () => {
+                      console.log('支付成功')
+                      // 跳转至已付款
+                      wepy.navigateTo({
+                        url: './orderList?orderAct=2'
+                      })
+                    }
+                  })
+                } else {
+                  // 跳转到php去支付
+                  wepy.showModal({
+                    title: 'jssdk支付失败',
+                    content: res.errMsg,
+                    showCancel: false
+                  })
+                }
+              }, (res) => {
+                /*
+                 * 支付失败
+                 */
+                console.log('支付失败结果', res)
+                // 取消
+                wepy.show({
+                  type: 'cancel', // text为纯文本
+                  timer: 2000,
+                  color: '#fff',
+                  text: '支付失败',
+                  success: () => console.log('支付失败', res.errMsg)
+                })
+              }, (res) => {
+                /*
+                 * 支付完成
+                 */
+                console.log('支付完成结果', res)
+              })
+            } else {
+              // $wuxDialog.alert({title: '提示', content: '没有获取到支付参数', onConfirm(e) {}})
+            }
+          } else {
+            wepy.showModal({
+              title: '提示',
+              content: msg,
+              showCancel: false
+            })
+            console.error(msg)
+          }
+        })
+      } finally {
+        wepy.hideLoading()
+      }
+    }
+    /**
+     * [promptDelivery 提醒发货]
+     */
+    promptDelivery(e) {
+      let postData = {
+        act: 'shipping_prompt',
+        order_id: this.data.id
+      }
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/order/order.php`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: postData
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          wepy.showModal({
+            title: '提示',
+            content: '已成功提醒卖家发货',
+            showCancel: false
+          })
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+          console.error(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * 跳转评价页面
+     */
+    evaluate(e) {
+      let self = this
+      let gid = e.currentTarget.dataset.gid
+      let upcId = e.currentTarget.dataset.upcId
+      wepy.navigateTo({url: `../commentGoods?oid=${self.data.id}&upcId=${upcId}&gid=${gid}`})
+    }
+    cancelOrder() {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/order_list_operate.php`,
+        data: {
+          act: 'cancel',
+          order_id: self.data.id
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          console.log(data)
+          wepy.showToast({
+            title: '取消订单成功',
+            icon: 'success',
+            duration: 1000
+          })
+          self.$apply(() => {
+            self.order_status = '已取消，待返款'
+          })
+          setTimeout(function() {
+            wepy.navigateTo({url: './orderList?orderAct=order_all'})
+          }, 1500)
+        } else {
+          self.alertDialog('提示', msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    switchWxCode() {
+      this.$apply(() => {
+        this.showWxCode = !this.data.showWxCode
+      })
+    }
+    alertDialog(title, content) {
+      wepy.showModal({
+        title: title,
+        content: content,
+        showCancel: false
+      })
+    }
+    previewImage(e) {
+      let imgSrc = e.currentTarget.dataset.src
+      wepy.previewImage({
+        current: imgSrc, // 当前显示图片的http链接
+        urls: imgSrc.split(',') // 需要预览的图片http链接列表,必须是数组
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.mainDet {
+  margin-bottom: 100rpx;
+}
+
+.shopDet {
+  background: #fff;
+  padding: 24rpx; margin-top: 10rpx;
+}
+
+.title_p{
+  background: #fff;
+  height: 40px;
+  line-height: 40px;
+  padding: 0 10px;
+  border-bottom: 1px solid #eee;
+  color: #999;
+  margin-top:10px;
+}
+
+.shopDet .list {
+  margin: 0;
+}
+
+.shopDet .list .list-item {
+  line-height: 1.9;
+}
+
+.shopDet .table {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.shopDet .table .table-tr .table-td {
+  padding:8px;
+  vertical-align: top;
+  font-size: 14px;
+  height: 80px;
+  overflow: hidden;
+}
+
+.shopDet .table .table-tr .table-td image {
+  width: 100%;
+  height: auto; background-size: cover;
+}
+
+.shopDet .table .table-tr .table-td:first-child {
+  width: 80px;
+}
+
+.shopDet .table .table-tr .table-td .g_name {
+  height: 18px;
+  overflow: hidden;
+}
+
+/*.shopDet table tr td .gd_name {
+  height: 34px;
+  overflow: hidden;
+}*/
+
+.shopDet .table .table-tr .table-td .g_number {
+  color:#999;
+  font-size:12px;
+}
+
+.shopDet .table .table-tr .table-td .g_price {
+  display: block;
+  margin-top: 12px
+}
+
+.shopDet .table .table-tr .eval {
+  width: 60px;
+  text-align: left;
+  vertical-align: middle;
+  font-size:12px; padding:0;
+}
+.shopDet .table .table-tr .eval text {
+  padding: 5px 8px;
+  color: #d6244f;
+  border: 1px solid #d6244f;
+  border-radius: 4px;
+}
+
+.shopDet navigator,
+.shopDet navigator:hover {
+  display: inline;
+  padding: 5px 8px;
+  color: #d6244f;
+  border: 1px solid #d6244f;
+  border-radius: 4px;
+}
+
+.button-sp-area {
+  margin-top: 20px; padding:20px;
+}
+.bottomCon{background: #fff; line-height: 90rpx; position: fixed; width: 100%; bottom: 0;}
+.bottomCon a{float: right; width:140rpx; margin: 15rpx 5px 15rpx 0; text-align: center; background: #333; height: 60rpx; line-height: 60rpx;}
+.contactBg{ background: rgba(0,0,0,.6); width: 100%; height: 100%;}
+.contactShop{position: fixed; width: 100%; height: 100%; left: 0; top: 0; z-index: 100}
+.contactShop image{position: absolute; left: 0; right: 0; top: 0; bottom: 0; margin: auto; width: 70%}
+/*新版订单详情*/
+.deliveryState {box-sizing: border-box;background: url(http://wxassets.xf66.com/storeGoods/yifahuo.png) no-repeat; background-size: 100%; padding-left: 92rpx; padding:66rpx 0 30rpx 92rpx; margin:0px -15px 0; height: 184rpx;}
+.Unprocessed { background: url(http://wxassets.xf66.com/storeGoods/daifahuo.png) no-repeat; background-size: 100%}
+.deliveryState view{line-height: 1.4}
+.o_consigneeName{position: relative;}
+.o_consigneeName text{position: absolute; top: 0; right: 0}
+
+</style>
