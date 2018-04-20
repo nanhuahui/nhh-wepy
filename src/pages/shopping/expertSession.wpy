@@ -1,0 +1,131 @@
+<template>
+<!--  专场活动 -->
+<view class="weui-flex panic-buying_activity">
+  <view style="flex: 1;position: relative;">
+    <view class="scrollView">
+      <scroll-view class="goods-lists" style="height: 100%;" scroll-y="true" bindscrolltolower="loadMore" bindscroll="scroll">
+        <navigator class="goods-banner_pic" url="javascript:void(0)">
+          <image src="{{expert ? (imgDomain + expert.banner) : (imgUrl + '/no_picture.jpg')}}" mode="widthFix" style="width: 100%;"></image>
+        </navigator>
+        <view style="overflow: hidden;">
+          <navigator class="sub-goods_list" wx:for="{{goodsList}}" wx:for-item="g" wx:key="{{g.upc_id}}" url="./goods?gid={{g.upc_id}}">
+            <view class="goods-img">
+              <image src="{{imgDomain + g.master_img}}" mode="widthFix"></image>
+              <!-- <view class="vedio_icon" wx:if="{{g.video}}">
+                <image src='{{imgUrl}}/vedio_icon.png' mode="widthFix" style="width: 39px;"></image>
+              </view> -->
+            </view>
+            <view class="goods-brief">{{g.goods_brief}}</view>
+            <view class="goods-title">{{g.goods_name}}</view>
+            <view class="goods-price">
+              ¥{{g.shop_price}}
+              <text class="goods-price_origin">¥{{g.market_price}}</text>
+            </view>
+          </navigator>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class expertSession extends wepy.page {
+    config = {
+      navigationBarTitleText: ''
+    }
+    components = {}
+    data = {
+      imgUrl: '',
+      expertId: null,
+      goodsList: [],
+      expert: {},
+      scrollTop: 0,
+      pageNum: 0,
+      imgDomain: null,
+      titleName: null
+    }
+    onLoad(q) {
+      this.$apply(() => {
+        this.imgUrl = this.$parent.globalData.imgUrl
+        this.expertId = q.expertId
+      })
+      this.loadMore()
+    }
+    onShow() {}
+    // 查看更多
+    loadMore() {
+    let self = this
+      if (self.data.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.data.pageNum + 1
+      self.setData({
+        pageNum: num,
+        hidden: false
+      })
+      console.log('当前加载页码:' + self.data.pageNum)
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/expert_goods.php?act=horizontal`,
+        data: {
+          expert_id: self.data.expertId,
+          page: self.data.pageNum
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          console.log('查询结果为:', data)
+          if (data.expert_goods.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+              self.hidden = true
+            })
+            return
+          }
+          // 数据组装
+          let list = self.data.goodsList
+          for (var i = 0; i < data.expert_goods.length; i++) {
+            list.push(data.expert_goods[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.goodsList = list
+            self.imgDomain = data.img_domain
+            self.titleName = data.expert.expert_name
+            self.expert = data.expert
+            self.hidden = true
+          })
+          wepy.setNavigationBarTitle({ title: self.titleName })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    scroll(event) {
+      // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+      this.$apply(() => {
+        this.scrollTop = event.detail.scrollTop
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+@import '../../assets/styles/store.wxss';
+
+.panic-buying_activity {
+  width: 100%;height:100%; flex-direction: column;position: fixed;top:0;left:0;margin-top: 0;
+}
+.panic-buying_activity .goods-banner_pic {
+  margin-bottom: -7px;
+}
+.scrollView {
+  position: absolute;top:2px;bottom: 2px;width:100%;height: auto;
+}
+</style>
