@@ -34,8 +34,8 @@
 
 <script>
 import wepy from 'wepy'
-import composeData from '../../../utils/data'
-import qrPatchLayer from '../../../components/qrPatch-layer'
+import composeData from '@/utils/data'
+import qrPatchLayer from '@/components/qrPatch-layer'
 import header from './components/index-header'
 import swiper from './components/index-swiper'
 import category from './components/index-category'
@@ -45,6 +45,7 @@ import recommendSale from './components/recommend-sale'
 import specialSale from './components/special-sale'
 import coustomerGoods from './components/coustomer-goods'
 import floorGoods from './components/floor-goods'
+import { getCategory, getStoreIndex, getRecommend, getDistribution } from '@/utils/api'
 
 export default class Index extends wepy.page {
   config = {
@@ -195,9 +196,7 @@ export default class Index extends wepy.page {
     self.shopLinkParam = wepy.getStorageSync('sellerId') ? `?s=${wepy.getStorageSync('sellerId')}` : ''
     self.$apply()
     // 获取分类菜单
-    wepy.request({
-      url: `${self.$parent.globalData.apiUrl}/get_category.php`
-    }).then(({data: {errcode, data, msg}}) => {
+    getCategory().then(({data: {errcode, data, msg}}) => {
       // console.log('分类菜单', errcode, data, msg)
       let self = this
       if (errcode === 0) {
@@ -216,11 +215,8 @@ export default class Index extends wepy.page {
       console.log('获取分类菜单失败！', error)
     })
     // 获取首页数据
-    wepy.request({
-      url: `${self.$parent.globalData.apiUrl}/store_index.php`,
-      data: {
-        uid: wepy.getStorageSync('sellerId')
-      }
+    getStoreIndex({
+      uid: wepy.getStorageSync('sellerId')
     }).then(({data: {errcode, data, msg}}) => {
       if (errcode === 0) {
         // 转换链接地址
@@ -273,9 +269,7 @@ export default class Index extends wepy.page {
       console.log('获取首页数据失败！', error)
     })
     // 消费商专区
-    wepy.request({
-      url: `${self.$parent.globalData.apiUrl}/distribution.php?act=banner`
-    }).then(({data: {errcode, data, msg}}) => {
+    getDistribution().then(({data: {errcode, data, msg}}) => {
       if (errcode === 0) {
         self.sevenActive = data
         self.$apply()
@@ -289,14 +283,9 @@ export default class Index extends wepy.page {
   // 个性推荐
   loadRecommend() {
     let self = this
-    wepy.request({
-      url: `${self.$parent.globalData.apiUrl}/store_index.php?step=get_category_goods`,
-      method: 'POST',
-      header: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      data: {
-        rec_cat_id: self.data.catId,
-        page: self.data.pageNum
-      }
+    getRecommend({
+      rec_cat_id: self.data.catId,
+      page: self.data.pageNum
     }).then(({data: {errcode, data, msg}}) => {
       // console.log('个性推荐', errcode, data, msg)
       if (errcode === 0) {

@@ -4,9 +4,41 @@ import {API_URL} from './config'
 /* 统一封装 */
 function request(config) {
   if (!wepy.getStorageSync('sessId')) {
-    login()
+    doWxLogin()
   }
   return wepy.request(config)
+}
+
+// 获取分类菜单
+export function getCategory(id) {
+  return request({
+    url: `${API_URL}/get_category.php`
+  })
+}
+
+// 获取首页数据
+export function getStoreIndex(data) {
+  return request({
+    url: `${API_URL}/store_index.php`,
+    data
+  })
+}
+
+// 获取个性推荐
+export function getRecommend(data) {
+  return request({
+    method: 'POST',
+    header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    url: `${API_URL}/store_index.php?step=get_category_goods`,
+    data
+  })
+}
+
+// 获取消费商专区
+export function getDistribution(id) {
+  return request({
+    url: `${API_URL}/distribution.php?act=banner`
+  })
 }
 
 // 获取商品详情
@@ -36,7 +68,7 @@ export function addCart(data) {
     method: 'POST',
     header: { 'Content-Type': 'application/x-www-form-urlencoded' },
     url: `${API_URL}/flow.php?step=add_to_cart`,
-    data: data
+    data
   })
 }
 
@@ -48,11 +80,8 @@ export function conversionGoodsVideo(vid) {
 
 /* 设置店铺名称和店主头像至缓存 */
 export async function setSellerInfo() {
-  request({
-    url: `${API_URL}/store_index.php`,
-    data: {
-      uid: wepy.getStorageSync('sellerId')
-    }
+  this.getStoreIndex({
+    uid: wepy.getStorageSync('sellerId')
   }).then(({data: { errcode, data, msg }}) => {
     // console.info(errcode, msg, data)
     if (errcode === 0) {
@@ -101,8 +130,10 @@ export async function setCartNum() {
   })
 }
 
-/* 登录方法 */
-async function login() {
+/**
+ * 微信登录流程
+ */
+async function doWxLogin() {
   console.log('登录请求')
   let loginInfo = await wepy.login()
   console.log('授权code:', loginInfo.code)
