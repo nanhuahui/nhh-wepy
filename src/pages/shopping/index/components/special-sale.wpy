@@ -145,7 +145,7 @@
     <view class="hot-sale_title">
       <text>今日特卖</text>
     </view>
-    <view wx:for="{{active}}" wx:for-item="list" wx:key="list.hotId" class="hot-sale_goods" bindtap="navigat_act" data-isact="{{is_activity}}" data-item="{{list}}">
+    <view wx:for="{{active}}" wx:for-item="list" wx:key="list.hotId" class="hot-sale_goods" bindtap="navigat_act" data-isact="{{isActivity}}" data-item="{{list}}">
       <!--特卖banner-->
       <view class="hot-sale_img">
         <image src="{{list.banner ? imgDomain + list.banner : ''}}" mode="widthFix"></image>
@@ -177,21 +177,21 @@ import wepy from 'wepy'
 export default class specialSale extends wepy.component {
   props = {
     active: [],
-    imgDomain: Object
+    imgDomain: Object,
+    isActivity: { // is_activity：true请求的是普通活动数据  否则是77分销数据 两个接口传递参数不一样
+      type: String,
+      default: false
+    }
   }
   data = {}
   onLoad() {}
   methods = {
     // 点击事件
     navigat_act(e) {
-      // const isAct = e.currentTarget.dataset.isact
-      // const item = e.currentTarget.dataset.item
-      // typeof options.navigat_act === `function` && options.navigat_act(isAct, item)
+      const isAct = e.currentTarget.dataset.isact
+      const item = e.currentTarget.dataset.item
+      this.$emit('navigatAct', isAct, item)
     }
-    // redirectToGoods(e) {
-    //   let id = e.currentTarget.dataset.item.id
-    //   this.$parent.$navigate('../../uploadGoods/goodsInfo/goodsInfo', {upc_id: id})
-    // }
   }
 }
 </script>
