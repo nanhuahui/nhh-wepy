@@ -1,0 +1,97 @@
+<template>
+<view class="circularInfo" wx:if="{{circularInfo}}">
+  <view class="h3 c3 circularTltle">
+    {{circularInfo.circular_name}}
+  </view>
+  <view class="h5 c2 messageContent">
+    <import src="../../utils/wxParse/wxParse.wxml" />
+    <template is="wxParse"  data="{{wxParseData:article.nodes}}" />
+  </view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import WxParse from '@/utils/wxParse/wxParse'
+
+  export default class message extends wepy.page {
+    config = {
+      navigationBarTitleText: '通知'
+    }
+    components = {}
+    data = {
+      imgUrl: '',
+      circularInfo: null
+    }
+    onLoad(q) {
+      this.$apply(() => {
+        this.circularId = q.id
+        this.circularInfo = null
+      })
+      this.loadData()
+    }
+    onShow() {}
+    methods = {}
+    loadData() {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/user.php`,
+        data: {
+          act: 'circular_detail',
+          id: self.data.circularId
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          /**
+           * WxParse.wxParse(bindName , type, data, target,imagePadding)
+           * 1.bindName绑定的数据名(必填)
+           * 2.type可以为html或者md(必填)
+           * 3.data为传入的具体数据(必填)
+           * 4.target为Page对象,一般为this(必填)
+           * 5.imagePadding为当图片自适应是左右的单一padding(默认为0,可选)
+           */
+          WxParse.wxParse('article', 'html',  data.circular_info.circular, self, 5)
+          self.$apply(() => {
+            self.circularInfo = data.circular_info
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+page {
+  font-family: 'PingFang SC';
+  background:#fff;
+}
+.circularInfo {
+  padding:0 15px;
+}
+.circularInfo .circularTltle{
+  text-align:center;
+  padding: 28rpx 0 58rpx;
+}
+
+.messageContent{
+  width:100%;
+  word-break:break-all;
+  text-align: justify;
+}
+.messageContent image{
+  max-width: 100%;
+  width: 100%;
+  display: inherit;
+}
+.wxParse-p, .wxParse-div {
+  padding:15rpx 0;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+}
+</style>

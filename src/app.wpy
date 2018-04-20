@@ -52,6 +52,7 @@ export default class extends wepy.app {
       'pages/user/myCoupon',
       'pages/user/stroll',
       'pages/user/messageList',
+      'pages/user/message',
       'pages/user/posterShare',
       'pages/user/goodsShare',
       'pages/user/accountManage',
