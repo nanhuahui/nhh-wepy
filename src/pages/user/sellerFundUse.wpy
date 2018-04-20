@@ -1,0 +1,159 @@
+<template>
+<scroll-view scroll-y="true" height="100%">
+  <view class="fund-box">
+    <view class="fund-header">
+      <view class="rest_fund">
+        剩余抵用金：￥{{offsetMoney}}
+      </view>
+      <view class="used_fund">
+        已使用抵用金：￥{{totalUsedOffset}}
+      </view>
+    </view>
+    <view class="fund-content">
+      <view class="table">
+        <view class="thead">
+          <text>日期</text>
+          <text style="width: 30%;">订单号</text>
+          <text style="width: 20%;">订单金额</text>
+          <text>使用抵佣金</text>
+        </view>
+        <view class="tbody" wx:for="{{orderInfo}}" wx:key="order_month" wx:if="{{item.order_month}}">
+          <view class="fund-title">
+            <text>{{item.order_month}}月</text>
+            <text class="text-right">使用抵用金：￥{{item.used_offset}}</text>
+          </view>
+          <view wx:for="{{item}}" wx:key="order_sn" wx:if="{{item.add_time}}">
+            <text>{{item.add_time}}</text>
+            <text style="width: 30%;">{{item.order_sn}}</text>
+            <text style="width: 20%;">{{item.goods_amount}}</text>
+            <text>{{item.offset}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class sellerFundUse extends wepy.page {
+    config = {
+      navigationBarTitleText: '资金用途明细'
+    }
+    components = {}
+    data = {
+      imgUrl: '',
+      offsetMoney: null,
+      totalUsedOffset: null,
+      orderInfo: []
+    }
+    onLoad() {
+      this.loadData()
+    }
+    onShow() {}
+    methods = {}
+    /**
+     * 获取数据
+     */
+    loadData () {
+      let self = this
+      // 请求数据
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/store.php`,
+        data: {
+          act: 'offset_used'
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.offsetMoney = data.offset_money
+            self.totalUsedOffset = data.total_used_offset
+            self.orderInfo = data.order_info
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+page {
+  font-size: 28rpx;
+}
+.fund-box .fund-header {
+  display: -webkit-flex;
+  display: flex;
+  padding: 0 20rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  margin-bottom: 20rpx;
+  background: #fff;
+  font-size: 28rpx;
+}
+.fund-box .fund-header .rest_fund {
+  flex: 1;
+}
+.fund-box .fund-header .used_fund {
+  flex: 1;
+  text-align: right;
+}
+.fund-box .fund-content {
+  background: #fff;
+}
+.table {
+  width: 100%;
+  max-width: 100%;
+  margin-bottom: 20px;
+  background-color: transparent;
+  border-spacing: 0;
+  border-collapse: collapse;
+  overflow: hidden;
+  vertical-align: top;
+  border-top: 1px solid #ddd;
+  color: #444;
+  box-sizing: border-box;
+}
+.table text{
+  display: table-cell;
+    vertical-align: inherit;
+}
+.fund-content .table text{
+  width: 25%;
+  box-sizing: border-box;
+  padding: 0 16rpx;
+  display: inline-block;
+  line-height: 94rpx;
+  height: 94rpx;
+  overflow: hidden;
+  vertical-align: top;
+  border-top: 1px solid #ddd;
+  color: #444;
+}
+.table .thead text{
+  vertical-align: bottom;
+  border-bottom: 2px solid #ddd;
+  color: #333;
+  font-weight: bold;
+}
+.table .fund-title {
+  display: flex;
+  background:#eee;
+}
+.table .fund-title text {
+  flex: 1;
+  box-sizing: border-box;
+  color: #666;
+  text-align: left;
+}
+.table .fund-title .text-right {
+  flex: 3;
+}
+
+</style>

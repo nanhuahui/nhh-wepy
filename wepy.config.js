@@ -3,8 +3,7 @@ var prod = process.env.NODE_ENV === 'production'
 
 module.exports = {
   wpyExt: '.wpy',
-  // eslint: true,
-  eslint: false,
+  eslint: true,
   cliLogs: !prod,
   resolve: {
     alias: {
