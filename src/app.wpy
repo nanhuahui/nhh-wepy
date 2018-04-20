@@ -57,6 +57,7 @@ export default class extends wepy.app {
       'pages/user/accountManage',
       'pages/user/addressList',
       'pages/user/newAddress',
+      'pages/user/consumerDetail',
       'pages/order/orderList',
       'pages/order/orderInfo',
       'pages/order/orderSubmit',

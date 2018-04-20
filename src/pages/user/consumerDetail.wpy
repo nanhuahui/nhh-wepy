@@ -1,0 +1,95 @@
+<template>
+<view class="weui-flex list-item" style="font-weight:bold;">
+  <view>用户名</view>
+  <view>订单</view>
+  <view>身份</view>
+  <view>购物金额</view>
+</view>
+<view class="scrollView">
+  <scroll-view style="height: 100%;" scroll-y="true" wx:if="{{consumerList.length > 0}}">
+    <view class="weui-flex list-item" wx:for="{{consumerList}}" wx:for-item="cuser" wx:key="*this">
+      <view>{{cuser.name}}</view>
+      <view>{{cuser.order_sn}}</view>
+      <view>{{cuser.rank}}</view>
+      <view>￥{{cuser.order}}</view>
+    </view>
+  </scroll-view>
+  <view class="weui-loadmore weui-loadmore_line" wx:if="{{consumerList.length === 0}}">
+    <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+  </view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class consumerDetail extends wepy.page {
+    config = {
+      navigationBarTitleText: '查看详情'
+    }
+    components = {}
+    data = {
+      consumer_list: '',
+      grade: ''
+    }
+    onLoad() {}
+    onShow() {}
+    methods = {}
+    /*
+     * 加载更多
+     */
+    loadMore() {
+      let that = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/distribution_user.php?act=user`,
+        data: {
+          grade: that.data.grade
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          this.$apply(() => {
+            this.consumerList = data
+          })
+        } else {
+          console.error(msg)
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.scrollView {
+  position:fixed;
+  top:49px;
+  bottom:2px;
+  height:auto;
+  width:100%;
+  background-color: #fff;
+}
+.list-item {
+  border-top:1px solid #ddd;
+  height:94rpx;
+  line-height:94rpx;
+  background-color: #fff;
+  text-align: center;
+}
+.list-item view {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+.list-item view:nth-child(1) {
+  flex: 4;
+}
+.list-item view:nth-child(2) {
+  flex: 7;
+}
+.list-item view:nth-child(3) {
+  flex: 4;
+}
+.list-item view:nth-child(4) {
+  flex: 5;
+}
+</style>
