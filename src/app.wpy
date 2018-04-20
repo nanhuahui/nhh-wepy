@@ -42,6 +42,7 @@ export default class extends wepy.app {
       'pages/shopping/flashSale',
       'pages/shopping/panicBuy',
       'pages/shopping/expertSession',
+      'pages/shopping/promotion',
       'pages/user/userCenter',
       'pages/user/myCollect',
       'pages/user/sellerIncome',

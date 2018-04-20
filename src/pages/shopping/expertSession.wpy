@@ -57,7 +57,7 @@
     onShow() {}
     // 查看更多
     loadMore() {
-    let self = this
+      let self = this
       if (self.data.pageNum === -1) {
         // 分页条码为负均不加载
         return

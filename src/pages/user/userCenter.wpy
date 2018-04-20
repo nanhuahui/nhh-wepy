@@ -78,9 +78,9 @@
           </navigator>
         </view>
         <view class="col-xs-4">
-          <navigator class="feature" url="./stroll">
+          <navigator class="feature" url="../shopping/promotion">
             <image src="{{imgUrl}}/newIcon/fenxiang.png"></image>
-            <text class="text_font">图文分享</text>
+            <text class="text_font">推广运营</text>
           </navigator>
         </view>
         <view class="col-xs-4">
@@ -89,7 +89,7 @@
             <text class="text_font">客户管理</text>
           </navigator>
         </view>
-        <view class="col-xs-4">
+        <view class="col-xs-4" wx:if="{{shop_type !== '2'}}">
           <navigator class="feature" url="./myIncome">
             <image src="{{imgUrl}}/newIcon/yongjin.png"></image>
             <text class="text_font">佣金提现</text>
@@ -101,7 +101,7 @@
             <text class="text_font">新手必读</text>
           </navigator>
         </view> -->
-        <view class="col-xs-4" v-if="{{userObj.is_shop}}">
+        <view class="col-xs-4" wx-if="{{userObj.is_shop}}">
           <navigator class="feature" url="./posterShare">
             <!--  url="/shopping/posterShare" -->
             <image src="{{imgUrl}}/userCenShare.png"></image>

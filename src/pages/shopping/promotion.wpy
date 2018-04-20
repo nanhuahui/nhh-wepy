@@ -1,0 +1,48 @@
+<template>
+<!-- 推广运营 -->
+<view>
+  <view class="shareList">
+    <navigator url="/pages/user/stroll">
+      <image src="{{imgUrl}}/userCenter/shareImgText.png" mode = "widthFix"></image>
+    </navigator>
+    <navigator url="/pages/user/posterShare">
+      <image src="{{imgUrl}}/userCenter/shareStore.png" mode = "widthFix"></image>
+    </navigator>
+    <navigator url="/pages/user/goodsShare">
+      <image src="{{imgUrl}}/userCenter/shareGoods.png" mode = "widthFix"></image>
+    </navigator>
+  </view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class expertSession extends wepy.page {
+    config = {
+      navigationBarTitleText: '推广运营'
+    }
+    components = {}
+    data = {
+      imgUrl: ''
+    }
+    onLoad() {
+      this.$apply(() => {
+        this.imgUrl = this.$parent.globalData.imgUrl
+      })
+    }
+    onShow() {}
+  }
+</script>
+
+<style lang="less">
+.shareList{
+  padding: 15px
+}
+.shareList li{
+  padding-bottom: 4px
+}
+.shareList image{
+  width: 100%
+}
+</style>
