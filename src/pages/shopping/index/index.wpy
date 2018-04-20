@@ -157,7 +157,9 @@ export default class Index extends wepy.page {
     }
   }
 
-  onLoad() {}
+  onLoad() {
+    this.readyForQr()
+  }
 
   onShow() {
     this.imgUrl = this.$parent.globalData.imgUrl
@@ -165,7 +167,6 @@ export default class Index extends wepy.page {
     // 加载数据
     this.loadData()
     this.loadRecommend()
-    this.readyForQr()
   }
   // 读取是否定制显示海报
   readyForQr() {

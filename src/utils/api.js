@@ -3,14 +3,15 @@ import {API_URL} from './config'
 
 /* 统一封装 */
 function request(config) {
-  if (!wepy.getStorageSync('sessId')) {
-    doWxLogin()
+  if (!wepy.getStorageSync('sessId') && !wepy.getStorageSync('isLogin')) {
+    return doWxLogin()
+  } else {
+    return wepy.request(config)
   }
-  return wepy.request(config)
 }
 
 // 获取分类菜单
-export function getCategory(id) {
+export function getCategory() {
   return request({
     url: `${API_URL}/get_category.php`
   })
@@ -79,32 +80,37 @@ export function conversionGoodsVideo(vid) {
 }
 
 /* 设置店铺名称和店主头像至缓存 */
-export async function setSellerInfo() {
-  this.getStoreIndex({
-    uid: wepy.getStorageSync('sellerId')
-  }).then(({data: { errcode, data, msg }}) => {
-    // console.info(errcode, msg, data)
-    if (errcode === 0) {
-      // 正常返回
-      let info = data.storeinfo
-      let detail = data.store_detail
-      let storeJson = {}
-      // 存储店铺头像,店铺名称,店铺二维码
-      storeJson.name = (detail.store_name && detail.store_name !== 'undefined') ? detail.store_name : ''
-      storeJson.qrcode = (detail.qrcode_img && detail.qrcode_img !== 'undefined') ? detail.qrcode_img : ''
-      storeJson.avatar = info ? info.avatar : ''
-      wepy.setStorageSync('store_nhh', storeJson)
-    } else {
-      // 接口返回错误
-      console.error(errcode, msg, data)
-    }
-  }).catch((error) => {
-    console.log('获得店铺名称和店主头像异常', error)
-  })
+export function setSellerInfo() {
+  if (wepy.getStorageSync('sellerId')) {
+    getStoreIndex({
+      uid: wepy.getStorageSync('sellerId')
+    }).then(({data: { errcode, data, msg }}) => {
+      // console.info(errcode, msg, data)
+      if (errcode === 0) {
+        // 正常返回
+        let info = data.storeinfo
+        let detail = data.store_detail
+        let storeJson = {}
+        // 存储店铺头像,店铺名称,店铺二维码
+        storeJson.name = (detail.store_name && detail.store_name !== 'undefined') ? detail.store_name : ''
+        storeJson.qrcode = (detail.qrcode_img && detail.qrcode_img !== 'undefined') ? detail.qrcode_img : ''
+        storeJson.avatar = info ? info.avatar : ''
+        wepy.setStorageSync('store_nhh', storeJson)
+      } else {
+        // 接口返回错误
+        console.error(errcode, msg, data)
+      }
+    }).catch((error) => {
+      console.log('获得店铺名称和店主头像异常', error)
+    })
+  }
 }
 
 /* 设置底部菜单的购物车数量 */
 export async function setCartNum() {
+  if (!wepy.getStorageSync('sessId')) {
+    return
+  }
   // 优先抹掉数量,通过响应判断是否需要请求接口去获取真正的购物车数量
   await wepy.removeTabBarBadge({index: 1}).then(({errMsg}) => {
     if (errMsg === 'removeTabBarBadge:ok') {
@@ -135,6 +141,7 @@ export async function setCartNum() {
  */
 async function doWxLogin() {
   console.log('登录请求')
+  wepy.setStorageSync('isLogin', true)
   let loginInfo = await wepy.login()
   console.log('授权code:', loginInfo.code)
   let wxUser = await wepy.getUserInfo()
@@ -143,7 +150,7 @@ async function doWxLogin() {
   wepy.setStorageSync('user_wx', wxUser.userInfo)
   if (wxUser) {
     wepy.showLoading({title: '登录中...'})
-    wepy.request({
+    return wepy.request({
       url: `${API_URL}/wx_app/login.php`,
       data: {
         code: loginInfo.code,
@@ -154,7 +161,7 @@ async function doWxLogin() {
       }
     }).then(({data: { errcode, data, msg }}) => {
       if (errcode === 0) {
-        console.log(data)
+        // console.log(data)
         // 存储数据
         wepy.setStorageSync('sessId', data.sess_id)
         wepy.setStorageSync('user_nhh', data.user_info)
@@ -185,8 +192,11 @@ async function doWxLogin() {
           // 跳转首页
           wepy.reLaunch({url: '/pages/shopping/index/index'})
         }
-        // 登录成功后获取购物车数量
+        // 登录成功后:1、获取店铺信息;2、设置底部菜单购物车数量
+        setSellerInfo()
         setCartNum()
+        // 清除登录标记
+        wepy.removeStorageSync('isLogin')
       } else {
         console.error('登录失败', msg)
       }
