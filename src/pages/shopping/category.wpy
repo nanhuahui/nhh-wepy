@@ -56,7 +56,7 @@
       goods_list: [],
       img_domain: '',
       title_name: '',
-      sortMenu: '123',
+      sortMenu: [],
       sortName: [],
       hidden: true,
       scrollTop: 0,

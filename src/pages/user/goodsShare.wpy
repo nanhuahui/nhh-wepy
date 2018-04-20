@@ -1,0 +1,358 @@
+<template>
+<view class="goods-manage_box">
+  <view class="goods-search_box">
+    <view class="weui-search-bar goods-search_bar">
+      <view class="weui-search-bar__form">
+        <view class="weui-search-bar__box">
+          <icon class="weui-icon-search_in-box" type="search" size="14"></icon>
+          <input type="text" class="weui-search-bar__input"
+            placeholder="搜索商品" value="{{inputVal}}" focus="{{inputFocus}}"
+            confirm-type="search" bindinput="inputTyping" bindconfirm="reQuery"/>
+          <view class="weui-icon-clear" wx:if="{{inputVal.length > 0}}" bindtap="clearInput">
+            <icon type="clear" size="14" style="margin-bottom: -6px;"></icon>
+          </view>
+        </view>
+        <label class="weui-search-bar__label" hidden="{{inputShowed}}" bindtap="showInput">
+          <icon class="weui-icon-search" type="search" size="14" style="margin-bottom: 2px;"></icon>
+          <view class="weui-search-bar__text">搜索商品</view>
+        </label>
+      </view>
+      <view class="weui-search-bar__cancel-btn" hidden="{{!inputShowed}}" bindtap="hideInput">取消</view>
+    </view>
+
+    <view class="goods-search_ways">
+      <view class="sort">
+        <text class="{{sort==='sort_order'?'active':''}}" bindtap="sortClick" data-index="sort_order">默认排序</text>
+        <text class="{{sort==='click_count'?'active':''}}" bindtap="sortClick" data-index="click_count">销售排序</text>
+        <text class="{{sort==='add_time'?'active':''}}" bindtap="sortClick" data-index="add_time">上新排序</text>
+      </view>
+      <view class="sort">
+        <scrollMenu :sortMenu.sync="sortMenu" :isSortName.sync="isSortName" :activeId.sync="selCatId"></scrollMenu>
+      </view>
+    </view>
+  </view>
+</view>
+
+<view class="scrollView">
+  <scroll-view class="goods-search_lists" style="height: 100%;display: block;overflow: hidden;"
+    bindscrolltolower="queryList" scroll-y="true" lower-threshold="100">
+    <view class="goods-list_box" wx:for="{{goodsList}}" wx:for-item="g" wx:key="g.upc_id">
+      <view class="goods-list_pic">
+        <image src="{{g.img_url?g.img_url:imgUrl+'/no_picture.jpg'}}"></image>
+      </view>
+      <view class="goods-list_detail">
+        <view class="sale_price">
+          <text class="sale_price_sign">￥</text>
+          <text class="sale_price_number">{{g.shop_price}}</text>
+        </view>
+        <view class="g_name">{{g.goods_name}}</view>
+        <navigator url="/pages/shopping/goods?gid={{g.upc_id}} & from=share">
+          <view class="share-box">
+            <image class="share_sign" src="{{imgUrl}}/goodsShare_icon.jpg"></image>
+            <image class="share_text" src="{{imgUrl}}/goodsShare_tips.jpg"></image>
+          </view>
+        </navigator>
+      </view>
+    </view>
+    <view class="weui-loadmore" wx:if="{{showLoading}}">
+      <icon class="weui-loading"></icon>
+      <text class="weui-loadmore__tips">正在加载</text>
+    </view>
+    <view class="weui-loadmore weui-loadmore_line" wx:if="{{pagenum===-1}}">
+      <text class="weui-loadmore__tips">暂无数据</text>
+    </view>
+  </scroll-view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import scrollMenu from '../../components/scroll-menu'
+
+  export default class goodsShare extends wepy.page {
+    config = {
+      navigationBarTitleText: '商品分享'
+    }
+    components = {
+      scrollMenu: scrollMenu
+    }
+    data = {
+      imgUrl: '',
+      inputShowed: false,
+      showLoading: false,
+      inputVal: '',
+      goodsList: [],
+      selCatId: '0',
+      sort: 'sort_order',
+      searchContent: '',
+      sortMenu: [],
+      isSortName: false,
+      pageNum: 0
+    }
+    onLoad() {
+      this.$apply(() => {
+        this.imgUrl = this.$parent.globalData.imgUrl
+      })
+    }
+    onShow() {
+      if (this.data.goodsList.length === 0) {
+        // 数据为空加载数据
+        this.queryList()
+      }
+    }
+    methods = {}
+    events = {
+      'menuClicked': (...args) => {
+        this.$apply(() => {
+          this.selCatId = args[0]
+        })
+        this.reQuery()
+      }
+    }
+    /*
+     * 重新查询
+     */
+    reQuery() {
+      this.$apply(() => {
+        this.goodsList = []
+        this.pageNum = 0
+      })
+      this.queryList()
+    }
+    /*
+     * 加载数据
+     */
+    queryList() {
+      let self = this
+      if (self.data.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.data.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
+        self.showLoading = true
+      })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/goods_union.php?act=web_goods`,
+        data: {
+          id: self.data.selCatId,
+          page: self.data.pageNum,
+          sort: self.data.sort,
+          keywords: self.data.inputVal
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          let sortMenu = []
+          sortMenu.push({ id: '0', name: '全部商品' })
+          for (let m of data.cat_arr) {
+            // 组装菜单
+            sortMenu.push({ id: m.cat_id, name: m.cat_name })
+          }
+          if (data.goods_list.length === 0 || data.page_count < self.data.pageNum) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+              self.showLoading = false
+            })
+            return
+          }
+          // 数据组装
+          var list = self.data.goodsList
+          for (var i = 0; i < data.goods_list.length; i++) {
+            list.push(data.goods_list[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.goodsList = list
+            self.sortMenu = sortMenu
+            self.img_domain = data.img_domain
+            self.title_name = data.title_name
+            self.showLoading = false
+          })
+        } else {
+          console.error(msg)
+        }
+      })
+    }
+    sortClick(e) {
+      let index = e.currentTarget.dataset.index
+      this.$apply(() => {
+        this.sort = index
+      })
+      this.reQuery()
+    }
+    showInput() {
+      this.$apply(() => {
+        this.inputShowed = true
+        this.inputFocus = true
+      })
+    }
+    inputTyping(e) {
+      this.$apply(() => {
+        this.inputVal = e.detail.value
+      })
+    }
+    hideInput() {
+      this.$apply(() => {
+        this.inputVal = ''
+        this.inputShowed = false
+      })
+      this.reQuery()
+    }
+    clearInput() {
+      this.$apply(() => {
+        this.inputVal = ''
+      })
+      this.reQuery()
+    }
+  }
+</script>
+
+<style lang="less">
+page {
+  font-size: 28rpx;
+}
+
+.weui-search-bar__form {
+  background: none;
+  border-radius: 60rem;
+}
+
+.weui-search-bar__label {
+  font-weight: normal;
+  background: #eee;
+  border-radius: 60rem;
+  font-size: 14px;
+  line-height: 2;
+}
+
+.weui-search-bar__label .weui-icon-search {
+  margin-right: 5px;
+}
+
+.weui-search-bar__label .text_font {
+  display: inline-block;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.goods-search_box {
+  position: relative;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  width: 100%;
+  border-top: 10rpx solid #eee;
+}
+
+.goods-search_bar {
+  background-color: #fff;
+}
+
+.goods-list_box {
+  border-top: 1px solid #eee;
+  background: #fff;
+  width: 50%;
+  box-sizing: border-box;
+  display: inline-block;
+}
+
+.goods-list_box:nth-child(odd) {
+  border-right: 2rpx solid #eee;
+}
+
+.goods-list_pic {
+  width: 374rpx;
+}
+
+.goods-list_pic image {
+  width: 374rpx;
+  height: 374rpx;
+}
+
+.goods-list_detail {
+  margin-left: 30rpx;
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  position: relative;
+  width: 315rpx;
+}
+
+.sale_price, .goods-list_box .goods-list_detail {
+  display: block;
+  font-size: 40rpx;
+  padding: 0 0 5rpx;
+  color: #333;
+  margin-top: -12rpx;
+}
+
+.sale_price_sign {
+  margin-right: 6rpx;
+  font-size: 28rpx;
+}
+
+.g_name {
+  height: 38px;
+  overflow: hidden;
+  font-size: 22rpx;
+  color: #666;
+}
+
+.goods-search_ways {
+  padding: 26rpx 0 10rpx;
+  border-bottom: 2rpx solid #eee;
+  background-color: #fff;
+}
+
+.goods-search_ways .sort {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  padding-left: 4rpx;
+  padding-top: 4rpx;
+  font-size: 26rpx;
+}
+
+.sort text {
+  display: inline-block;
+  margin-left: 32rpx;
+  color: #999;
+}
+
+.sort text.active {
+  color: #333 !important;
+  font-weight: bold;
+}
+
+.share-box {
+  margin-left: 45rpx;
+  padding-top: 18rpx;
+  padding-bottom: 13rpx;
+  width: 315rpx;
+  margin: 0 auto;
+  margin-top: 10rpx;
+  text-align: center;
+  border-top: 2rpx solid #eee;
+}
+
+.share-box .share_sign {
+  width: 26rpx;
+  height: 26rpx;
+}
+
+.share-box .share_text {
+  width: 198rpx;
+  height: 26rpx;
+}
+
+.scrollView {
+  position: fixed;
+  top: 138px;
+  bottom: 2px;
+  height: auto;
+  width: 100%;
+}
+
+</style>

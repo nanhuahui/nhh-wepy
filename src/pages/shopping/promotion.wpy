@@ -18,7 +18,7 @@
 <script>
   import wepy from 'wepy'
 
-  export default class expertSession extends wepy.page {
+  export default class promotion extends wepy.page {
     config = {
       navigationBarTitleText: '推广运营'
     }
