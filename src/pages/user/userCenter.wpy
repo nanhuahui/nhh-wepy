@@ -165,19 +165,19 @@
       </view>
       <view class="list_status">
         <view class="list-item" catchtap="goOrder" data-act="1">
-          <image src="{{imgUrl}}/newIcon/daifukuan.png"></image>
+          <image src="{{imgUrl}}/newIcon/daifukuan.png" wx:if="{{imgUrl}}"></image>
           <text class="text_font" bindlongpress="clearStorage">待付款</text>
         </view>
         <view class="list-item" catchtap="goOrder" data-act="2">
-          <image src="{{imgUrl}}/newIcon/daifahuo.png"></image>
+          <image src="{{imgUrl}}/newIcon/daifahuo.png" wx:if="{{imgUrl}}"></image>
           <text class="text_font" bindlongpress="showSystemInfo">待发货</text>
         </view>
         <view class="list-item" catchtap="goOrder" data-act="3">
-          <image src="{{imgUrl}}/newIcon/daishouhuo.png"></image>
+          <image src="{{imgUrl}}/newIcon/daishouhuo.png" wx:if="{{imgUrl}}"></image>
           <text class="text_font">待收货</text>
         </view>
         <view class="list-item" catchtap="goOrder" data-act="4">
-          <image src="{{imgUrl}}/newIcon/shouhou.png"></image>
+          <image src="{{imgUrl}}/newIcon/shouhou.png" wx:if="{{imgUrl}}"></image>
           <text class="text_font" bindlongpress="showStorage">退款/售后</text>
         </view>
       </view>
@@ -187,7 +187,7 @@
     <view class="help-center">
       <block>
         <view class="arrow_position">
-          <image class="smallIcon" src="{{imgUrl}}/newIcon/dizhi.png"></image>
+          <image class="smallIcon" src="{{imgUrl}}/newIcon/dizhi.png" wx:if="{{imgUrl}}"></image>
           <navigator class="text_font link" url="./addressList">
             <text>地址管理</text>
             <label class="iconfont-yzg icon-yzg-arrow"></label>
@@ -205,7 +205,7 @@
           </navigator>
         </view>
         <view class="arrow_position">
-          <image class="smallIcon" src="{{imgUrl}}/newIcon/coupon.png"></image>
+          <image class="smallIcon" src="{{imgUrl}}/newIcon/coupon.png" wx:if="{{imgUrl}}"></image>
           <navigator class="text_font link" url="./myCoupon">
             <text>我的优惠券</text>
             <label class="iconfont-yzg icon-yzg-arrow"></label>
@@ -219,14 +219,14 @@
           </navigator>
         </view> -->
         <view class="arrow_position">
-          <image class="smallIcon" src="{{imgUrl}}/newIcon/auction.png"></image>
+          <image class="smallIcon" src="{{imgUrl}}/newIcon/auction.png" wx:if="{{imgUrl}}"></image>
           <navigator class="text_font link" url="./myAuction">
             <text>我的拍卖</text>
             <label class="iconfont-yzg icon-yzg-arrow"></label>
           </navigator>
         </view>
         <view class="arrow_position contactSer">
-          <image class="smallIcon" src="{{imgUrl}}/newIcon/kefu.png"></image>
+          <image class="smallIcon" src="{{imgUrl}}/newIcon/kefu.png" wx:if="{{imgUrl}}"></image>
           <navigator class="text_font link" bindtap="calling" data-tel="4006226777">
             <text>联系客服</text>
             <text class="tel">400-622-6777</text>
