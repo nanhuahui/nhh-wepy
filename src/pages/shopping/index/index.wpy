@@ -12,6 +12,12 @@
     <!-- 店主精选 -->
     <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="shoperChosen"></shoperChosen>
 
+    <!-- 每日上新 -->
+    <!-- <newDaily :daily.sync="new_daily" :imgUrl.sync="imgUrl" componentId="newDaily"></newDaily> -->
+
+    <!-- 限时特卖 -->
+    <flashSale :imgDomain.sync="img_domain" componentId="flashSale"></flashSale>
+
     <!-- 消费商专区 -->
     <coustomerGoods :sevenActive.sync="sevenActive" :img_domain.sync="img_domain" :loadComplete.sync="loadComplete" componentId="coustomerGoods"></coustomerGoods>
 
@@ -45,6 +51,8 @@ import recommendSale from './components/recommend-sale'
 import specialSale from './components/special-sale'
 import coustomerGoods from './components/coustomer-goods'
 import floorGoods from './components/floor-goods'
+import newDaily from './components/new-daily'
+import flashSale from './components/flash-sale'
 import { getCategory, getStoreIndex, getRecommend, getDistribution } from '@/utils/api'
 
 export default class Index extends wepy.page {
@@ -61,6 +69,8 @@ export default class Index extends wepy.page {
     specialSale,
     coustomerGoods,
     floorGoods,
+    newDaily,
+    flashSale,
     qrPatchLayer
   }
   data = {
@@ -73,10 +83,6 @@ export default class Index extends wepy.page {
     storeInfo: null,
     storeDetail: null,
     loadComplete: false,
-    flashSaleArr: [], // 限时特卖
-    limitEle: {}, // 当前限时特卖状态
-    fa_limit: {}, // 限时特卖
-    toView: null, // 限时特卖滑动菜单滚动到指定子元素
     special: null,
     new_daily: {}, // 每日上新
     allDayHot: {},
@@ -240,6 +246,20 @@ export default class Index extends wepy.page {
           Object.assign(data.shenghuo, {'banner': 'quality_life.jpg', 'title': '品质生活'}),
           Object.assign(data.muyin, {'banner': 'child_care.jpg', 'title': '母婴专场'})
         )
+        // 限时特卖
+        this.$invoke('flashSale', 'render', {
+          id: data.limit_id,
+          current: data.fa_limit,
+          next: data.time_next,
+          timeList: data.fa_limit_arr,
+          goodsList: data.limit_goods_list
+        })
+        // 每日上新
+        if (data.add_new_list) {
+          self.new_daily['add_new_list'] = data.add_new_list
+          self.new_daily['now_time'] = data.today_time
+          self.new_daily['new_id'] = data.new_id
+        }
         // 设置数据
         self.$apply(() => {
           self.active = data.active
@@ -250,10 +270,6 @@ export default class Index extends wepy.page {
           self.storeInfo = data.storeinfo
           self.storeDetail = data.store_detail
           self.composeFloorArr = tempFloor
-          self.loadComplete = true
-          self.flashSaleArr = self.data.flashSaleArr
-          self.limitEle = self.data.limitEle
-          self.fa_limit = self.data.fa_limit
           self.special = data.special
           self.new_daily = self.data.new_daily
           self.allDayHot = data.hot_list
@@ -262,6 +278,7 @@ export default class Index extends wepy.page {
           self.ptTotalNum = data.pt_total_num
           self.special = data.special
           // self.groupGoodsNumber = groupGoodsNumber
+          self.loadComplete = true
         })
       } else {
         console.error(msg)

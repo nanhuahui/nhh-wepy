@@ -1,0 +1,235 @@
+<!-- 限时特卖 -->
+<template>
+  <view class="limitSale" wx:if="{{timeList && timeList.length > 0}}">
+    <navigator class="limit_title" url="../flashSale/flashSale?id={{id}}">
+      <image src="{{imgUrl}}/saleBg_time.gif" mode="widthFix"></image>
+      <!-- 倒计时 -->
+      <view class="time-count_down" style="position: absolute; top: 150rpx; left: 0; right: 0; margin: 0 auto; text-align: center;">
+        <text style="width:auto;color: #333;">{{desc}}</text>
+        <text wx:if="{{desc !== '活动已结束'}}"><text wx:if="{{actTimeDays}}" class="timeSpan" style="width:80rpx;">{{actTimeDays}}</text><text class="timeSpan">{{actTimeHours}}</text>:<text class="timeSpan">{{actTimeMin}}</text>:<text class="timeSpan">{{actTimeSec}}</text></text>
+      </view>
+      <view class="nextTime c3 h5">下一场{{next}}</view>
+    </navigator>
+    <!-- 滑动菜单 -->
+    <scroll-view scroll-x="true" class="scrollView" scroll-into-view="{{toView}}" scroll-with-animation="true">
+      <view wx:for="{{timeList}}" wx:for-item="t" wx:key="{{index}}" id="item-{{index + 1}}"
+        class="list-item {{t.act_id === (id + '') ? 'item-active' : ''}}">
+        <navigator url="../flashSale/flashSale?id={{t.act_id}}" class="timePoint">
+          <view class="h3 c3">
+            {{t.show_time}}
+          </view>
+          <view class="c2 h7">
+            {{t.start}}
+          </view>
+        </navigator>
+      </view>
+    </scroll-view>
+    <!-- 滑动菜单end -->
+    <navigator url="../flashSale/flashSale?id={{id}}" style="margin-top: -18rpx;">
+      <image src="{{current.banner ? imgDomain + current.banner : ''}}" style="width:100%;" mode="widthFix"></image>
+    </navigator>
+    <!-- 引用自定义组件 -->
+    <scroll-area list="{{limitEle.limit_goods_list}}" cell-width="116">
+      <block wx:for="{{limitEle.limit_goods_list}}" wx:key="id">
+        <!-- 商品 -->
+        <view slot="goodsInfo_{{index}}" class="sale_corner">
+          <!-- <goods-block width="114" height="186" name="{{item.goods_name}}" name-height="32"
+            shop-price="{{item.shop_price}}" market-price="{{item.market_price}}"
+            reverse="{{true}}" img="{{imgDomain}}{{item.master_img}}"
+            url="../flashSale/flashSale?id={{id}}"/> -->
+        </view>
+      </block>
+      <!-- 查看更多 -->
+      <view slot="seeMore">
+        <navigator url="../flashSale/flashSale?id={{id}}"
+          class="cell" style="position:relative;border-right: 0;">
+          <view style="width: 114px;height: 176px;"></view>
+          <view class="see_more">
+            <image src="{{imgUrl}}/more.jpg" mode="widthFix"></image>
+            <text>查看更多</text>
+            <text class="eng_more">See More</text>
+          </view>
+        </navigator>
+      </view>
+    </scroll-area>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { IMG_URL } from '@/utils/config'
+
+export default class flashSale extends wepy.component {
+  props = {
+    imgDomain: Object
+  }
+  data = {
+    imgUrl: IMG_URL,
+    id: null,
+    current: null,
+    next: null,
+    timeList: [],
+    goodsList: [],
+    toView: null
+  }
+  onLoad() {
+  }
+  methods = {
+    render(data, event) {
+      console.log(19029, data)
+      this.id = data.id
+      this.current = data.current
+      this.next = data.next
+      this.timeList = data.timeList
+      this.goodsList = data.goodsList
+      if (data.timeList.length > 0) {
+        // 滑动菜单：当前时间滚动到中间
+        data.timeList.map((v, k) => {
+          if (v.act_id === data.id + '') {
+            this.toView = 'item-' + (k - 1)
+          }
+        })
+      }
+    }
+  }
+}
+</script>
+
+<style lang="less">
+/*特卖，限时抢购样式*/
+.hot-sale_box .hot-sale_goods {
+  background-color: #fff;
+  display: block;
+}
+
+.hot-sale_box .hot-sale_info {
+  background-color: #fff;
+}
+
+.hot-sale_box .hot-sale_info .buy_info {
+  position: absolute;
+  right: 28rpx;
+  top: 0;
+  width: 250rpx;
+  text-align: right;
+  height: 100%;
+}
+
+.hot-sale_box .hot-sale_info .buy_info .discount {
+  text-align: center;
+  color: #ef0021;
+  padding: 0px 4px;
+  display: inline-block;
+}
+
+.hot-sale_box .hot-sale_info .buy_info .discount_price {
+  color: #333;
+  font-size: 28rpx;
+  margin-top: 23.5rpx;
+  font-weight: bold;
+  display: block;
+}
+
+.discount_detail {
+  color: #333;
+  font-size: 28rpx;
+  margin-top: 37.5rpx;
+  font-weight: bold;
+}
+
+.hot-sale_box .hot-sale_info .buy_info .origin_price {
+  color: #999;
+  font-size: 20rpx;
+  margin: -11.5rpx 0 -2px;
+  text-decoration: line-through;
+  display: block;
+}
+
+.hot-sale_box .hot-sale_info .buy_info .buy_btn {
+  display: block;
+  height: 47rpx;
+  line-height: 47rpx;
+  width: 145rpx;
+  text-align: center;
+  background: #ff2241;
+  background: -webkit-gradient(linear, left top, right bottom, from(#fd393b), to(#fe635f));
+  background: -moz-linear-gradient(#fd393b, #fe635f);
+  background: -o-linear-gradient(#fd393b, #fe635f);
+  background: linear-gradient(top center, #fd393b, #fe635f);
+  color: #fff;
+  border-radius: 4px;
+  margin-top: 4px;
+  font-size: 28rpx;
+  position: absolute;
+  right: 0;
+  bottom: 15rpx;
+}
+
+.hot-sale_box .hot-sale_info .buy_info .buy_btn:active {
+  background: #ff2241;
+  background: -webkit-gradient(linear, left top, right bottom, from(#b43232), to(#b74f4e));
+  background: -moz-linear-gradient(#b43232, #b74f4e);
+  background: -o-linear-gradient(#b43232, #b74f4e);
+  background: linear-gradient(top center, #b43232, #b74f4e);
+}
+
+.hot-sale_box .hot-sale_info .goods_info .goods_title {
+  color: #333;
+  font-size: 28rpx;
+  height: 56rpx;
+  overflow: hidden;
+  line-height: 56rpx;
+  position: relative;
+  padding-left: 164rpx;
+  margin-bottom: 14rpx;
+}
+
+.hot-sale_box .hot-sale_info .goods_info .discount {
+  text-align: center;
+  color: #333;
+  font-weight: bold;
+  padding: 0px 4px;
+  display: inline-block;
+  background: url(http://wxassets.xf66.com/discountBg.png) no-repeat left center;
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 154rpx;
+  background-size: 100%;
+  padding-left: 82rpx;
+  font-size: 24rpx;
+  box-sizing: border-box;
+}
+
+.hot-sale_box .hot-sale_info .goods_info .goods_detail {
+  margin-bottom: 2rpx;
+  min-height: 35px;
+  max-height: 35px;
+  overflow: hidden;
+  line-height: 1.4;
+  color: #666;
+  font-size: 24rpx;
+}
+
+.hot-sale_box .hot-sale_info {
+  position: relative;
+  padding: 14rpx 250rpx 7rpx 28rpx;
+}
+
+.hot-sale_box .hot-sale_title {
+  text-align: center;
+  background: #fff;
+  color: #444;
+  height: 90rpx;
+  line-height: 90rpx;
+}
+
+.hot-sale_box .hot-sale_img {
+  margin-bottom: -6px;
+}
+
+.hot-sale_box .hot-sale_img image {
+  width: 100%;
+  border-top: 1px solid #f8f8f8;
+}
+</style>

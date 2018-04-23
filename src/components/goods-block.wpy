@@ -1,0 +1,132 @@
+<template>
+<view style="width: {{width}}px;height: {{height}}px;">
+  <view class="goods-main" bindtap="clickGoods">
+
+    <view class="goods-img">
+      <image src="{{img}}" mode="widthFix" />
+    </view>
+
+    <!-- flex-direction:column：主轴为垂直方向，起点在上沿|column-reverse：主轴为垂直方向，起点在下沿 -->
+    <view style="display:flex;display:-webkit-flex;flex-direction:{{reverse?'column-reverse':'column'}};margin-bottom:{{ellipsis||-26}}rpx;">
+      <view>
+        <text class="shop-price" wx:if="{{shopPrice}}">{{shopPrice}}</text>
+        <text class="market-price" wx:if="{{marketPrice}}">{{marketPrice}}</text>
+      </view>
+
+      <view>
+        <view class="goods-brief ellipsis">{{desc}}</view>
+        <view class="goods-title {{!ellipsis||'ellipsis'}}" style="margin-bottom:{{!ellipsis||10}}rpx;height:{{!nameHeight||nameHeight+'px'}}">{{name}}</view>
+      </view>
+    </view>
+
+  </view>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { IMG_URL } from '@/utils/config'
+
+export default class goodsBlock extends wepy.component {
+  props = {
+    width: {
+      type: Number
+    },
+    height: {
+      type: Number
+    },
+    name: {
+      type: String
+    },
+    nameHeight: {
+      type: Number
+    },
+    desc: {
+      type: String
+    },
+    url: {
+      type: String
+    },
+    img: {
+      type: String
+    },
+    shopPrice: {
+      type: String
+    },
+    marketPrice: {
+      type: String
+    },
+    ellipsis: {
+      type: Boolean,
+      value: false
+    },
+    reverse: {
+      type: Boolean,
+      value: false
+    }
+  }
+  data = {
+    imgUrl: IMG_URL,
+    base64Img: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQIW2NkAAIAAAoAAggA9GkAAAAASUVORK5CYII='
+  }
+  methods = {
+    clickGoods() {
+      console.log(this.data.url)
+      wepy.navigateTo({
+        url: this.data.url
+      })
+    }
+  }
+}
+</script>
+
+<style type="less">
+.goods-main {
+  width: 100%;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+.goods-img {
+  display: flex;
+}
+
+.goods-img image {
+  width: 100%;
+}
+
+.shop-price {
+  padding: 4rpx 24rpx 8rpx;
+  font-size: 26rpx;
+  padding-right: 10px;
+  color: #ef0021;
+}
+
+.market-price {
+  color: #999;
+  text-decoration: line-through;
+  font-size: 22rpx;
+}
+
+.goods-title {
+  font-size: 23rpx;
+  color: #999;
+  padding: 0 24rpx;
+  overflow: hidden;
+}
+
+.goods-brief {
+  font-size: 25rpx;
+  color: #333;
+  overflow: hidden;
+  box-sizing: border-box;
+  height: 36rpx;
+  padding: 0 24rpx;
+}
+
+.ellipsis {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+</style>
