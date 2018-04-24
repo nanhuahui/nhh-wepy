@@ -1,65 +1,74 @@
 <!-- 限时特卖 -->
 <template>
-  <view class="limitSale" wx:if="{{timeList && timeList.length > 0}}">
-    <navigator class="limit_title" url="../flashSale/flashSale?id={{id}}">
-      <image src="{{imgUrl}}/saleBg_time.gif" mode="widthFix"></image>
-      <!-- 倒计时 -->
-      <view class="time-count_down" style="position: absolute; top: 150rpx; left: 0; right: 0; margin: 0 auto; text-align: center;">
-        <text style="width:auto;color: #333;">{{desc}}</text>
-        <text wx:if="{{desc !== '活动已结束'}}"><text wx:if="{{actTimeDays}}" class="timeSpan" style="width:80rpx;">{{actTimeDays}}</text><text class="timeSpan">{{actTimeHours}}</text>:<text class="timeSpan">{{actTimeMin}}</text>:<text class="timeSpan">{{actTimeSec}}</text></text>
-      </view>
-      <view class="nextTime c3 h5">下一场{{next}}</view>
-    </navigator>
-    <!-- 滑动菜单 -->
-    <scroll-view scroll-x="true" class="scrollView" scroll-into-view="{{toView}}" scroll-with-animation="true">
-      <view wx:for="{{timeList}}" wx:for-item="t" wx:key="{{index}}" id="item-{{index + 1}}"
-        class="list-item {{t.act_id === (id + '') ? 'item-active' : ''}}">
-        <navigator url="../flashSale/flashSale?id={{t.act_id}}" class="timePoint">
-          <view class="h3 c3">
-            {{t.show_time}}
-          </view>
-          <view class="c2 h7">
-            {{t.start}}
-          </view>
-        </navigator>
-      </view>
-    </scroll-view>
-    <!-- 滑动菜单end -->
-    <navigator url="../flashSale/flashSale?id={{id}}" style="margin-top: -18rpx;">
-      <image src="{{current.banner ? imgDomain + current.banner : ''}}" style="width:100%;" mode="widthFix"></image>
-    </navigator>
-    <!-- 引用自定义组件 -->
-    <scroll-area list="{{limitEle.limit_goods_list}}" cell-width="116">
-      <block wx:for="{{limitEle.limit_goods_list}}" wx:key="id">
-        <!-- 商品 -->
-        <view slot="goodsInfo_{{index}}" class="sale_corner">
-          <!-- <goods-block width="114" height="186" name="{{item.goods_name}}" name-height="32"
+<view class="limitSale" wx:if="{{timeList && timeList.length > 0}}">
+  <navigator class="limit_title" url="../flashSale/flashSale?id={{id}}">
+    <image src="{{imgUrl}}/saleBg_time.gif" mode="widthFix"></image>
+    <!-- 倒计时 -->
+    <view class="time-count_down" style="position: absolute; top: 150rpx; left: 0; right: 0; margin: 0 auto; text-align: center;">
+      <text style="width:auto;color: #333;">{{desc}}</text>
+      <text wx:if="{{desc !== '活动已结束'}}">
+        <text wx:if="{{actTimeDays}}" class="timeSpan" style="width:80rpx;">{{actTimeDays}}</text><text class="timeSpan">{{actTimeHours}}</text>:<text class="timeSpan">{{actTimeMin}}</text>:<text class="timeSpan">{{actTimeSec}}</text>
+      </text>
+    </view>
+    <view class="nextTime c3 h5">下一场{{next}}</view>
+  </navigator>
+  <!-- 滑动菜单 -->
+  <scroll-view scroll-x="true" class="scrollView" scroll-into-view="{{toView}}" scroll-with-animation="true">
+    <view wx:for="{{timeList}}" wx:for-item="t" wx:key="{{index}}" id="item-{{index + 1}}" class="list-item {{t.act_id === (id + '') ? 'item-active' : ''}}">
+      <navigator url="../flashSale/flashSale?id={{t.act_id}}" class="timePoint">
+        <view class="h3 c3">
+          {{t.show_time}}
+        </view>
+        <view class="c2 h7">
+          {{t.start}}
+        </view>
+      </navigator>
+    </view>
+  </scroll-view>
+  <!-- 滑动菜单end -->
+  <navigator url="../flashSale/flashSale?id={{id}}" style="margin-top: -18rpx;">
+    <image src="{{current.banner ? imgDomain + current.banner : ''}}" style="width:100%;" mode="widthFix"></image>
+  </navigator>
+  <!-- 引用自定义组件 -->
+  <scrollArea list="{{limitEle.limit_goods_list}}" cell-width="116">
+    <block wx:for="{{limitEle.limit_goods_list}}" wx:key="id">
+      <!-- 商品 -->
+      <view slot="goodsInfo_{{index}}" class="sale_corner">
+        <!-- <goodsBlock width="114" height="186" name="{{item.goods_name}}" name-height="32"
             shop-price="{{item.shop_price}}" market-price="{{item.market_price}}"
             reverse="{{true}}" img="{{imgDomain}}{{item.master_img}}"
             url="../flashSale/flashSale?id={{id}}"/> -->
-        </view>
-      </block>
-      <!-- 查看更多 -->
-      <view slot="seeMore">
-        <navigator url="../flashSale/flashSale?id={{id}}"
-          class="cell" style="position:relative;border-right: 0;">
-          <view style="width: 114px;height: 176px;"></view>
-          <view class="see_more">
-            <image src="{{imgUrl}}/more.jpg" mode="widthFix"></image>
-            <text>查看更多</text>
-            <text class="eng_more">See More</text>
-          </view>
-        </navigator>
       </view>
-    </scroll-area>
-  </view>
+    </block>
+    <!-- 查看更多 -->
+    <view slot="seeMore">
+      <navigator url="../flashSale/flashSale?id={{id}}" class="cell" style="position:relative;border-right: 0;">
+        <view style="width: 114px;height: 176px;"></view>
+        <view class="see_more">
+          <image src="{{imgUrl}}/more.jpg" mode="widthFix"></image>
+          <text>查看更多</text>
+          <text class="eng_more">See More</text>
+        </view>
+      </navigator>
+    </view>
+  </scrollArea>
+</view>
 </template>
 
 <script>
 import wepy from 'wepy'
-import { IMG_URL } from '@/utils/config'
+import {
+  IMG_URL
+} from '@/utils/config'
+import scrollArea from '@/components/scroll-area'
+import goodsBlock from '@/components/goods-block'
 
+let totalSecond = 0
 export default class flashSale extends wepy.component {
+  components = {
+    goodsBlock,
+    scrollArea
+  }
   props = {
     imgDomain: Object
   }
@@ -70,10 +79,14 @@ export default class flashSale extends wepy.component {
     next: null,
     timeList: [],
     goodsList: [],
-    toView: null
+    toView: null,
+    actTimeDays: '',
+    actTimeHours: '',
+    actTimeMin: '',
+    actTimeSec: '',
+    desc: ''
   }
-  onLoad() {
-  }
+  onLoad() {}
   methods = {
     render(data, event) {
       console.log(19029, data)
@@ -83,6 +96,12 @@ export default class flashSale extends wepy.component {
       this.timeList = data.timeList
       this.goodsList = data.goodsList
       if (data.timeList.length > 0) {
+        if (Date.now() > data.current.start_time) {
+          totalSecond = data.current.end_time * 1000 - Date.now()
+        } else {
+          totalSecond = (data.current.end_time - data.current.start_time) * 1000
+        }
+        this.countDown()
         // 滑动菜单：当前时间滚动到中间
         data.timeList.map((v, k) => {
           if (v.act_id === data.id + '') {
@@ -92,144 +111,330 @@ export default class flashSale extends wepy.component {
       }
     }
   }
+  countDown() {
+    let self = this
+    // 渲染倒计时时钟
+    // 位数不足补零
+    function fillZeroPrefix(num) {
+      return num < 10 ? '0' + num : num
+    }
+    // 秒数
+    var second = Math.floor(totalSecond / 1000)
+    // 小时位
+    var hr = Math.floor(second / 3600)
+    // 分钟位
+    var min = fillZeroPrefix(Math.floor((second - hr * 3600) / 60))
+    // 秒位
+    var sec = fillZeroPrefix((second - hr * 3600 - min * 60)) // equal to => var sec = second % 60;
+    // 毫秒位，保留2位
+    // var microSec = fillZeroPrefix(Math.floor((microSecond % 1000) / 10))
+    console.log(hr + ':' + min + ':' + sec)
+    self.$apply(() => {
+      self.actTimeDays = ''
+      self.actTimeHours = hr
+      self.actTimeMin = min
+      self.actTimeSec = sec
+      // desc: text
+    })
+
+    if (totalSecond <= 0) {
+      self.desc = '活动已结束'
+      return
+    }
+    setTimeout(() => {
+      // 放在最后--
+      totalSecond -= 1000
+      self.countDown()
+    }, 1000)
+    self.$apply()
+  }
 }
 </script>
 
 <style lang="less">
+/*限时特卖*/
+.limitSale {
+    background: #fff;
+    margin-top: 10rpx !important;
+    margin-bottom: 10rpx !important;
+}
+
+.limit_title .col-xs-4 {
+    padding: 0;
+    text-align: right;
+    padding-right: 24rpx;
+}
+
+.limit_title image {
+    width: 100%;
+}
+
+.limitContent {
+    margin-top: -18rpx;
+}
+
+.limitContent > image {
+    width: 100%;
+}
+
+.limitSale .storeGoodsName {
+    height: 76rpx;
+    white-space: initial;
+}
+
+.limitSale .sortImg .cell:before {
+    position: absolute;
+    content: '限时';
+    font-size: 18rpx;
+    color: #ed3366;
+    border: 1px solid #ed3366;
+    height: 24rpx;
+    width: 48rpx;
+    left: 4rpx;
+    top: 4rpx;
+    text-align: center;
+    line-height: 16rpx;
+}
+
+.limitSale .sortImg .cell:last-child:before {
+    position: relative;
+    content: '';
+    font-size: 18rpx;
+    color: #ed3366;
+    border: none;
+    height: 24rpx;
+    width: 48rpx;
+    left: 4rpx;
+    top: 4rpx;
+    text-align: center;
+    line-height: 24rpx;
+}
+
+.limit_title {
+    position: relative;
+}
+
+.limitSale .time-count_down {
+    position: absolute;
+    top: 150rpx;
+    text-align: center;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+}
+
+.limitSale .time-count_down .timeSpan {
+    background: #333;
+    color: #c8975c;
+    margin-right: 14rpx;
+    padding: 0 4rpx;
+    display: inline-block;
+    width: 48rpx;
+    margin-left: 10rpx;
+}
+
+.limit_title .nextTime {
+    position: absolute;
+    top: 218rpx;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.limitSale .timePoint text,
+.limitSale .timePoint text {
+    display: block;
+    text-align: center;
+}
+
+.limitSale .timePoint view:last-child {
+    line-height: 12px;
+}
+
+.limitSale .timePoint {
+    padding-top: 4rpx;
+}
+
+.seeAllLimit {
+    height: 84rpx;
+    line-height: 84rpx;
+    text-align: center;
+    border-top: 1px solid #eee;
+    background: #fff;
+}
+
+.limitSale .scrollView {
+    height: 94rpx;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.limitSale .scrollView .list-item {
+    width: 138rpx;
+    height: 80rpx;
+    display: inline-block;
+    background-color: #fff;
+    text-align: center;
+}
+
+.limitSale .scrollView .list-item.item-active {
+    background-color: #333;
+    color: #c8975c;
+    position: relative;
+}
+
+.limitSale .scrollView .list-item.item-active:before {
+    position: absolute;
+    content: '';
+    width: 0;
+    height: 0;
+    border-width: 12px 7px;
+    border-color: #333 transparent transparent transparent;
+    border-style: solid;
+    bottom: -38rpx;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+}
+
+.limitSale .scrollView .list-item.item-active view {
+    color: #c8975c;
+}
 /*特卖，限时抢购样式*/
 .hot-sale_box .hot-sale_goods {
-  background-color: #fff;
-  display: block;
+    background-color: #fff;
+    display: block;
 }
 
 .hot-sale_box .hot-sale_info {
-  background-color: #fff;
+    background-color: #fff;
 }
 
 .hot-sale_box .hot-sale_info .buy_info {
-  position: absolute;
-  right: 28rpx;
-  top: 0;
-  width: 250rpx;
-  text-align: right;
-  height: 100%;
+    position: absolute;
+    right: 28rpx;
+    top: 0;
+    width: 250rpx;
+    text-align: right;
+    height: 100%;
 }
 
 .hot-sale_box .hot-sale_info .buy_info .discount {
-  text-align: center;
-  color: #ef0021;
-  padding: 0px 4px;
-  display: inline-block;
+    text-align: center;
+    color: #ef0021;
+    padding: 0 4px;
+    display: inline-block;
 }
 
 .hot-sale_box .hot-sale_info .buy_info .discount_price {
-  color: #333;
-  font-size: 28rpx;
-  margin-top: 23.5rpx;
-  font-weight: bold;
-  display: block;
+    color: #333;
+    font-size: 28rpx;
+    margin-top: 23.5rpx;
+    font-weight: bold;
+    display: block;
 }
 
 .discount_detail {
-  color: #333;
-  font-size: 28rpx;
-  margin-top: 37.5rpx;
-  font-weight: bold;
+    color: #333;
+    font-size: 28rpx;
+    margin-top: 37.5rpx;
+    font-weight: bold;
 }
 
 .hot-sale_box .hot-sale_info .buy_info .origin_price {
-  color: #999;
-  font-size: 20rpx;
-  margin: -11.5rpx 0 -2px;
-  text-decoration: line-through;
-  display: block;
+    color: #999;
+    font-size: 20rpx;
+    margin: -11.5rpx 0 -2px;
+    text-decoration: line-through;
+    display: block;
 }
 
 .hot-sale_box .hot-sale_info .buy_info .buy_btn {
-  display: block;
-  height: 47rpx;
-  line-height: 47rpx;
-  width: 145rpx;
-  text-align: center;
-  background: #ff2241;
-  background: -webkit-gradient(linear, left top, right bottom, from(#fd393b), to(#fe635f));
-  background: -moz-linear-gradient(#fd393b, #fe635f);
-  background: -o-linear-gradient(#fd393b, #fe635f);
-  background: linear-gradient(top center, #fd393b, #fe635f);
-  color: #fff;
-  border-radius: 4px;
-  margin-top: 4px;
-  font-size: 28rpx;
-  position: absolute;
-  right: 0;
-  bottom: 15rpx;
+    display: block;
+    height: 47rpx;
+    line-height: 47rpx;
+    width: 145rpx;
+    text-align: center;
+    background: #ff2241;
+    background: -webkit-gradient(linear, left top, right bottom, from(#fd393b), to(#fe635f));
+    background: -moz-linear-gradient(#fd393b, #fe635f);
+    background: -o-linear-gradient(#fd393b, #fe635f);
+    background: linear-gradient(top center, #fd393b, #fe635f);
+    color: #fff;
+    border-radius: 4px;
+    margin-top: 4px;
+    font-size: 28rpx;
+    position: absolute;
+    right: 0;
+    bottom: 15rpx;
 }
 
 .hot-sale_box .hot-sale_info .buy_info .buy_btn:active {
-  background: #ff2241;
-  background: -webkit-gradient(linear, left top, right bottom, from(#b43232), to(#b74f4e));
-  background: -moz-linear-gradient(#b43232, #b74f4e);
-  background: -o-linear-gradient(#b43232, #b74f4e);
-  background: linear-gradient(top center, #b43232, #b74f4e);
+    background: #ff2241;
+    background: -webkit-gradient(linear, left top, right bottom, from(#b43232), to(#b74f4e));
+    background: -moz-linear-gradient(#b43232, #b74f4e);
+    background: -o-linear-gradient(#b43232, #b74f4e);
+    background: linear-gradient(top center, #b43232, #b74f4e);
 }
 
 .hot-sale_box .hot-sale_info .goods_info .goods_title {
-  color: #333;
-  font-size: 28rpx;
-  height: 56rpx;
-  overflow: hidden;
-  line-height: 56rpx;
-  position: relative;
-  padding-left: 164rpx;
-  margin-bottom: 14rpx;
+    color: #333;
+    font-size: 28rpx;
+    height: 56rpx;
+    overflow: hidden;
+    line-height: 56rpx;
+    position: relative;
+    padding-left: 164rpx;
+    margin-bottom: 14rpx;
 }
 
 .hot-sale_box .hot-sale_info .goods_info .discount {
-  text-align: center;
-  color: #333;
-  font-weight: bold;
-  padding: 0px 4px;
-  display: inline-block;
-  background: url(http://wxassets.xf66.com/discountBg.png) no-repeat left center;
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 154rpx;
-  background-size: 100%;
-  padding-left: 82rpx;
-  font-size: 24rpx;
-  box-sizing: border-box;
+    text-align: center;
+    color: #333;
+    font-weight: bold;
+    padding: 0 4px;
+    display: inline-block;
+    background: url("http://wxassets.xf66.com/discountBg.png") no-repeat left center;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 154rpx;
+    background-size: 100%;
+    padding-left: 82rpx;
+    font-size: 24rpx;
+    box-sizing: border-box;
 }
 
 .hot-sale_box .hot-sale_info .goods_info .goods_detail {
-  margin-bottom: 2rpx;
-  min-height: 35px;
-  max-height: 35px;
-  overflow: hidden;
-  line-height: 1.4;
-  color: #666;
-  font-size: 24rpx;
+    margin-bottom: 2rpx;
+    min-height: 35px;
+    max-height: 35px;
+    overflow: hidden;
+    line-height: 1.4;
+    color: #666;
+    font-size: 24rpx;
 }
 
 .hot-sale_box .hot-sale_info {
-  position: relative;
-  padding: 14rpx 250rpx 7rpx 28rpx;
+    position: relative;
+    padding: 14rpx 250rpx 7rpx 28rpx;
 }
 
 .hot-sale_box .hot-sale_title {
-  text-align: center;
-  background: #fff;
-  color: #444;
-  height: 90rpx;
-  line-height: 90rpx;
+    text-align: center;
+    background: #fff;
+    color: #444;
+    height: 90rpx;
+    line-height: 90rpx;
 }
 
 .hot-sale_box .hot-sale_img {
-  margin-bottom: -6px;
+    margin-bottom: -6px;
 }
 
 .hot-sale_box .hot-sale_img image {
-  width: 100%;
-  border-top: 1px solid #f8f8f8;
+    width: 100%;
+    border-top: 1px solid #f8f8f8;
 }
 </style>

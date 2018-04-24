@@ -7,14 +7,15 @@
       </view>
     </navigator>
     <!-- 引用自定义组件 -->
-    <scroll-area list="{{daily.add_new_list}}" cell-width="178">
+    <scrollArea :list.sync="{{daily.add_new_list}}" cell-width="178" componentId="scrollArea">
       <block wx:for="{{daily.add_new_list}}" wx:key="id">
         <!-- 商品 -->
         <view slot="goodsInfo_{{index}}">
-          <!-- <goods-block width="176" height="244" name="{{item.goods_name}}" desc="{{item.goods_brief}}"
+          <text>{{item.goods_name}}</text>
+          <goodsBlock width="176" height="244" :name="{{item.goods_name}}" :desc="{{item.goods_brief}}"
             shop-price="{{item.shop_price}}" market-price="{{item.market_price}}"
             ellipsis="{{true}}" reverse="{{true}}" img="{{item.master_img}}"
-            url="../newDailyList/newDailyList?id={{daily.new_id}}"/> -->
+            url="../newDailyList/newDailyList?id={{daily.new_id}}" componentId="goodsBlock"/>
         </view>
       </block>
       <!-- 查看更多 -->
@@ -24,12 +25,12 @@
           <view style="width: 176px;height: 244px;"></view>
           <view class="see_more">
             <image src="{{imgUrl}}/more.jpg" mode="widthFix"></image>
-            <text>查看更多</text>
+            <text>查看更多{{daily.add_new_list}}</text>
             <text class="eng_more">See More</text>
           </view>
         </navigator>
       </view>
-    </scroll-area>
+    </scrollArea>
     <navigator class="seeAllLimit c1 h5" url="../newDailyList/newDailyList?id={{daily.new_id}}">
       查看全部今日新品
       <text class="iconfont-yzg icon-yzg-arrow" style="font-size: 24rpx;"></text>
@@ -39,8 +40,11 @@
 
 <script>
 import wepy from 'wepy'
+import scrollArea from '@/components/scroll-area'
+import goodsBlock from '@/components/goods-block'
 
 export default class newDaily extends wepy.component {
+  components = { goodsBlock, scrollArea }
   props = {
     daily: Object,
     imgUrl: Object

@@ -1,0 +1,85 @@
+<template>
+  <view class="sortImg">
+    <view class="sortImg-ul" style="min-width: {{ (list.length + 1) * (cellWidth) + 'px'}};">
+      <view class="cell" wx:for="{{list}}" wx:key="id">
+        <!-- 商品信息展示 -->
+        <slot name="goodsInfo_{{index}}"></slot>
+        <!-- 附加图标 -->
+        <slot name="attach_{{index}}"></slot>
+      </view>
+      <!-- 查看更多 -->
+      <slot name="seeMore"></slot>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { IMG_URL } from '@/utils/config'
+
+export default class scrollArea extends wepy.component {
+  options = {
+    multipleSlots: true // 在组件定义时的选项中启用多slot支持
+  }
+  props = {
+    list: {
+      type: Array
+    },
+    cellWidth: {
+      type: Number
+    },
+    // 这里定义了innerText属性，属性值可以在组件使用时指定
+    myProperty: { // 属性名
+      type: String, // 类型（必填），目前接受的类型包括：String, Number, Boolean, Object, Array, null（表示任意类型）
+      value: '', // 属性初始值（可选），如果未指定则会根据类型选择一个
+      observer: function(newVal, oldVal) {} // 属性被改变时执行的函数（可选），也可以写成在methods段中定义的方法名字符串
+    },
+    myProperty2: String // 简化的定义方式
+  }
+  data = {
+    imgUrl: IMG_URL,
+    base64Img: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQIW2NkAAIAAAoAAggA9GkAAAAASUVORK5CYII='
+  }
+  methods = {
+    clickGoods() {
+      console.log(this.data.url)
+      wepy.navigateTo({
+        url: this.data.url
+      })
+    }
+  }
+}
+</script>
+
+<style type="less">
+/* 这里的样式只应用于这个自定义组件 */
+.sortImg {
+  width: 100%;
+  background-color: #fff;
+  overflow-x: scroll;
+  -webkit-overflow-x: scroll;
+  -webkit-overflow-scrolling: touch;
+  overflow-y: hidden;
+}
+
+.sortImg::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background-color: #fff;
+  display: none;
+}
+
+.sortImg-ul {
+  display: flex;
+}
+
+.cell {
+  display: inline-block;
+  font-size: 14px;
+  text-align: left;
+  position: relative;
+  text-overflow: ellipsis;
+  border-right: 1px solid #eee;
+  /*word-break: keep-all;*/
+}
+</style>
