@@ -4,7 +4,9 @@
     <header :storeInfo.sync="storeInfo" :storeDetail.sync="storeDetail" :imgUrl.sync="imgUrl" componentId="indexHeader"></header>
 
     <!-- 轮播图 -->
-    <swiper :turnsInfo.sync="turnsInfo" :imgDomain.sync="img_domain" componentId="indexSwiper"></swiper>
+    <!-- <swiper :turnsInfo.sync="turnsInfo" :imgDomain.sync="img_domain" componentId="indexSwiper"></swiper> -->
+
+    <newDaily :daily.sync="dailyInfo" :goods.sync="dailyGoods" :imgUrl.sync="imgUrl" componentId="newDaily"></newDaily>
 
     <flashSale :imgDomain.sync="img_domain" componentId="flashSale"></flashSale>
 
@@ -15,7 +17,7 @@
     <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="shoperChosen"></shoperChosen>
 
     <!-- 每日上新 -->
-    <!-- <newDaily :daily.sync="new_daily" :imgUrl.sync="imgUrl" componentId="newDaily"></newDaily> -->
+    <!-- <newDaily :daily.sync="dailyInfo" :goods.sync="dailyGoods" :imgUrl.sync="imgUrl" componentId="newDaily"></newDaily> -->
 
     <!-- 限时特卖 -->
     <!-- <flashSale :imgDomain.sync="img_domain" componentId="flashSale"></flashSale> -->
@@ -86,7 +88,8 @@ export default class Index extends wepy.page {
     storeDetail: null,
     loadComplete: false,
     special: null,
-    new_daily: {}, // 每日上新
+    dailyInfo: {}, // 每日上新
+    dailyGoods: [], // 每日上新的商品
     allDayHot: {},
     shopperChoose: [], // 店主精选
     avaterImg: '', // 头像
@@ -170,11 +173,20 @@ export default class Index extends wepy.page {
   }
 
   onShow() {
+    // let self = this
+    // self.dailyGoods = [
+    //   {goods_id: 1007275, goods_name: '澳洲 Bio Island 比奥岛 婴幼儿全天然牛乳提取液体乳钙 90粒/瓶', goods_brief: '192'},
+    //   {goods_id: 1027678, goods_name: '九味药草泡脚液 女士暖宫 解郁安神（女士专用）', goods_brief: '92'},
+    //   {goods_id: 1028182, goods_name: '法国 Rene Furterer 馥绿德雅防脱发洗发水250ml', goods_brief: '12'}
+    // ]
+    // self.dailyInfo['now_time'] = '04月25日'
+    // self.dailyInfo['new_id'] = 13
+    // self.loadComplete = true
     this.imgUrl = this.$parent.globalData.imgUrl
     this.$apply()
     // 加载数据
     this.loadData()
-    this.loadRecommend()
+    // this.loadRecommend()
   }
   // 读取是否定制显示海报
   readyForQr() {
@@ -258,9 +270,9 @@ export default class Index extends wepy.page {
         })
         // 每日上新
         if (data.add_new_list) {
-          self.new_daily['add_new_list'] = data.add_new_list
-          self.new_daily['now_time'] = data.today_time
-          self.new_daily['new_id'] = data.new_id
+          self.dailyGoods = data.add_new_list
+          self.dailyInfo['now_time'] = data.today_time
+          self.dailyInfo['new_id'] = data.new_id
         }
         // 设置数据
         self.$apply(() => {
@@ -273,7 +285,6 @@ export default class Index extends wepy.page {
           self.storeDetail = data.store_detail
           self.composeFloorArr = tempFloor
           self.special = data.special
-          self.new_daily = self.data.new_daily
           self.allDayHot = data.hot_list
           self.shopperChoose = data.shop_best_goods
           self.ptList = data.pt_list

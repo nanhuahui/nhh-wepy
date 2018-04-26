@@ -1,9 +1,8 @@
 <template>
 <view style="width: {{width}}px;height: {{height}}px;">
   <view class="goods-main" bindtap="clickGoods">
-
     <view class="goods-img">
-      <image src="{{img}}" mode="widthFix" />
+      <image src="{{imgDomain}}{{img}}" mode="widthFix" />
     </view>
 
     <!-- flex-direction:column：主轴为垂直方向，起点在上沿|column-reverse：主轴为垂直方向，起点在下沿 -->
@@ -14,8 +13,10 @@
       </view>
 
       <view>
-        <view class="goods-brief ellipsis">{{desc}}</view>
-        <view class="goods-title {{!ellipsis||'ellipsis'}}" style="margin-bottom:{{!ellipsis||10}}rpx;height:{{!nameHeight||nameHeight+'px'}}">{{name}}</view>
+        <view class="goods-brief ellipsis" wx:if="{{desc}}">{{desc}}</view>
+        <view class="goods-title {{!ellipsis||'ellipsis'}}" style="margin-bottom:{{!ellipsis||10}}rpx;height:{{!nameHeight||nameHeight+'px'}}">
+          {{name}}
+        </view>
       </view>
     </view>
 
@@ -29,41 +30,18 @@ import { IMG_URL } from '@/utils/config'
 
 export default class goodsBlock extends wepy.component {
   props = {
-    width: {
-      type: Number
-    },
-    height: {
-      type: Number
-    },
-    name: {
-      type: String
-    },
-    nameHeight: {
-      type: Number
-    },
-    desc: {
-      type: String
-    },
-    url: {
-      type: String
-    },
-    img: {
-      type: String
-    },
-    shopPrice: {
-      type: String
-    },
-    marketPrice: {
-      type: String
-    },
-    ellipsis: {
-      type: Boolean,
-      value: false
-    },
-    reverse: {
-      type: Boolean,
-      value: false
-    }
+    imgDomain: String,
+    ellipsis: String,
+    reverse: String,
+    width: Number,
+    height: Number,
+    name: String,
+    nameHeight: String,
+    desc: String,
+    url: String,
+    img: String,
+    shopPrice: String,
+    marketPrice: String
   }
   data = {
     imgUrl: IMG_URL,

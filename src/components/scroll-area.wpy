@@ -1,12 +1,21 @@
 <template>
   <view class="sortImg">
     <view class="sortImg-ul" style="min-width: {{ (list.length + 1) * (cellWidth) + 'px'}};">
-      <view class="cell" wx:for="{{list}}" wx:key="id">
-        <!-- 商品信息展示 -->
-        <slot name="goodsInfo_{{index}}"></slot>
-        <!-- 附加图标 -->
-        <slot name="attach_{{index}}"></slot>
-      </view>
+      <repeat for="{{list}}" key="index" index="index" item="item">
+        <view class="cell">
+          <!-- 商品信息展示 -->
+          <!-- <goodsBlock width="176" height="244" :name="item.goods_name" :desc="item.goods_brief"
+            :shopPrice="item.shop_price" :marketPrice="item.market_price" :img="item.master_img"
+            :imgDomain="imgDomain" :ellipsis="ellipsis" :reverse="reverse"
+            url="../newDailyList/newDailyList?id={{daily.new_id}}" componentId="goodsBlock"/> -->
+          <!-- 商品 -->
+          <goodsBlock width="114" height="186" nameHeight="32" :name="item.goods_name" :reverse="reverse"
+            :shopPrice="item.shop_price" :marketPrice="item.market_price" :imgDomain="imgDomain" :img="item.master_img"
+            url="../flashSale/flashSale?id={{limitEle.limit_id}}" componentId="goodsBlock"/>
+          <!-- 附加图标 -->
+          <slot name="attach_{{index}}"></slot>
+        </view>
+      </repeat>
       <!-- 查看更多 -->
       <slot name="seeMore"></slot>
     </view>
@@ -16,18 +25,19 @@
 <script>
 import wepy from 'wepy'
 import { IMG_URL } from '@/utils/config'
+import goodsBlock from '@/components/goods-block'
 
 export default class scrollArea extends wepy.component {
+  components = { goodsBlock }
   options = {
     multipleSlots: true // 在组件定义时的选项中启用多slot支持
   }
   props = {
-    list: {
-      type: Array
-    },
-    cellWidth: {
-      type: Number
-    },
+    list: Object,
+    cellWidth: String,
+    imgDomain: String,
+    ellipsis: String,
+    reverse: String,
     // 这里定义了innerText属性，属性值可以在组件使用时指定
     myProperty: { // 属性名
       type: String, // 类型（必填），目前接受的类型包括：String, Number, Boolean, Object, Array, null（表示任意类型）

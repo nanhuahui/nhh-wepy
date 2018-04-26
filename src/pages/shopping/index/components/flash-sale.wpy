@@ -30,16 +30,7 @@
     <image src="{{current.banner ? imgDomain + current.banner : ''}}" style="width:100%;" mode="widthFix"></image>
   </navigator>
   <!-- 引用自定义组件 -->
-  <scrollArea list="{{limitEle.limit_goods_list}}" cell-width="116">
-    <block wx:for="{{limitEle.limit_goods_list}}" wx:key="id">
-      <!-- 商品 -->
-      <view slot="goodsInfo_{{index}}" class="sale_corner">
-        <!-- <goodsBlock width="114" height="186" name="{{item.goods_name}}" name-height="32"
-            shop-price="{{item.shop_price}}" market-price="{{item.market_price}}"
-            reverse="{{true}}" img="{{imgDomain}}{{item.master_img}}"
-            url="../flashSale/flashSale?id={{id}}"/> -->
-      </view>
-    </block>
+  <scrollArea :list.sync="goodsList" :imgDomain.sync="imgDomain" reverse="true" cellWidth="116">
     <!-- 查看更多 -->
     <view slot="seeMore">
       <navigator url="../flashSale/flashSale?id={{id}}" class="cell" style="position:relative;border-right: 0;">
@@ -128,7 +119,7 @@ export default class flashSale extends wepy.component {
     var sec = fillZeroPrefix((second - hr * 3600 - min * 60)) // equal to => var sec = second % 60;
     // 毫秒位，保留2位
     // var microSec = fillZeroPrefix(Math.floor((microSecond % 1000) / 10))
-    console.log(hr + ':' + min + ':' + sec)
+    // console.log(hr + ':' + min + ':' + sec)
     self.$apply(() => {
       self.actTimeDays = ''
       self.actTimeHours = hr
