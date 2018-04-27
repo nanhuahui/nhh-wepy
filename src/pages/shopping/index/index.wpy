@@ -4,11 +4,7 @@
     <header :storeInfo.sync="storeInfo" :storeDetail.sync="storeDetail" :imgUrl.sync="imgUrl" componentId="indexHeader"></header>
 
     <!-- 轮播图 -->
-    <!-- <swiper :turnsInfo.sync="turnsInfo" :imgDomain.sync="img_domain" componentId="indexSwiper"></swiper> -->
-
-    <newDaily :daily.sync="dailyInfo" :goods.sync="dailyGoods" :imgUrl.sync="imgUrl" componentId="newDaily"></newDaily>
-
-    <flashSale :imgDomain.sync="img_domain" componentId="flashSale"></flashSale>
+    <swiper :turnsInfo.sync="turnsInfo" :imgDomain.sync="img_domain" componentId="indexSwiper"></swiper>
 
     <!-- 分类 -->
     <category :categoryList.sync="categoryArr" :imgUrl.sync="imgUrl" componentId="indexSwiper"></category>
@@ -17,10 +13,10 @@
     <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="shoperChosen"></shoperChosen>
 
     <!-- 每日上新 -->
-    <!-- <newDaily :daily.sync="dailyInfo" :goods.sync="dailyGoods" :imgUrl.sync="imgUrl" componentId="newDaily"></newDaily> -->
+    <newDaily :daily.sync="dailyInfo" :goods.sync="dailyGoods" :imgUrl.sync="imgUrl" componentId="newDaily"></newDaily>
 
     <!-- 限时特卖 -->
-    <!-- <flashSale :imgDomain.sync="img_domain" componentId="flashSale"></flashSale> -->
+    <flashSale :imgDomain.sync="img_domain" componentId="flashSale"></flashSale>
 
     <!-- 消费商专区 -->
     <coustomerGoods :sevenActive.sync="sevenActive" :img_domain.sync="img_domain" :loadComplete.sync="loadComplete" componentId="coustomerGoods"></coustomerGoods>

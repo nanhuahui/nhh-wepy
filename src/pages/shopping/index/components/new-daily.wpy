@@ -7,18 +7,19 @@
       </view>
     </navigator>
     <!-- 引用自定义组件 -->
-    <scrollArea :list.sync="goods" cellWidth="178" componentId="scrollArea">
-      <!-- 查看更多 -->
-      <view slot="seeMore">
-        <navigator url="../newDailyList/newDailyList?id={{daily.new_id}}"
-          class="cell" style="position:relative;border-right: 0;">
-          <view style="width: 176px;height: 244px;"></view>
-          <view class="see_more">
-            <image src="{{imgUrl}}/more.jpg" mode="widthFix"></image>
-            <text>查看更多</text>
-            <text class="eng_more">See More</text>
+    <scrollArea moreUrl="../newDailyList/newDailyList?id={{daily.new_id}}" :goodsCount.sync="goodsCount" baseWidth="160" baseHeight="244">
+      <view slot="goodsList">
+        <repeat for="{{goods}}" key="index" index="index" item="item">
+          <view class="cell">
+            <!-- 商品 -->
+            <goodsBlock width="160" height="220" ellipsis="true" reverse="true" :name="item.goods_name" :desc="item.goods_brief"
+              :shopPrice="item.shop_price" :marketPrice="item.market_price" :imgDomain="imgDomain" :img="item.master_img"
+              url="../newDailyList/newDailyList?id={{daily.new_id}}" componentId="goodsBlock_{{index}}">
+              <!-- 附加图标 -->
+              <slot name="attach_{{index}}"></slot>
+            </goodsBlock>
           </view>
-        </navigator>
+        </repeat>
       </view>
     </scrollArea>
     <navigator class="seeAllLimit c1 h5" url="../newDailyList/newDailyList?id={{daily.new_id}}">
@@ -31,15 +32,21 @@
 <script>
 import wepy from 'wepy'
 import scrollArea from '@/components/scroll-area'
+import goodsBlock from '@/components/goods-block'
 
 export default class newDaily extends wepy.component {
-  components = { scrollArea }
+  components = { scrollArea, goodsBlock }
   props = {
     daily: Object,
     goods: Array,
     imgUrl: Object
   }
   data = {
+  }
+  computed = {
+    goodsCount() {
+      return this.goods ? this.goods.length : 0
+    }
   }
   onLoad() {
   }

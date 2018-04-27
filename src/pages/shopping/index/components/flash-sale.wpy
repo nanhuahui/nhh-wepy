@@ -30,17 +30,19 @@
     <image src="{{current.banner ? imgDomain + current.banner : ''}}" style="width:100%;" mode="widthFix"></image>
   </navigator>
   <!-- 引用自定义组件 -->
-  <scrollArea :list.sync="goodsList" :imgDomain.sync="imgDomain" reverse="true" cellWidth="116">
-    <!-- 查看更多 -->
-    <view slot="seeMore">
-      <navigator url="../flashSale/flashSale?id={{id}}" class="cell" style="position:relative;border-right: 0;">
-        <view style="width: 114px;height: 176px;"></view>
-        <view class="see_more">
-          <image src="{{imgUrl}}/more.jpg" mode="widthFix"></image>
-          <text>查看更多</text>
-          <text class="eng_more">See More</text>
+  <scrollArea :moreLink.sync="moreLink" :goodsCount.sync="goodsCount" baseWidth="116" baseHeight="174">
+    <view slot="goodsList">
+      <repeat for="{{goodsList}}" key="index" index="index" item="item">
+        <view class="cell">
+          <!-- 商品 -->
+          <goodsBlock width="116" height="186" nameHeight="32" reverse="true" :name="item.goods_name"
+            :shopPrice="item.shop_price" :marketPrice="item.market_price" :imgDomain="imgDomain" :img="item.master_img"
+            url="../flashSale/flashSale?id={{limitEle.limit_id}}" componentId="goodsBlock_{{index}}">
+            <!-- 附加图标 -->
+            <slot name="attach_{{index}}"></slot>
+          </goodsBlock>
         </view>
-      </navigator>
+      </repeat>
     </view>
   </scrollArea>
 </view>
@@ -56,10 +58,7 @@ import goodsBlock from '@/components/goods-block'
 
 let totalSecond = 0
 export default class flashSale extends wepy.component {
-  components = {
-    goodsBlock,
-    scrollArea
-  }
+  components = { scrollArea, goodsBlock }
   props = {
     imgDomain: Object
   }
@@ -75,7 +74,13 @@ export default class flashSale extends wepy.component {
     actTimeHours: '',
     actTimeMin: '',
     actTimeSec: '',
-    desc: ''
+    desc: '',
+    moreLink: ''
+  }
+  computed = {
+    goodsCount() {
+      return this.goodsList ? this.goodsList.length : 0
+    }
   }
   onLoad() {}
   methods = {
@@ -86,6 +91,7 @@ export default class flashSale extends wepy.component {
       this.next = data.next
       this.timeList = data.timeList
       this.goodsList = data.goodsList
+      this.moreLink = `../flashSale/flashSale?id=${data.id}`
       if (data.timeList.length > 0) {
         if (Date.now() > data.current.start_time) {
           totalSecond = data.current.end_time * 1000 - Date.now()
@@ -112,7 +118,7 @@ export default class flashSale extends wepy.component {
     // 秒数
     var second = Math.floor(totalSecond / 1000)
     // 小时位
-    var hr = Math.floor(second / 3600)
+    var hr = fillZeroPrefix(Math.floor(second / 3600))
     // 分钟位
     var min = fillZeroPrefix(Math.floor((second - hr * 3600) / 60))
     // 秒位
