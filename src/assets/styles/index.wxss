@@ -565,35 +565,6 @@ image.goods-banner_pic {
   border-radius:50%
 }
 
-/*.new_daily .shoper_header view {
-  padding-left: 48rpx;
-  background: url(http://wxassets.xf66.com/JRSX.png) no-repeat center left;
-  background-size: 30rpx;
-  font-size: 27rpx;
-}
-
-.allDayHot .shoper_header view {
-  padding-left: 48rpx;
-  background: url(http://wxassets.xf66.com/crown.png) no-repeat center left;
-  background-size: 32rpx;
-  font-size: 27rpx;
-}
-
-.new_daily .shoper_header view:before, .allDayHot .shoper_header view:before {
-  position: relative;
-}
-
-.new_daily .shoper_header view:before, .allDayHot .shoper_header {
-  border-bottom: 1px solid #eee;
-}*/
-
-.ranking {
-  position: absolute;
-  bottom: 150rpx;
-  width: 66rpx;
-  left: 10rpx;
-}
-
 .see_more {
   position: absolute;
   top: 50%;

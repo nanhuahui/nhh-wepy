@@ -24,6 +24,9 @@
     <!-- 今日特卖 -->
     <specialSale :active.sync="active" :imgDomain.sync="img_domain" :isActivity.sync="isActivity" componentId="specialSale"></specialSale>
 
+    <!-- 24小时热销 -->
+    <allDayHot :dayHot.sync="hotInfo" :goods.sync="hotGoods" :imgUrl.sync="imgUrl" componentId="allDayHot"></allDayHot>
+
     <!-- 今日精选 -->
     <todaySpecial :special.sync="special" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="tadaySpecial"></todaySpecial>
 
@@ -53,6 +56,7 @@ import coustomerGoods from './components/coustomer-goods'
 import floorGoods from './components/floor-goods'
 import newDaily from './components/new-daily'
 import flashSale from './components/flash-sale'
+import allDayHot from './components/all-day-hot'
 import { getCategory, getStoreIndex, getRecommend, getDistribution } from '@/utils/api'
 
 export default class Index extends wepy.page {
@@ -71,6 +75,7 @@ export default class Index extends wepy.page {
     floorGoods,
     newDaily,
     flashSale,
+    allDayHot,
     qrPatchLayer
   }
   data = {
@@ -86,7 +91,8 @@ export default class Index extends wepy.page {
     special: null,
     dailyInfo: {}, // 每日上新
     dailyGoods: [], // 每日上新的商品
-    allDayHot: {},
+    hotInfo: {}, // 24小时热销
+    hotGoods: [], // 24小时热销商品
     shopperChoose: [], // 店主精选
     avaterImg: '', // 头像
     sevenActive: {},
@@ -270,6 +276,12 @@ export default class Index extends wepy.page {
           self.dailyInfo['now_time'] = data.today_time
           self.dailyInfo['new_id'] = data.new_id
         }
+        // 24小时热销
+        if (data.hot_list) {
+          self.hotGoods = data.hot_list.hot_goods_list
+          self.hotInfo['id'] = data.hot_list.id
+          self.hotInfo['start_time'] = data.hot_list.start_time
+        }
         // 设置数据
         self.$apply(() => {
           self.active = data.active
@@ -281,7 +293,6 @@ export default class Index extends wepy.page {
           self.storeDetail = data.store_detail
           self.composeFloorArr = tempFloor
           self.special = data.special
-          self.allDayHot = data.hot_list
           self.shopperChoose = data.shop_best_goods
           self.ptList = data.pt_list
           self.ptTotalNum = data.pt_total_num
