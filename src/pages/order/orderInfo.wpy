@@ -276,7 +276,7 @@
         order_id: this.data.id
       }
       wepy.request({
-        url: `${self.$parent.globalData.apiUrl}/shop/order/order.php`,
+        url: `${this.$parent.globalData.apiUrl}/shop/order/order.php`,
         method: 'POST',
         header: {
           'Content-Type': 'application/x-www-form-urlencoded'
