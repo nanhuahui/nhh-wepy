@@ -77,7 +77,11 @@ export default class extends wepy.app {
       'pages/commission/withdrawInstruction',
       'pages/commission/withdrawIndex',
       'pages/commission/cashRecord',
-      'pages/thirdWebView/thirdWebView'
+      'pages/thirdWebView/thirdWebView',
+      'pages/branchOffice/goodsManage',
+      'pages/branchOffice/manageBranch',
+      'pages/branchOffice/setBranchStore',
+      'pages/branchOffice/shareBranchQr'
     ],
     window: {
       navigationBarBackgroundColor: '#f7f7f8',

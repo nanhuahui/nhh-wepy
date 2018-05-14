@@ -1,0 +1,131 @@
+<template>
+  <view style="padding:0">
+    <view class="main_share">
+      <view class="shareBg">
+        <view class="qrCode">
+          <image src="{{imgPath}}" bindtap="previewImage" data-path="{{imgPath}}" mode="widthFix"></image>    
+        </view>
+        <view class="inviting">
+          <text class="invite_btn" bindtap="switchPatch">邀请TA管理分店</text>
+        </view>
+      </view>
+    </view>
+    <!--分享二维码-->
+    <qrPatchLayer bottom="90" :shareImgArr.sync="shareImg" :shareTextArr.sync="shareText" :shareLinkParam.sync="shareLinkParam" :qrShareShow.sync="qrShareShow" :sellerIdTemp.sync="sellerIdTemp" :shareLink.sync="shareLink" :composeSize.sync="composeSize" :imgUrl.sync="imgUrl"></qrPatchLayer>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import qrPatchLayer from '@/components/qrPatch-layer'
+  import {composeImageForBranch, composeTextForBranch} from '@/utils/data'
+  export default class setBranchStore extends wepy.page {
+    config = {
+      navigationBarTitleText: '开设分店'
+    }
+    components = {
+      qrPatchLayer
+    }
+    data = {
+      imgUrl: '',
+      qrShareShow: false,
+      composeSize: {qr: [
+        wepy.getSystemInfoSync().windowWidth * 1,
+        wepy.getSystemInfoSync().windowHeight - wepy.getSystemInfoSync().windowWidth / 2.5,
+        wepy.getSystemInfoSync().windowWidth / 3,
+        wepy.getSystemInfoSync().windowWidth / 3
+      ]},
+      code_id: '',
+      shareImgs: composeImageForBranch,
+      shareText: composeTextForBranch,
+      shareLink: 'pages/branchOffice/setBranchStore',
+      shareLinkParam: '',
+      sellerIdTemp: wepy.getStorageSync('sellerId'),
+      imgPath: ''
+    }
+    onLoad(options) {
+      let userNhh = wepy.getStorageSync('user_nhh')
+      // let sellerId = wepy.getStorageSync('sellerId')
+      this.$apply(() => {
+        this.shareLinkParam = `?codeId=${options.code_id}&uid=${userNhh.user_id}`
+        this.imgUrl = this.$parent.globalData.imgUrl
+      })
+      if (options.uid) {
+        this.$apply(() => {
+          this.shareLinkParam = `?codeId=${options.code_id}&uid=${options.uid}`
+        })
+      }
+      this.getQrCode()
+    }
+    /**
+     * 用户点击右上角分享
+     */
+    onShareAppMessage(res) {
+      if (res.from === 'button') {
+        // 来自页面内转发按钮
+        console.log(res.target)
+      }
+      return {
+        title: '开设分店',
+        path: this.data.shareLink + this.data.shareLinkParam,
+        success: function(res) {
+          // 转发成功
+        },
+        fail: function(res) {
+          // 转发失败
+        }
+      }
+    }
+    /**
+     * [getQrCode 获取二维码地址]
+     * @return {[type]} [description]
+     */
+    getQrCode() {
+      // 获取二维码图片地址
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/wx_app/get_qrcode.php?act=get_qrcode`,
+        data: {
+          scene: this.data.shareLinkParam, // 长按图片识别小程序码1048
+          page: 'pages/branchOffice/setBranchStore'
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          // d
+          let shareImgsNow = this.data.shareImgs
+          shareImgsNow[1].src = data + '?v=1'
+          this.$apply(() => {
+            this.imgPath = data + '?v=1'
+            this.shareImgs = shareImgsNow
+          })
+        } else {
+          console.error('获取小程序码失败', msg)
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.main_share .invite_btn {
+    background-image: url(http://wxassets.xf66.com/branchOffice/buttonBg.png);
+    background-size: 100%;
+    width: 380rpx; padding: 0; height: 56rpx; display: block; margin: 0 auto 64rpx; line-height: 56rpx; font-size: 28rpx;
+  }
+  .applyBranch{text-align:center; color:#333; font-size:18px; font-weight:bold; padding-bottom:1rem; position:absolute; top:2.4rem; left:0; right:0}
+  .applyBranch p{font-size: 20px; color: #1c2d49}
+  .qrCode {
+    text-align: center; position: relative; top: 500rpx;
+    /* margin: 50px 0 0; */
+  }
+  .qrCode p {
+    margin: 10px auto 30px; width: 60%; color: #aaa
+  }
+  .main_share{ margin-bottom: -54px; position: absolute; width: 100%; height: 100% }
+  .shareBg{ background: url(http://wxassets.xf66.com/branchOffice/qrBg.jpg) no-repeat #fafaff; background-size: contain; height: 100%;}
+  .shareBg image{width: 43%}
+  .inviting{text-align: center; padding-bottom:0.8547rem; position: relative; top: 600rpx}
+  .inviting image{position: absolute; left: 18%; margin:0 auto; top: -0.6rem; width: 3.5rem; animation:inviteAni 0.3s infinite alternate;}
+  .shopShare{position: fixed; top: 0; left: 0; z-index: 501; text-align: center; height: 100%;}
+  .shopShare .shopShareBg { position: absolute; width: 100%; background: rgba(0,0,0,.5); height: 100%; z-index: 501}
+  .shopShare .shopShareCont { position:relative; width: 70%; left: 0; top: 0; margin: 0 auto; margin-top: 35%; z-index: 502}
+</style>

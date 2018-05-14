@@ -102,10 +102,10 @@
           </navigator>
         </view> -->
         <view class="col-xs-4" wx-if="{{userObj.is_shop}}">
-          <navigator class="feature" url="./posterShare">
+          <navigator class="feature" url="/pages/branchOffice/manageBranch">
             <!--  url="/shopping/posterShare" -->
-            <image src="{{imgUrl}}/userCenShare.png"></image>
-            <text class="text_font">店铺分享</text>
+            <image src="{{imgUrl}}/branchManage.png"></image>
+            <text class="text_font">分店管理</text>
           </navigator>
         </view>
       </view>

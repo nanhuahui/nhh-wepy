@@ -1,0 +1,251 @@
+<template>
+  <view style="padding:0 20rpx">
+    <ul class="branchManage">
+      <li>
+        <table>
+          <tr>
+            <th>合计收入</th>
+          </tr>
+          <tr class="incomeTitle">
+            <td class="h5">累计总收入</td>
+            <td class="h5">上月总收入</td>
+            <td class="h5">本月总收入</td>
+            <td class="h5">今日收入</td>
+          </tr>
+          <tr>
+            <td class="h5">¥{{total_income ? total_income.total_income : '0.00'}}</td>
+            <td class="h5">¥{{total_income ? total_income.lastmonth_income : '0.00'}}</td>
+            <td class="h5">¥{{total_income ? total_income.themonth_income : '0.00'}}</td>
+            <td class="h5">¥{{total_income ? total_income.today_income : '0.00'}}</td>
+          </tr>
+        </table>
+      </li>
+      <li>
+        <table>
+          <tr>
+            <td style="text-align: left">分店总数：{{shop_number_total}}</td> 
+            <td style="text-align: right">已激活分店：{{shop_number_use}}</td>
+          </tr>
+        </table>
+      </li>
+      <li wx:for="{{branceList}}" wx:for-item = "branch" wx:key="branch">
+        <table>
+          <tr>
+            <th>{{branch.store_name}}</th>
+          </tr>
+          <tr>
+            <td><span class="titleMoney h5">销售自营商品金额</span></td>
+          </tr>
+          <tr class="incomeTitle">
+            <td class="h5">累计订单金额</td>
+            <td class="h5">上月订单金额</td>
+            <td class="h5">本月订单金额</td>
+            <td class="h5">今日订单金额</td>
+          </tr>
+          <tr>
+            <td class="h5">¥{{branch.total_income ? branch.total_income : '0.00'}}</td>
+            <td class="h5">¥{{branch.lastmonth_income ? branch.lastmonth_income : '0.00'}}</td>
+            <td class="h5">¥{{branch.themonth_income ? branch.themonth_income : '0.00'}}</td>
+            <td class="h5">¥{{branch.today_income ? branch.today_income : '0.00'}}</td>
+          </tr>
+          <tr>
+            <td><span class="titleMoney h5">销售平台商品分店佣金</span></td>
+          </tr>
+          <tr class="incomeTitle">
+            <td class="h5">分店累计佣金</td>
+            <td class="h5">分店上月佣金</td>
+            <td class="h5">分店本月佣金</td>
+            <td class="h5">分店今日佣金</td>
+          </tr>
+          <tr>
+            <td class="h5">¥{{branch.chain_shop_commission_total ? branch.chain_shop_commission_total : '0.00'}}</td>
+            <td class="h5">¥{{branch.lastmonth_chain_shop_commission_total ? branch.lastmonth_chain_shop_commission_total : '0.00'}}</td>
+            <td class="h5">¥{{branch.themonth_chain_shop_commission_total ? branch.themonth_chain_shop_commission_total : '0.00'}}</td>
+            <td class="h5">¥{{branch.today_chain_shop_commission_total ? branch.today_chain_shop_commission_total : '0.00'}}</td>
+          </tr>
+          <tr>
+            <td><span class="titleMoney h5">销售平台商品总店佣金</span></td>
+          </tr>
+          <tr class="incomeTitle">
+            <td class="h5">总店累计佣金</td>
+            <td class="h5">总店上月佣金</td>
+            <td class="h5">总店本月佣金</td>
+            <td class="h5">总店今日佣金</td>
+          </tr>
+          <tr>
+            <td class="h5">¥{{branch.shop_commission_total ? branch.shop_commission_total : '0.00'}}</td>
+            <td class="h5">¥{{branch.lastmonth_shop_commission_total ? branch.lastmonth_shop_commission_total : '0.00'}}</td>
+            <td class="h5">¥{{branch.themonth_shop_commission_total ? branch.themonth_shop_commission_total : '0.00'}}</td>
+            <td class="h5">¥{{branch.today_shop_commission_total ? branch.today_shop_commission_total : '0.00'}}</td>
+          </tr>
+        </table>
+      </li>
+    </ul>
+    <a class="addShop" bindtap="addBrance">开设分店
+      <span v-if = "unused_qrcode_count !== '0'" class="h5" style="display:block; color:#888">(您还有 <i style="color: #c8975c;font-style: normal;font-size: 14px;">{{unused_qrcode_count}}</i> 家分店未开设)</span>
+    </a>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class manageBranch extends wepy.page {
+    config = {
+      navigationBarTitleText: '分店管理'
+    }
+    data = {
+      branceList: [],
+      total_income: null,  // 合计收入
+      core_id: '',
+      unused_qrcode_count: 0,
+      shop_number_total: 0,
+      shop_number_use: 0
+    }
+    onLoad() {
+      this.getBrance()
+    }
+    /**
+     * [getBrance 获取分店信息]
+     * @return {[type]} [description]
+     */
+    getBrance() {
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/shop/chain_shop/chain_shop.php`,
+        data: {
+          act: 'chain_shop'
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          this.$apply(() => {
+            this.branceList = data.chain_list
+            this.total_income = data.total_income_z
+            this.unused_qrcode_count = data.unused_qrcode_count
+            this.shop_number_total = data.shop_number_total
+            this.shop_number_use = data.shop_number_use
+          })
+        } else {
+          console.log(errcode, msg, data)
+        }
+      })
+    }
+    /**
+     * [addBrance 添加分店]
+     */
+    addBrance() {
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/shop/chain_shop/chain_shop.php`,
+        data: {
+          act: 'add_shop'
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          if (data.is_qrcode === 0) {
+            // 无可用分店二维码信息 直接支付
+            this.submitOrder()
+          } else {
+            // 有未开店的二维码信息，跳转页面去分享
+            wepy.navigateTo({
+              url: `../shareBranchQr?code_id=${data.chain_info.code_id}`
+            })
+          }
+        } else {
+          console.log(errcode, msg, data)
+        }
+      })
+    }
+    /**
+     * [submitOrder 支付之前请求接口获得order_sn]
+     * @return {[type]} [description]
+     */
+    submitOrder() {
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/flow.php?step=chain_order`,
+        data: {
+          act: 'add_shop'
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          if (data.order_sn) {
+            this.payNow(data.order_sn)
+          } else {
+            console.warn('获取订单号失败')
+            // $.toast(msg, 'forbidden')
+          }
+        } else {
+          console.log(errcode, msg, data)
+        }
+      })
+    }
+    /**
+     * [payNow 支付]
+     * @param  {[type]} order_sn [description]
+     * @return {[type]}          [description]
+     */
+    payNow(orderSn) {
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/flow.php?step=chain_wx_pay`,
+        data: {
+          order_sn: orderSn
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          if (data.jsApiParameters) {
+            let payJson = JSON.parse(data.jsApiParameters)
+            wepy.requestPayment({
+              timeStamp: payJson.timeStamp,
+              nonceStr: payJson.nonceStr,
+              package: payJson.package,
+              signType: payJson.signType,
+              paySign: payJson.paySign
+            }).then((res) => {
+              /*
+               * 支付成功
+               */
+              if (res.errMsg === 'requestPayment:ok') {
+                wepy.showModal({
+                  title: '支付成功',
+                  content: res.errMsg,
+                  showCancel: false
+                })
+              } else {
+                wepy.showModal({
+                  title: 'jssdk支付失败',
+                  content: res.errMsg,
+                  showCancel: false
+                })
+              }
+            }, (res) => {
+              /*
+               * 支付失败
+               */
+              // 取消
+              wepy.showModal({
+                title: '支付失败',
+                content: res.errMsg,
+                showCancel: false
+              })
+            }, (res) => {
+              /*
+               * 支付完成
+               */
+            })
+          }
+        } else {
+          console.log(errcode, msg, data)
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.branchManage li{background: #fff; box-shadow: 3px 3px 33px #999; border-radius: 4px; padding: 20rpx; margin-top: 0.5rem; display:block;}
+.branchManage li table th{border-bottom: 1px dashed #999; text-align: center; height: 1.6rem; line-height: 1.6rem}
+.branchManage li table td{height: 1.4rem; line-height: 1.4rem; text-align: center;}
+.branchManage li table{width: 100%}
+.addShop{ display: block; width: 80%; color: #c8975c; background: #333; line-height: 1rem; text-align: center; margin: 0 auto; margin-top: 1rem; border-radius: 4px; padding:0.4rem 0 0.2rem;}
+.titleMoney{background: #999; color: #fff; padding:1px 5px; border-radius: 4px }
+
+.branchManage tr{display: flex}
+.branchManage tr td, .branchManage tr th{flex: 1;}
+</style>

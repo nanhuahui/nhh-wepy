@@ -1,0 +1,136 @@
+<template>
+  <view class="row setBranch">
+    <view>
+      <text>店铺名称：</text><input placeholder="请填写分店名称" value="{{storeName}}" bindinput="storeNameInput"/>
+    </view>
+    <view>
+      <text>手机号码：</text><input placeholder="请填写手机号码" value="{{storeMobile}}" bindinput="storeMobileInput"/>
+    </view>
+    <a class="setStore" bindtap="setStore">确认设置</a>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class setBranchStore extends wepy.page {
+    config = {
+      navigationBarTitleText: '设置店铺'
+    }
+    data = {
+      storeName: '',
+      storeMobile: '',
+      parentId: '',   // 总店uid
+      code_id: ''
+    }
+    onLoad(options) {
+      let self = this
+      if (options.scene) {
+        let scene = decodeURIComponent(options.scene)
+        let qrId = wepy.getQueryString('qr_id', scene)
+        if (qrId) {
+          self.getQrScene(qrId)
+        } else {
+          self.$apply(() => {
+            self.parentId = options.uid
+            self.code_id = options.codeId
+          })
+        }
+        console.log(888888, scene)
+      } else {
+        self.$apply(() => {
+          self.parentId = options.uid
+          self.code_id = options.codeId
+        })
+      }
+    }
+    /**
+     * [setStore s设置店铺]
+     */
+    setStore() {
+      if (!this.data.storeName || !this.data.storeMobile) {
+        wepy.showModal({
+          title: '提示',
+          content: '请填写完整信息',
+          showCancel: false
+        })
+        return false
+      }
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/create.php`,
+        data: {
+          act: 'step_3',
+          user_id: this.data.parentId,
+          code_id: this.data.code_id,
+          store_name: this.data.storeName,
+          mobile: this.data.storeMobile
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          // 更新缓存
+          let shopInfor = {'is_shop': true, 'is_consumers': false}
+          let userNhh = JSON.parse(wepy.getStorageSync('store_nhh'))
+          userNhh.is_shop = '1'
+          wepy.setStorageSync('shopInfor', JSON.stringify(shopInfor))
+          wepy.setStorageSync('user_nhh', JSON.stringify(userNhh))
+          wepy.setStorageSync('shop_type', '2')
+          wepy.showModal({
+            title: '提示',
+            content: '分店信息设置成功',
+            confirmText: '确定',
+            cancelText: '关闭'
+          }).then((res) => {
+            if (res.confirm) {
+              wepy.switchTab({url: '../../user/userCenter'})
+            } else if (res.cancel) {
+              return false
+            }
+          })
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    method = {
+      storeNameInput(e) {
+        this.storeName = e.detail.value
+        this.$apply()
+      },
+      storeMobileInput(e) {
+        this.storeMobile = e.detail.value
+        this.$apply()
+      }
+    }
+    getQrScene(id) {
+      console.log(id)
+      let self = this
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/wx_app/get_qrcode.php`,
+        data: {
+          act: 'get_qr_scene',
+          qr_id: id
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.parentId = wepy.getQueryString('uid', data)
+            self.code_id = wepy.getQueryString('codeId', data)
+          })
+        } else {
+          console.error('获取小程序码存储的参数失败', msg)
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.setBranch{background: #fff; padding: 0.5128rem}
+.setBranch>view{height: 92rpx; line-height: 92rpx; text-align: center; display: block; position: relative; padding-left: 250rpx}
+.setBranch text{position: absolute; left: 100rpx; top: -10rpx}
+.setBranch input{width: 400rpx; height: 60rpx; line-height: 60rpx; border: 1px solid #ddd; border-radius: 4px; padding-left: 5px; outline: none; text-align: left;}
+.setStore{display: block; width: 50%; color: #c8975c; background: #333; height: 60rpx; line-height: 60rpx; text-align: center; margin: 0 auto; margin-top: 92rpx; border-radius: 4px}
+</style>
