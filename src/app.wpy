@@ -60,6 +60,7 @@ export default class extends wepy.app {
       'pages/user/newAddress',
       'pages/user/sellerFundUse',
       'pages/user/consumerDetail',
+      'pages/user/storeInstruction',
       'pages/order/orderList',
       'pages/order/orderInfo',
       'pages/order/orderSubmit',
