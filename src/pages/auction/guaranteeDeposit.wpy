@@ -1,0 +1,284 @@
+<template>
+  <!-- 支付保证金页面 -->
+<view class="mainContent" wx:if="{{pageSwitch === 'fill'}}">
+  <view class="orderInfo">
+    <view>保证金</view>
+    <view class="priceNumber">￥{{money}}</view>
+    <view class="marginState">
+      <text class="orderNumber">1.</text><text class="word">竞拍不成功，保证金全额退还</text>
+    </view>
+    <view class="marginState">
+      <text class="orderNumber">2.</text><text class="word">竞拍成功，保证金作为货款的一部分，请在{{hour}}小时内完成支付，逾期将扣除保证金</text>
+    </view>
+  </view>
+  <view class="specificDetails">
+    <view>
+      竞拍需要同意{{mailName}}拍卖
+      <navigator url="./biddingAgreement" class="c10">
+        《用户竞拍协议》
+      </navigator>
+      和
+      <navigator url="./marginRule?hour={{hour}}" class="c10">
+        《保证金规则》
+      </navigator>
+    </view>
+  </view>
+  <view class="btn">
+    <navigator bindtap="submitting">提交</navigator>
+  </view>
+</view>
+
+<!-- 错误展示 -->
+<view wx:if="{{pageSwitch === 'errormsg'}}" class="errWarning">
+  <view class="iconfont-yzg icon-yzg-information"></view>
+  <text>{{errorMsg}}</text>
+  <navigator class="navTarget" url="../../shopping/category/category">
+    随便逛逛
+  </navigator>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import { DEFAULT_NAME } from '@/utils/config'
+
+  export default class guaranteeDeposit extends wepy.page {
+    config = {
+      navigationBarTitleText: '保证金'
+    }
+    components = {}
+    data = {
+      imgUrl: '',
+      pageSwitch: 'fill', // 填写订单成功是否显示
+      money: null, // 保证金金额
+      hour: null, // 支付倒计时
+      orderSn: null, // 订单号
+      goodsId: null, // 商品id
+      actId: null, // 活动id
+      mailName: DEFAULT_NAME
+    }
+    onLoad(q) {
+      this.actId = q.aid
+      this.mon = q.mon
+      this.$apply()
+      this.loadData()
+    }
+    onShow() {}
+    /*
+     * 加载更多
+     */
+    loadData() {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/flow.php?step=bond_order`,
+        data: {
+          act_id: this.actId,
+          money: this.mon
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          console.log('查询结果为:', data)
+          // 赋值
+          self.$apply(() => {
+            self.pageSwitch = 'fill'
+            self.money = data.money
+            self.hour = data.hour
+            self.orderSn = data.order_sn
+            self.goodsId = data.upc_id
+            self.actId = data.act_id
+          })
+        } else {
+          wepy.showToast({
+            title: msg,
+            icon: 'none',
+            duration: 2000
+          }).then((res) => {
+            self.$apply(() => {
+              self.pageSwitch = 'errormsg'
+            })
+          })
+        }
+      })
+    }
+    /*
+     * 提交订单
+     */
+    submitting () {
+      wepy.showLoading({title: '加载中'})
+      try {
+        let self = this
+        let payParams = {
+          order_sn: self.orderSn,
+          pay_id: '3'
+        }
+        // 发送请求至后台
+        wepy.request({
+          url: `${self.$parent.globalData.apiUrl}/flow.php?step=bond_wx_pay`,
+          method: 'POST',
+          header: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          data: payParams
+        }).then(({data: {errcode, data, msg}}) => {
+          if (errcode === 0) {
+            if (data.jsApiParameters) {
+              let payJson = JSON.parse(data.jsApiParameters)
+              // 调用支付
+              wepy.requestPayment({
+                timeStamp: payJson.timeStamp,
+                nonceStr: payJson.nonceStr,
+                package: payJson.package,
+                signType: payJson.signType,
+                paySign: payJson.paySign
+              }).then((res) => {
+                /*
+                 * 支付成功
+                 */
+                if (res.errMsg === 'requestPayment:ok') {
+                  wepy.showToast({
+                    type: 'success',
+                    timer: 2000,
+                    color: '#fff',
+                    title: '支付成功'
+                  }).then(() => {
+                    console.log('支付成功')
+                    self.$navigate(`./goodsDetails?gid=${self.goodsId}&aid=${self.actId}`)
+                  })
+                } else {
+                  wepy.showModal({
+                    title: 'jssdk支付失败',
+                    content: res.errMsg,
+                    showCancel: false
+                  })
+                  // window.location.href = 'http://union.huahuishang.com/flow.php?step=wx_pay&did_sn=' + data.message
+                }
+              }, (res) => {
+                /*
+                 * 支付失败
+                 */
+                // 取消
+                wepy.showToast({
+                  type: 'cancel',
+                  timer: 2000,
+                  color: '#fff',
+                  title: '支付失败'
+                }).then(() => {
+                  console.log('支付失败', res.errMsg)
+                })
+              }, (res) => {
+                /*
+                 * 支付完成
+                 */
+              })
+            } else {
+              wepy.showModal({
+                title: '提示',
+                content: '没有获取到支付参数',
+                showCancel: false
+              })
+            }
+          } else {
+            wepy.showModal({
+              title: '支付失败',
+              content: msg,
+              showCancel: false
+            })
+            console.error(msg)
+          }
+        })
+      } catch (e) {
+        wepy.showToast({
+          title: '支付异常,请刷新重试!',
+          icon: 'none',
+          duration: 2000
+        }).then((res) => {
+          console.log('禁止操作')
+        })
+        console.error(e)
+      } finally {
+        wepy.hideLoading()
+      }
+    }
+  }
+</script>
+
+<style lang="less">
+page {
+  color: #3a3a3a;
+  font-size: 14px
+}
+.mainContent {
+  height:100%;
+}
+.mainContent .orderInfo{
+  padding:10px 15px;
+  background-color:#fff;
+  margin-bottom:5px;
+}
+.orderInfo .priceNumber{
+  color:#EF4B4B;
+  font-weight:bold;
+}
+.orderInfo .marginState{
+  display:flex;
+}
+.orderInfo .marginState .orderNumber{
+  width:12px;
+}
+.orderInfo .marginState .word{
+  flex: 1;
+}
+.mainContent .specificDetails{
+  padding:10px 15px;
+  background-color:#fff;
+}
+.mainContent .specificDetails navigator{
+  display: inline;
+}
+.mainContent .btn{
+  position:fixed;
+  left:0;
+  bottom:0;
+  width:100%;
+  height:45px;
+  line-height:45px;
+  text-align:center;
+  padding: 0;
+  margin-bottom: 15px;
+}
+.mainContent .btn navigator{
+  display:block;
+  margin:0 15px;
+  background-color:#000;
+  color:#fff;
+  border-radius:5px;
+  font-size:32rpx;
+}
+
+.errWarning {
+  margin: 60px 15px 20px;
+  background: #fefcf0;
+  padding: 40px 0 50px 0;
+  border: 1px dotted #f5beb3;
+  border-radius: 10px;
+  text-align: center;
+  color: #ed3366;
+}
+
+.errWarning text {
+  font-size: 20px;
+  margin-top: 10px;
+}
+
+.errWarning .icon-yzg-information {
+  font-size: 40px;
+}
+
+.navTarget {
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-top: 15px;
+  color: #ed3366;
+}
+
+</style>

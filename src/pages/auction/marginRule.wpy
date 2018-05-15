@@ -1,0 +1,101 @@
+<template>
+<!-- 保证金规则页面 -->
+<view class="instruction_whole">
+  <view class="title">
+    《保证金规则》
+  </view>
+  <view class="secondaryTitle">
+    一、保证金的交纳：
+  </view>
+  <view>
+    保证金是竞拍人参加竞拍的凭证，如用户有意参加相关商品竞拍活动，则须缴纳卖家设置的参与竞拍活动的保证金，每个商品的竞拍只需要缴纳一次保证金。
+  </view>
+  <view class="secondaryTitle">
+    二、保证金的返还：
+  </view>
+  <view>
+    在符合以下条件时将原路退还用户保证金：
+  </view>
+  <view>
+    1.用户未成功竞拍商品：例如在竞拍过程中始终未出价、在竞拍过程中放弃加价等情况；
+  </view>
+  <view>
+    2.用户竞拍成功后，商家主动关闭交易或未履约发货或因商家其他原因导致交易未完成的；竞拍结束后，系统会自动在1-7个工作日内将款项内退还到支付账号中，如您缴纳的竞拍保证金符合退还条件，但是系统未予退还，您可以联系官方客服<text bindtap="calling" data-tel="4006226777">4006226777</text>，我们会尽快帮您处理。
+  </view>
+  <view class="secondaryTitle">
+    三、保证金的扣除：
+  </view>
+  <view>
+    1.在升价拍竞拍成功之时起的{{hour}}小时内未按照成交价格支付拍品货款的。
+  </view>
+  <view>
+    2.在竞拍成功且付款后，竞拍人申请退款（卖家提供7天无理由退货服务的除外）。
+  </view>
+  <view>
+    如因卖家原因导致竞拍人不付款，竞拍人可在交易关闭的7天内联系官方客服<text bindtap="calling" data-tel="4006226777">4006226777</text>，逾期保证金申诉不给予受理。
+  </view>
+  <view class="secondaryTitle">
+    四、保证金抵货款：
+  </view>
+  <view>
+    用户竞拍成功后，用户缴纳的保证金将自动转化为部分成交款，在用户缴纳完毕除保证金外的剩余成交款及拍卖佣金后，由商城将保证金、剩余成交款和拍卖佣金统一结算给送拍机构 。
+  </view>
+  <view class="secondaryTitle">
+    五、违约责任成交不卖的违约赔偿：
+  </view>
+  <view>
+    用户竞拍成功并支付成交款后，如因送拍机构原因出现了“成交不卖”的违规行为，包括但不限于关闭交易或未履约发货，送拍机构应为用户办理退款，同时，用户还将获得由送拍机构提供的金额为所缴纳保证金金额一倍的违约金作为赔偿。退款、赔偿及法律责任的追究，由送拍机构线下与用户自行联系完成。所涉款项不通过官方平台支付，官方平台亦不对此承担任何义务与法律责任。
+  </view>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class marginRule extends wepy.page {
+    config = {
+      navigationBarTitleText: '保证金规则'
+    }
+    components = {}
+    data = {}
+    onLoad() {}
+    onShow() {}
+    calling(e) {
+      wepy.makePhoneCall({
+        phoneNumber: e.currentTarget.dataset.tel,
+        success: function () {
+          console.log('拨打电话成功！')
+        },
+        fail: function () {
+          console.log('拨打电话失败！')
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.instruction_whole{
+  font-size: 28rpx;
+  text-align: justify;
+  line-height: 1.8;
+  background-color: #fff;
+  padding: 0 15px 30px;
+}
+.instruction_whole view{
+  text-indent:2em;
+}
+.instruction_whole .title{
+  text-indent:0;
+  font-size: 30rpx;
+  text-align: center;
+  line-height: 2;
+  font-weight: bold;
+  padding: 10px 0;
+}
+.instruction_whole .secondaryTitle{
+  text-indent:0;
+  padding: 4px 0;
+  font-weight: bolder;
+}
+</style>

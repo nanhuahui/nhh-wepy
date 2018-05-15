@@ -121,7 +121,7 @@
           <text style="float: left;">自营商品</text><text style="font-weight: bolder;color: #c8975c;float: left;padding-left: 10rpx;">(Beta 1.0）</text>
           <navigator url="./storeInstruction" class="uploadStoreDet h5 c11" style="float: right;">用户须知</navigator>
         </view>
-        <view class="clearfix" style="padding-bottom:39rpx">
+        <view class="clearfix" style="padding-bottom:39rpx;overflow:hidden;">
           <view class="col-xs-3" style="width:25%;">
             <navigator class="feature" url="../uploadGoods/uploadGood">
               <image src="{{imgUrl}}/storeGoods/addGoods.png"></image>
@@ -631,6 +631,7 @@
   font-weight: bold;
   color: #333;
   padding: 39rpx 30rpx 10rpx;
+  overflow: hidden;
 }
 
 .iconroom .title text {

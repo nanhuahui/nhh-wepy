@@ -1,0 +1,295 @@
+<template>
+<scroll-view class="scrollView" scroll-y="true"  scroll-top="{{scrollTop}}" bindscrolltolower="loadMore" bindscroll="scroll" style="overflow: hidden;">
+  <view class="auctionGoods" wx:for="{{auctionList}}" wx:for-item="auction" wx:key="index" bindtap="checkDetail" data-info="{{auction}}">
+    <view class="leftImg">
+      <image src="{{imgDomain + auction.master_img}}"></image>
+      <view class="time-count_down" style="">
+        <text>{{auction.desc}}</text>
+        <text style="margin-left: 2px;" wx:if="{{auction.desc !== '已结束'}}">{{auction.actTime}}</text>
+      </view>
+    </view>
+    <view class="rightInfo">
+      <view class="h5 c3">{{auction.act_name}}</view>
+      <view class="offerInfo">
+        <view class="h5 c3 currentPrice">
+            <text class="h5 c3">
+              当前价格<text class="h5">￥<text class="h2">{{auction.bid_price}}</text></text>
+            </text>
+          </view>
+          <view class="last_line">
+            <view class="h16 c3 offerTime">
+              <view class="offerTimeWord">
+                <text class="endTime">结束时间:</text>
+                <text class="timeNumber">{{auction.auction_end_time}}</text>
+              </view>
+            </view>
+            <view class="offerPriceButton c11" wx:if="{{auction.status==='1'}}" catchtap="addCart" data-info="{{auction}}">
+              去支付
+            </view>
+            <view class="offerPriceButton c7" style="background-color: #ccc;" wx:if="{{auction.status==='2'}}" catchtap=" ">
+              去支付
+            </view>
+            <view class="offerPriceButton c7" style="background-color: #ccc;width:112rpx;font-size: 22rpx;" wx:if="{{auction.status==='3'}}" catchtap=" ">
+              支付超时
+            </view>
+          </view>
+        </view>
+    </view>
+  </view>
+  <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}" style="height:4.2em;">
+    <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+  </view>
+</scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import CountDown from '../../components/countdown'
+
+  export default class myGetedAuction extends wepy.page {
+    config = {
+      navigationBarTitleText: '我的获拍'
+    }
+    components = {}
+    data = {
+      imgUrl: '',
+      imgDomain: null,
+      auctionList: [], // 我的竞拍拍卖列表
+      pageNum: 0,
+      eachAuctionInfo: null
+    }
+    onLoad() {
+      this.loadMore()
+    }
+    onShow() {}
+    scroll(event) {
+      // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+      this.$apply(() => {
+        this.scrollTop = event.detail.scrollTop
+      })
+    }
+    /*
+     * 加载更多
+     */
+    loadMore() {
+      let self = this
+      if (self.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
+      })
+      console.log('当前加载页码:' + self.pageNum)
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/auction.php`,
+        data: {
+          act: 'my_auction',
+          con: 'get',
+          page: self.pageNum
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          console.log('查询结果为:', data)
+          if (data.my_auction.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+            })
+            return
+          }
+          // 数据组装
+          var list = self.auctionList
+          let countDown, actTime, desc
+          for (var i = 0; i < data.my_auction.length; i++) {
+            // 倒计时start
+            countDown = new CountDown({
+              start: data.my_auction[i].start_time * 1000,
+              end: data.my_auction[i].end_time * 1000,
+              render(date) {
+                const days = this.leadingZeros(date.days, 2) === '00' ? '' : `${this.leadingZeros(date.days, 2)} 天`
+                const hours = this.leadingZeros(date.hours, 2) + ' : '
+                const min = this.leadingZeros(date.min, 2) + ' : '
+                const sec = this.leadingZeros(date.sec, 2) + '  '
+                let text
+                switch (this.options.flag) {
+                  case -1:
+                    text = '距离开场'
+                    break
+                  case 0:
+                    text = '距离结束'
+                    break
+                  case 1:
+                    text = '已结束'
+                    break
+                  default:
+                    text = '未知状态'
+                }
+                actTime = days + hours + min + sec
+                desc = text
+              }
+            })
+            data.my_auction[i].actTime = actTime
+            data.my_auction[i].desc = desc
+            list.push(data.my_auction[i])
+          }
+          console.log(countDown)
+          // 赋值
+          self.$apply(() => {
+            self.auctionList = list
+            self.imgDomain = data.img_domain
+          })
+        } else {
+          console.error(msg)
+        }
+      })
+    }
+    addCart (e) {
+      let eachAuctionInfo = e.currentTarget.dataset.info
+      if (eachAuctionInfo.order_id === '0') {
+        wepy.request({
+          url: `${self.$parent.globalData.apiUrl}/flow.php?step=add_to_cart`,
+          method: 'POST',
+          header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          data: {
+            goods: JSON.stringify({
+              'quick': 0,
+              'spec': [],
+              'goods_id': eachAuctionInfo.goods_id,
+              'number': '1',
+              'parent': 0,
+              'upc_id': eachAuctionInfo.upc_id
+            }),
+            one_step_buy: 1,
+            buy_type: 0,
+            group_no: 0,
+            seller_id: wepy.getStorageSync('sellerId'),
+            from_id: eachAuctionInfo.upc_id
+              ? eachAuctionInfo.upc_id
+              : '',
+            auction_id: eachAuctionInfo.act_id,
+            auction_log_id: eachAuctionInfo.log_id
+          }
+        })
+      } else {
+        this.$navigate(`../order/orderInfo?id=${eachAuctionInfo.order_id}&type=0`)
+      }
+    }
+    /*
+     * 查看商品详情
+     */
+    checkDetail (e) {
+      let isOnSale = e.currentTarget.dataset.info.is_on_sale
+      let aid = e.currentTarget.dataset.info.act_id // aid:拍卖活动id
+      let uid = e.currentTarget.dataset.info.upc_id // uid: 商品id
+      if (isOnSale === '1') { // isOnSale:判断商品是否下架,'1':商品上架状态，'0':商品下架
+        this.$navigate(`../auction/goodsDetails?aid=${aid}&gid=${uid}`)
+      } else {
+        wepy.showModal({
+          content: '该商品已下架',
+          showCancel: false
+        })
+      }
+    }
+  }
+</script>
+
+<style lang="less">
+  .scrollView {
+    height: 100%;
+    position: fixed;
+    top:1px;
+    bottom: 1px;
+  }
+  .auctionGoods{
+    display:flex;
+    padding:15px;
+    background-color:#fff;
+    margin-bottom:1px;
+  }
+  .auctionGoods .leftImg{
+    width:230rpx;
+    height:230rpx;
+    position:relative;
+  }
+  .auctionGoods .leftImg image{
+    width:230rpx;
+    height:230rpx;
+    vertical-align:bottom;
+  }
+  .auctionGoods .leftImg .time-count_down {
+    position: absolute;
+    bottom: 0;
+    left:0;
+    width: 100%;
+    background-color: rgba(230,0,0,0.6);
+    color: #fff;
+    text-align: center;
+    font-size: 20rpx;
+  }
+  .auctionGoods .rightInfo{
+    flex:1;
+    padding-left:14rpx;
+    position:relative;
+  }
+  .rightInfo .offerInfo{
+    position:absolute;
+    left:0;
+    bottom:0;
+    width:100%;
+  }
+  .offerInfo .currentPrice{
+    padding-left:14rpx;
+  }
+  .offerInfo .last_line{
+    display:flex;
+    height:50rpx;
+  }
+  .last_line .offerTime{
+    flex:1;
+    position:relative;
+    margin:0 108rpx 0 14rpx;
+  }
+  .last_line .offerTime .offerTimeWord{
+    font-size:22rpx;
+    position:absolute;
+    left:0;bottom:-4rpx;
+    width:100%;
+    font-weight:lighter;
+  }
+  .last_line .offerTime .offerTimeWord text{
+    font-size:22rpx;
+  }
+  @media (max-width: 321px) {
+    .auctionGoods .rightInfo{
+      padding-left:4rpx;
+    }
+    .last_line .offerTime{
+      margin:0 108rpx 0 4rpx;
+    }
+    .offerInfo .currentPrice{
+      padding-left:4rpx;
+    }
+  }
+  .last_line .offerPriceButton{
+    position:absolute;
+    right:0;
+    bottom:0;
+    width:108rpx;
+    height:50rpx;
+    line-height:50rpx;
+    border-radius:3px;
+    background-color:#000;
+    text-align:center;
+  }
+  .leftImg .activityTime{
+    position: absolute;
+    left:0;
+    bottom: 0;
+    width: 100%;
+    background-color: rgba(230,0,0,0.6);
+    color: #fff;
+    text-align: center;
+  }
+</style>

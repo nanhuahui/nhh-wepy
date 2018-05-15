@@ -1,0 +1,46 @@
+<template>
+  <!-- 我的拍卖页面 -->
+  <navigator url="./myCompetitiveAuction">
+    我的竞拍
+    <text class="iconfont-yzg icon-yzg-arrow"></text>
+  </navigator>
+  <navigator url="./myGetedAuction">
+    我的获拍
+    <text class="iconfont-yzg icon-yzg-arrow"></text>
+  </navigator>
+  <navigator url="./myGuaranteeDeposit">
+    我的保证金
+    <text class="iconfont-yzg icon-yzg-arrow"></text>
+  </navigator>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class myAuction extends wepy.page {
+    config = {
+      navigationBarTitleText: '我的拍卖'
+    }
+    components = {}
+    data = {}
+    onLoad() {}
+    onShow() {}
+  }
+</script>
+
+<style lang="less">
+navigator {
+  border-bottom: 1px solid #f4f4f4;
+  background-color: #fff;
+  position: relative;
+  height: 90rpx;
+  line-height: 90rpx;
+  padding-left: 30rpx;
+}
+navigator text{
+  position: absolute;
+  right:30rpx;
+  color: #333;
+  font-size: 28rpx;
+}
+</style>

@@ -1,7 +1,7 @@
 <template>
   <scroll-view scroll-y="true" height="100%">
     <view class="courieNumber">
-      <input type="text" placeholder="请填写快递单号" value="{{invoice_no}}" bindinput = "invoice_no_input"/>
+      <input type="text" placeholder="请填写快递单号" value="{{invoice_no}}" bindinput = "invoiceNoInput"/>
       <picker class="shippingName" bindchange="bindPickerChange" value="{{index}}" range="{{objShippingArr}}">
         <view class="picker">
           {{shipping_name ? shipping_name : '请选择快递'}}
@@ -33,13 +33,13 @@
       this.$apply(() => {
         this.order_id = q.order_id
       })
-      this.load_shipping_list()
+      this.loadShippingList()
     }
     /**
-     * [load_shipping_list 获取接口快递名称]
+     * [loadShippingList 获取接口快递名称]
      * @return {[type]} [description]
      */
-    load_shipping_list() {
+    loadShippingList() {
       wepy.request({
         url: `${this.$parent.globalData.apiUrl}/shop/order/order.php?act=get_shipping_list`,
         method: 'POST',
@@ -50,7 +50,7 @@
         if (errcode === 0) {
           // 对
           let objShippingArr = []
-          for(let index in data.shipping_list) {
+          for (let index in data.shipping_list) {
             if (data.shipping_list[index].shipping_id === data.last_shipping_info.shipping_id) {
               this.$apply(() => {
                 this.index = index
@@ -87,11 +87,11 @@
       })
     }
     /**
-     * [invoice_no_input 快递单号绑定]
+     * [invoiceNoInput 快递单号绑定]
      * @param  {[type]} e [description]
      * @return {[type]}   [description]
      */
-    invoice_no_input(e) {
+    invoiceNoInput(e) {
       this.$apply(() => {
         this.invoice_no = e.detail.value
       })

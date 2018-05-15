@@ -1,0 +1,407 @@
+<template>
+	<scroll-view scroll-y="true" height="100%" bindscrolltolower="loadData" bindscroll="scroll" scroll-y="true" lower-threshold="100" class="scrollView goodsList">
+    <!-- 通告 -->
+    <view class="annunciate" wx:if="{{auctionMessage}}">
+      <image src="{{imgUrl}}/auctionList/annunciate.png"></image>
+      <view class="h5 c3">
+        恭喜<text style="color:#ea9a00;padding:0 12rpx;">{{auctionMessage.nickname}}</text>以{{auctionMessage.bid_price}}元价格获拍{{auctionMessage.goods_name}}
+      </view>
+    </view>
+    <!-- banner轮播图 -->
+    <swiper class="bannerImg" autoplay="true" interval="4500" duration="1000" wx:if="{{auctionBanner.length > 0}}">
+      <block wx:for="{{auctionBanner}}" wx:key="item.banner">
+        <swiper-item>
+          <navigator url="{{item.turns_link}}">
+            <image src="{{imgDomain + item.banner}}" mode="widthFix"/>
+          </navigator>
+        </swiper-item>
+      </block>
+    </swiper>
+    <!-- 拍卖商品状态栏 -->
+    <!-- 注释内容解开时需把上一行line-height样式去掉 -->
+    <view class="statusBar c1">
+      <view class="status {{auctionStatus === 'done' ? 'tab-block' : ''}}" @tap="auctionType" data-type="done">
+        <view class="statusBox">
+          <view class="h3 statusType" style="line-height:82rpx;">拍卖历史</view>
+          <!-- <view class="h16 typeNumber">{{goods_num}}个商品</view> -->
+        </view>
+      </view>
+      <view class="status {{auctionStatus === 'doing' ? 'tab-block' : ''}}" style="text-align:center;" @tap="auctionType" data-type="doing">
+        <view class="statusBox">
+          <view class="h3 statusType" style="line-height:82rpx;">正在进行</view>
+          <!-- <view class="h16 typeNumber">{{join_person}}人参加</view> -->
+        </view>
+      </view>
+      <view class="status {{auctionStatus === 'unstart' ? 'tab-block' : ''}}">
+        <view class="statusBox" style="text-align:right;" @tap="auctionType" data-type="unstart">
+          <view class="h3 statusType" style="line-height:82rpx;">即将开始</view>
+          <!-- <view class="h16 typeNumber">{{goods_num}}人关注</view> -->
+        </view>
+      </view>
+    </view>
+    <!-- 拍卖商品列表 -->
+    <navigator class="goods" wx:for="{{auctionList}}" wx:for-item="auction" wx:key="auction.start_time"
+    url="./goodsDetails?aid={{auction.act_id}}&gid={{auction.upc_id}}">
+      <view class="goodsImg">
+        <image src="{{imgDomain + auction.banner}}" mode="widthFix"></image>
+        <view class="goodsStatus {{auctionStatus}}">
+          <text class="statusWord" wx:if="{{auctionStatus === 'unstart'}}">即将开始</text>
+          <text class="statusWord" wx:if="{{auctionStatus === 'doing'}}">正在进行</text>
+          <text class="statusWord" wx:if="{{auctionStatus === 'done'}}">已结束</text>
+          <text class="statusNumber">
+            <text wx:if="{{auctionStatus === 'done'}}">
+              <text>最后成交价</text>
+              <text wx:if="auction.show_price>0">￥{{auction.show_price}}</text>
+              <text wx:else class="transactionPrice">￥0.00</text>
+            </text>
+            <text wx:else>
+              <text>{{auction.desc}}</text>
+              <text class="activityTime">{{auction.act_time}}</text>
+            </text>
+          </text>
+        </view>
+      </view>
+      <view class="goodsInfo h5">
+        <view class="title h5">{{auction.act_name}}</view>
+        <view class="h5 c2">{{auction.act_desc}}</view>
+        <view class="price h5" wx:if="{{auctionStatus === 'done'}}">
+          最后成交价<text class="priceNumber h5" wx:if="{{auction.show_price>0}}">￥{{auction.show_price}}</text><text class="priceNumber h5" wx:else>￥0.00</text>
+        </view>
+        <view class="price h5" wx:if="{{auctionStatus === 'doing'}}">
+          当前价<text class="priceNumber h5">￥<text wx:if="{{auction.show_price !== ''}}">{{auction.show_price}}</text><text class="h5" wx:else>{{auction.ext_info.start_price}}</text></text>
+          <text class="peopleNumber h5 c2"><text class="h5 c11">{{auction.user_num}}</text>人参与，<text class="h5 c11">{{auction.pay_times}}</text>次出价</text>
+        </view>
+        <view class="price h5" wx:if="{{auctionStatus === 'unstart'}}">
+          起拍价<text class="priceNumber h5">￥{{auction.ext_info.start_price}}</text>
+          <text class="peopleNumber h5">{{auction.attention_person}}人关注</text>
+        </view>
+      </view>
+    </navigator>
+    <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}" style="height:4.2em;">
+      <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+    </view>
+  </scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import CountDown from '../../components/countdown'
+
+  export default class auctionList extends wepy.page {
+    config = {
+      navigationBarTitleText: '拍卖'
+    }
+    components = {}
+    data = {
+      imgUrl: '',
+      auctionMessage: null, // 获拍消息提醒数据
+      imgDomain: '',
+      auctionBanner: [], // 拍卖商品轮播图
+      auctionList: [], // 拍卖商品列表
+      auctionStatus: 'doing', // 拍卖商品状态
+      scrollTop: 0,
+      pageNum: 0,
+      goodsNum: 0, // 拍卖商品状态栏 拍卖商品数
+      joinPerson: 0, // 拍卖商品状态栏 参与人数
+      attentionPerson: 0 // 拍卖商品状态栏 关注人数
+    }
+    onLoad(q) {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.auctionStatus = q.con
+      this.auctionMessage = null
+      this.auctionList = []
+      this.pageNum = 0
+      this.$apply()
+      this.loadData()
+    }
+    onShow() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.$apply()
+    }
+    onShareAppMessage(options) {
+      if (options.from === 'button') {
+        // 来自页面内转发按钮
+        console.log(options.target)
+      }
+      // let user = wepy.getStorageSync('user_nhh')
+      let storeName = wepy.getStorageSync('store_nhh') ? wepy.getStorageSync('store_nhh').name : ''
+      let shareLink = `pages/auction/auctionList?con=doing`
+      if (wepy.getStorageSync('sellerId')) {
+        // 从缓存中获取卖家ID进行组装
+        let sid = wepy.getStorageSync('sellerId')
+        shareLink += `&s=${sid}`
+      }
+      console.log(shareLink)
+      return {
+        title: storeName + '的拍卖活动',
+        path: shareLink,
+        // imageUrl: '自定义图片路径，可以是本地文件路径、代码包文件路径或者网络图片路径，支持PNG及JPG，不传入 imageUrl 则使用默认截图',
+        success: function(res) {
+          // 转发成功
+          console.log('success', res)
+        },
+        fail: function(res) {
+          // 转发失败
+          console.log('fail', res)
+        }
+      }
+    }
+    methods = {
+      scroll: function (event) {
+        // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+        this.scrollTop = event.detail.scrollTop
+        this.$apply()
+      },
+      auctionType (e) {
+        let oType = e.currentTarget.dataset.type
+        this.auctionStatus = oType
+        this.auctionMessage = null
+        this.auctionList = []
+        this.scrollTop = 0
+        this.pageNum = 0
+        this.$apply()
+        this.loadData()
+      }
+    }
+    /*
+     * 加载更多
+     */
+    loadData() {
+      let self = this
+      if (self.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.pageNum + 1
+      self.pageNum = num
+      console.log('当前加载页码:' + self.pageNum)
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/auction/auction.php`,
+        data: {
+          act: 'list',
+          con: self.auctionStatus,
+          page: self.pageNum
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          console.log('查询结果为:', data)
+          self.auctionMessage = data.auction_message
+          self.imgDomain = data.img_domain
+          self.auctionBanner = data.auction_banner
+          self.goodsNum = data.goods_num
+          self.joinPerson = data.join_person
+          self.attentionPerson = data.attention_person
+          self.$apply()
+          if (data.auction_info.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.pageNum = -1
+            self.$apply()
+            return
+          }
+          // 数据组装
+          var list = self.auctionList
+          var countDown
+          for (var i = 0; i < data.auction_info.length; i++) {
+            let actTime, desc
+            // 倒计时start
+            countDown = new CountDown({
+              start: data.auction_info[i].start_time * 1000,
+              end: data.auction_info[i].end_time * 1000,
+              render(date) {
+                const days = this.leadingZeros(date.days, 2) === '00' ? '' : `${this.leadingZeros(date.days, 2)} 天`
+                const hours = this.leadingZeros(date.hours, 2) + ' : '
+                const min = this.leadingZeros(date.min, 2) + ' : '
+                const sec = this.leadingZeros(date.sec, 2) + '  '
+                let text
+                switch (this.options.flag) {
+                  case -1:
+                    text = '距离开场'
+                    break
+                  case 0:
+                    text = '距离结束'
+                    break
+                  case 1:
+                    text = ''
+                    break
+                  default:
+                    text = '未知状态'
+                }
+                actTime = days + hours + min + sec
+                desc = text
+              }
+            })
+            data.auction_info[i].act_time = actTime
+            data.auction_info[i].desc = desc
+            list.push(data.auction_info[i])
+          }
+          console.log(countDown)
+          // 赋值
+          self.auctionList = list
+          self.$apply()
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('获取分类菜单失败！', error)
+      })
+    }
+  }
+</script>
+
+<style>
+  .scrollView {
+    position: fixed;
+    top:2px;
+    bottom: 2px;
+  }
+  /*通告*/
+  .annunciate{
+    box-sizing: border-box;
+    display: flex;
+    height: 45px;
+    z-index: 0;
+    background-color: #fff;
+    padding: 0 15px;
+    overflow: hidden;
+  }
+  .annunciate image{
+    width: 120rpx;
+    height: 37rpx;
+    margin-right: 28rpx;
+    margin-top: 13px;
+  }
+  .annunciate view{
+    flex:1;
+    line-height: 22px;
+  }
+  /*banner轮播图*/
+  .bannerImg{
+   height: 147px !important;
+  }
+  .bannerImg navigator{
+   height:100%;
+  }
+  .bannerImg image{
+   width: 100%;
+  }
+  @media (min-width: 376px) {
+    .bannerImg{
+      height: 162px !important
+    }
+  }
+  @media (max-width: 321px) {
+    .bannerImg{
+      height: 125px !important
+    }
+  }
+  /*拍卖商品状态栏*/
+  .statusBar{
+    display: flex;
+    padding: 0 15px;
+    margin-top: 5px;
+    background-color: #fff;
+  }
+  .statusBar .status{
+    flex: 1;
+    padding-top: 8rpx;
+  }
+  .status .statusBox{
+    position: relative;
+  }
+  .statusBox .statusType{
+    display:inline-block;
+    height:82rpx;
+  }
+  .statusBox .typeNumber{
+    position: absolute;
+    left:0;
+    bottom: 8rpx;
+    width: 100%;
+    font-size: 24rpx;
+  }
+  .status.tab-block .statusBox .statusType{
+    border-bottom:2px solid #333;
+    font-size: 28rpx;
+    font-weight: bold;
+    color: #333;
+  }
+  /*拍卖商品列表*/
+  .goodsList .goods{
+    margin-top: 5px;
+  }
+  .goodsList .goods:first-child{
+    margin-top: 0;
+  }
+  .goods .goodsImg{
+    position: relative;
+    height:auto;
+  }
+  .goods .goodsImg image{
+    width:100%;
+    vertical-align: bottom;
+   }
+  .goodsImg .goodsStatus{
+    position: absolute;
+    bottom: 0;
+    left:0;
+    width: 100%;
+    height:58rpx;
+  }
+  .goodsImg .goodsStatus.done{
+    background: url(http://wxassets.xf66.com/auctionList/finished.png);
+    background-size: 100%;
+  }
+  .goodsImg .goodsStatus.doing{
+    background: url(http://wxassets.xf66.com/auctionList/during.png);
+    background-size: 100%;
+  }
+  .goodsImg .goodsStatus.unstart{
+    background: url(http://wxassets.xf66.com/auctionList/toBegin.png);
+    background-size: 100%;
+  }
+  .goodsStatus text{
+    color: #fff;
+    line-height: 58rpx;
+  }
+  .goodsStatus .statusWord{
+    padding-left: 40rpx;
+  }
+  .goodsStatus .statusNumber{
+    position: absolute;
+    left:240rpx;
+    top:0;
+  }
+  .goodsStatus .statusNumber .transactionPrice{
+    margin-left: 20rpx;
+  }
+  .goodsStatus .statusNumber .activityTime{
+    display: inline-block;
+    margin-left: 20rpx;
+    color:#fff;
+  }
+  .goods .goodsInfo{
+    background-color: #fff;
+    padding: 12rpx 30rpx 12rpx 40rpx;
+  }
+  .goodsInfo .title{
+    font-family: 'PingFang SC';
+    color: #2F2C38;font-weight: bold;
+  }
+  .goodsInfo .price{
+    font-family: 'PingFang SC';
+    color: #2F2C38;
+    margin-top: 8rpx;
+    font-weight: bold;
+  }
+  .goodsInfo .price .priceNumber{
+    color: #F72D31;
+    padding-left: 18rpx;
+  }
+  .goodsInfo .price .peopleNumber{
+    float:right;
+    font-weight: normal;
+  }
+</style>

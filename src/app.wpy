@@ -61,6 +61,10 @@ export default class extends wepy.app {
       'pages/user/sellerFundUse',
       'pages/user/consumerDetail',
       'pages/user/storeInstruction',
+      'pages/user/myAuction',
+      'pages/user/myCompetitiveAuction',
+      'pages/user/myGetedAuction',
+      'pages/user/myGuaranteeDeposit',
       'pages/order/orderList',
       'pages/order/orderInfo',
       'pages/order/orderSubmit',
@@ -84,7 +88,12 @@ export default class extends wepy.app {
       'pages/branchOffice/goodsManage',
       'pages/branchOffice/manageBranch',
       'pages/branchOffice/setBranchStore',
-      'pages/branchOffice/shareBranchQr'
+      'pages/branchOffice/shareBranchQr',
+      'pages/auction/auctionList',
+      'pages/auction/goodsDetails',
+      'pages/auction/biddingAgreement',
+      'pages/auction/guaranteeDeposit',
+      'pages/auction/marginRule'
     ],
     window: {
       navigationBarBackgroundColor: '#f7f7f8',
