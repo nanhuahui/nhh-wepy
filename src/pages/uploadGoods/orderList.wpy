@@ -35,14 +35,14 @@
                 <image src="{{order.master_img ? order.master_img : imgUrl + '/no_picture.jpg'}}" mode="aspectFill"></image>
               </view>
               <view class="table-td h5 c3">
-                <navigator url = "../orderInfo/orderInfo?id={{order.order_id}}">
+                <navigator url = "./orderInfo?id={{order.order_id}}">
                   <view class="paragraph"><text class="h6 c3">订单号：</text>{{order.order_sn}}</view>
                   <view class="paragraph"><text class="h6 c3">收货人：</text>{{order.consignee}}</view>
                   <view class="paragraph"><text class="h6 c3">订单金额：</text>{{order.total_fee}}</view>
                   <view class="paragraph"><text class="h6 c3">{{order.order_time}}</text></view>
                 </navigator>
                 <block wx:if = "{{is_show_shipping === 1}}">
-                  <navigator url = "../delivery/delivery?order_id={{order.order_id}}" class="h5 c11 delivery">发货</navigator>
+                  <navigator url = "./delivery?order_id={{order.order_id}}" class="h5 c11 delivery">发货</navigator>
                   <span class="h5 c11 delivery" bindtap="userTake" style="right:140rpx" data-orderId = "{{order.order_id}}" data-index = "{{index}}">自提</span>
                 </block>
               </view>

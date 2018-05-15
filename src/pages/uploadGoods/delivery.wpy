@@ -1,0 +1,166 @@
+<template>
+  <scroll-view scroll-y="true" height="100%">
+    <view class="courieNumber">
+      <input type="text" placeholder="请填写快递单号" value="{{invoice_no}}" bindinput = "invoice_no_input"/>
+      <picker class="shippingName" bindchange="bindPickerChange" value="{{index}}" range="{{objShippingArr}}">
+        <view class="picker">
+          {{shipping_name ? shipping_name : '请选择快递'}}
+        </view>
+      </picker>
+    </view>
+    <a class="rightDelivery" bindtap="toDelivery">发货</a>
+  </scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class delivery extends wepy.page {
+    config = {
+      navigationBarTitleText: '订单发货'
+    }
+    data = {
+      imgUrl: '',
+      shippingList: [],
+      objShippingArr: [], // 只有快递名称， 没有id
+      shipping_name: null,
+      shipping_id: null,
+      invoice_no: null,
+      order_id: null,
+      index: 0
+    }
+    onLoad(q) {
+      this.$apply(() => {
+        this.order_id = q.order_id
+      })
+      this.load_shipping_list()
+    }
+    /**
+     * [load_shipping_list 获取接口快递名称]
+     * @return {[type]} [description]
+     */
+    load_shipping_list() {
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/shop/order/order.php?act=get_shipping_list`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          // 对
+          let objShippingArr = []
+          for(let index in data.shipping_list) {
+            if (data.shipping_list[index].shipping_id === data.last_shipping_info.shipping_id) {
+              this.$apply(() => {
+                this.index = index
+              })
+            }
+            objShippingArr.push(data.shipping_list[index].shipping_name)
+          }
+          this.$apply(() => {
+            this.shippingList = data.shipping_list
+            this.objShippingArr = objShippingArr
+            this.shipping_name = data.last_shipping_info.shipping_name || '请选择快递'
+          })
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * [bindPickerChange 快递选择绑定]
+     */
+    bindPickerChange(e) {
+      console.log('picker发送选择改变，携带值为', e.detail.value)
+      // 设置当前选中的快递名称及id
+      this.$apply(() => {
+        this.index = e.detail.value
+        this.shipping_name = this.data.shippingList[e.detail.value].shipping_name
+        this.shipping_id = this.data.shippingList[e.detail.value].shipping_id
+      })
+    }
+    /**
+     * [invoice_no_input 快递单号绑定]
+     * @param  {[type]} e [description]
+     * @return {[type]}   [description]
+     */
+    invoice_no_input(e) {
+      this.$apply(() => {
+        this.invoice_no = e.detail.value
+      })
+    }
+    /**
+     * [toDelivery 发货]
+     */
+    toDelivery(e) {
+      if ((/[^a-zA-Z0-9]/g.test(this.data.invoice_no))) {
+        wepy.showModal({
+          title: '提示',
+          content: '订单填写不规范',
+          showCancel: false
+        })
+        return false
+      }
+      let questParam = {
+        act: 'shipping',
+        order_id: this.data.order_id,
+        shipping_id: this.data.shipping_id,
+        invoice_no: this.data.invoice_no
+      }
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/shop/order/order.php`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: questParam
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          this.$navigate(`./orderList`)
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.courieNumber{
+  background: #fff;
+  margin: 20rpx 0 0;
+}
+.courieNumber input, .shippingName{
+  display: block;
+  width: 100%;
+  height: 80rpx;
+  line-height: 80rpx;
+  border: none;
+  border-bottom: 1px solid #eee;
+  padding-left:40rpx;
+  outline: none;
+}
+.rightDelivery{
+  background: #333;
+  color: #fff;
+  height:92rpx;
+  line-height: 92rpx;
+  text-align: center;
+  display: block;
+  border-radius: 4px;
+  margin:40rpx 15px 0;
+}
+</style>

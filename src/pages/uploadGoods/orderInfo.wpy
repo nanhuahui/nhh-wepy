@@ -1,0 +1,601 @@
+<template>
+  <scroll-view scroll-y="true" height="100%" wx:if="{{orderDet.order}}">
+    <!-- <view class="deliveryState">
+      <view class="h1 c11">{{orderDet.order.shipping_time ? '卖家已发货' : orderDet.order.pay_time ? '等待卖家发货' : '未付款'}}</view>
+    </view> -->
+    <view class="deliveryState" wx:if = "{{orderDet.order.shipping_time}}">
+      <view class="h1 c11">{{order_state}}</view>
+    </view>
+    <view class="deliveryState Unprocessed" wx:else>
+      <view class="h1 c11">{{orderDet.order.pay_time ? '待发货' : '未付款'}}</view>
+    </view>
+    <!-- 快递名称 -->
+    <view class="logisticsName h3 c3" wx:if="{{shipping_name}}">
+      <span class="changeLogis" wx:if="{{modifyLogistics}}">
+        <picker bindchange="bindPickerChange" value="{{index}}" range="{{shippingArray}}">
+          <view class="picker">
+            {{shipping_name ? shipping_name : '请选择快递'}}
+          </view>
+          </picker>
+      </span>
+      <span wx:else style="margin-right:30rpx">{{shipping_name}}</span>
+      <!-- 修改物流单号 -->
+      <input wx:if = "{{modifyLogistics}}" class="editInput" bindinput="invoiceNoInput" type="text" value = "{{invoice_no}}"/>
+      <span wx:else>{{invoice_no}}</span>
+      <i class="h5" bindtap="modifyLogisticsInfo">{{modifyLogistics ? '确认修改' : '修改'}}</i>
+    </view>
+    <!-- 快递名称结束 -->
+    <!-- 物流信息 -->
+    <view class="logisticsInfor" wx:if="{{invoice_no}}" bindtap="showTrack">
+      <view class="inforTitle h3 c3">
+        物流信息
+      </view>
+      <view class="inforCont h5 c11">{{logistics_track ? logistics_track[0].context: '暂无物流信息'}}
+      </view>
+      <text class="iconfont-yzg icon-yzg-arrow" style="font-size: 24rpx;"></text>
+    </view>
+    <!-- 订单地址 -->
+    <view class="mainDet">
+      <view class="shopDet">
+        <view class="h3 c3 list">
+          <view class="list-item o_consigneeName">
+            收货人姓名：{{orderDet.order.consignee}}
+            <text>{{orderDet.order.mobile}}</text>
+          </view>
+          <view class="list-item">
+            身份证号：{{orderDet.order.idcard}}
+          </view>
+          <view class="list-item">
+            详细地址：{{orderDet.order.region + orderDet.order.address}}
+          </view>
+        </view>
+      </view>
+      <!-- 商品详情 -->
+      <view class="shopDet" style="padding:0" wx:if="{{orderDet.goods_list.length>0}}">
+        <view class="table">
+          <view class="table-tr" wx:for="{{orderDet.goods_list}}" wx:key="item.upc_id">
+            <view class="table-td">
+              <image src="{{item.img_url?item.img_url:imgUrl+'/no_picture.jpg'}}" mode="aspectFit"></image>
+            </view>
+            <view class="table-td">
+              <view class="g_name">{{item.goods_name}}</view>
+              <text class="g_number">数量:{{item.goods_number}}</text>
+              <text class="g_price">{{item.goods_price}}</text>
+            </view>
+            <view class="table-td eval" wx:if="{{orderType === 0 && orderDet.order.shipping_status === '已发货'}}"
+              bindtap="evaluate" data-upc-id="{{item.upc_id}}" data-gid="{{item.goods_id}}">
+              <text>评价</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="orderTotalMoney">
+        合计金额 <text class="h2 c3">¥{{orderDet.order.total_fee}}</text>
+      </view>
+      <!-- 订单详情 -->
+      <view class="shopDet">
+        <view class="h5 c2 list">
+          <view class="list-item">
+            订单编号：{{orderDet.order.order_sn}}
+          </view>
+          <view class="list-item" wx:if="{{orderType===0}}">
+            下单时间：{{orderDet.order.formated_add_time}}
+          </view>
+          <view class="list-item" wx:else>
+            下单时间：{{orderDet.order.add_time}}
+          </view>
+          <view class="list-item">
+            付款时间：{{orderDet.order.pay_time===0 ? '未付款' : orderDet.order.pay_time}}
+          </view>
+          <view class="list-item">
+            订单来源：{{orderDet.order.from ? orderDet.order.from : mailName}}
+          </view>
+          <view class="list-item" style="color: #ff0000;">
+            备注： <text>{{orderDet.order.postscript ? orderDet.order.postscript : '无'}}</text>
+          </view>
+        </view>
+      </view>
+      <!-- 物流轨迹 -->
+      <view class="logistics_track" wx:if = "{{trackShow === 'show'}}">
+        <view class="{{logisicClass}}">
+          <view class="logistics_head">
+            <text class="h1 c11">{{logistics_message}}...</text>
+            <view style="display:table">
+              <view style="display:table-row">
+                <view class="track_left_td">
+                  <span class="h7">共{{goods_list.length}}件商品</span>
+                </view>
+                <view class="track_rig_td">
+                  <text class="h5 c11">物流状态：{{logistics_message}}</text>
+                  <text class="h5 c11">承运来源：{{shipping_name}}</text>
+                  <text class="h5 c11">运单编号：{{invoice_no}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view class="logistics_list">
+            <view class="h5 logistics_consignee contactLine">[收件地址]{{order_info.region}} {{order_info.address}}</view>
+            <block>
+              <view class="logistics_li" wx:for="{{logistics_track}}" wx:for-item = "logistics" wx:key = "logistics">
+                <view class="h5">{{logistics.context}}</view>
+              </view>
+            </block>
+          </view>
+        </view>
+        <view class="logistics_bg" bindtap="hideTrack"></view>
+      </view>
+      <!-- 操作发货 -->
+      <view class="bottomCon" wx:if="{{orderDet.order.is_show_shipping === 1 || (orderDet.order.pay_time && orderDet.order.order_status !== 4)}}">
+        <a class="fahuo h3 c11" bindtap="returnMoney" style="float: left">
+          退款
+        </a>
+        <navigator class="fahuo h3 c11" wx:if="{{orderDet.order.is_show_shipping === 1}}" url = "./delivery?order_id={{id}}">
+          发货
+        </navigator>
+        <a class="fahuo h3 c11" bindtap="userTake" wx:if="{{orderDet.order.is_show_shipping === 1}}">
+          自提
+        </a>
+      </view>
+    </view>
+  </scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import { DEFAULT_NAME } from '@/utils/config'
+
+  export default class orderInfo extends wepy.page {
+    config = {
+      navigationBarTitleText: '订单管理'
+    }
+    data = {
+      imgUrl: '',
+      id: null, // 订单id
+      orderType: 0, // 订单类型:0->普通订单;1->销售订单
+      showWxCode: false, // 是否展示店主微信二维码
+      modifyLogistics: false,
+      titleName: '订单详情',
+      logistics_track: null,
+      shipping_name: null,
+      shipping_id: null,
+      invoice_no: null,
+      logistics_message: null,
+      trackShow: null,
+      shippingList: [],
+      order_state: '订单已发货',
+      logisicClass: '',
+      shippingArray: [],
+      objectShipping: [],
+      index: 0,
+      orderDet: {},
+      mailName: DEFAULT_NAME
+    }
+    onLoad(q) {
+      console.log(q.scene) // 场景值：用于二维码携带参数
+      this.$apply(() => {
+        this.imgUrl = this.$parent.globalData.imgUrl
+        this.id = q.id || decodeURIComponent(q.scene)
+        this.orderType = parseFloat(q.type) || 0
+      })
+      this.loadOrder()
+    }
+    /**
+     * 获取订单信息
+     */
+    loadOrder() {
+      wepy.showLoading({title: '加载中'})
+      let self = this
+      let url = '/shop/order/order.php?act=get_order_info'
+      // 请求数据
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}${url}`,
+        data: {
+          order_id: self.data.id
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          // 组装快递名称列表，只有快递，没有shipping_id
+          let shippingArray = []
+          for (let m of data.shipping_list) {
+            shippingArray.push(m.shipping_name)
+          }
+          self.$apply(() => {
+            self.orderDet = data
+            self.logistics_track = data.logistics_track.data ? data.logistics_track.data : null
+            self.invoice_no = data.logistics_track.invoice_no
+            self.shipping_name = data.logistics_track.shipping_name
+            self.shipping_id = data.logistics_track.shipping_id
+            self.logistics_message = data.logistics_track.message
+            self.order_state = data.logistics_track.message ? data.logistics_track.message : '订单已发货'
+            self.objectShipping = data.shipping_list
+            self.shippingArray = shippingArray
+          })
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * [modifyLogisticsInfo 修改物流信息]
+     */
+    modifyLogisticsInfo(e) {
+      if (!this.data.modifyLogistics) {
+        this.$apply(() => {
+          this.modifyLogistics = !this.data.modifyLogistics
+        })
+        return false
+      }
+      // 请求物流修改数据数据
+      let questParam = {
+        act: 'shipping_edit',
+        order_id: this.data.id,
+        shipping_id: this.data.shipping_id,
+        invoice_no: this.data.invoice_no
+      }
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/shop/order/order.php`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: questParam
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          // 重新调取信息
+          this.loadOrder()
+          this.$apply(() => {
+            this.modifyLogistics = false
+          })
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * [showTrack 展示物流轨迹]
+     * @return {[type]} [description]
+     */
+    showTrack() {
+      if (this.logistics_track) {
+        this.$apply(() => {
+          this.trackShow = 'show'
+        })
+        this.trackIsShow()
+      }
+    }
+    hideTrack() {
+      this.$apply(() => {
+        this.trackShow = 'hide'
+      })
+      this.trackIsShow()
+    }
+    /* 判断是否显示物流框 */
+    trackIsShow () {
+      var logisicClass
+      switch (this.data.trackShow) {
+        case 'show':
+          logisicClass = 'logistics_cont showTrack'
+          break
+        case 'hide':
+          logisicClass = 'logistics_cont hideTrack'
+          break
+        default:
+          logisicClass = 'logistics_cont trackOriginal'
+          break
+      }
+      this.$apply(() => {
+        this.logisicClass = logisicClass
+      })
+    }
+    /**
+     * [bindPickerChange 快递选择]
+     */
+    bindPickerChange(e) {
+      console.log('picker发送选择改变，携带值为', e.detail.value)
+      // 设置当前选中的快递名称及id
+      this.$apply(() => {
+        this.index = e.detail.value
+        this.shipping_name = this.data.objectShipping[e.detail.value].shipping_name
+        this.shipping_id = this.data.objectShipping[e.detail.value].shipping_id
+      })
+    }
+    invoiceNoInput(e) {
+      this.$apply(() => {
+        this.invoice_no = e.detail.value
+      })
+    }
+    /*
+     * 用户自提
+     */
+    userTake() {
+      let self = this
+      let questParam = {
+        act: 'shipping',
+        order_id: self.data.id,
+        user_take: 1
+      }
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/order/order.php`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: questParam
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          wepy.showModal({
+            title: '提示',
+            content: '操作自提成功',
+            showCancel: false
+          })
+          let preOrderDet = self.data.orderDet
+          preOrderDet.order.is_show_shipping = 0 // 不显示发货和自提按钮
+          preOrderDet.order.shipping_time = true // 显示订单已发货
+          self.$apply(() => {
+            self.order_state = '已签收'
+            self.orderDet = preOrderDet
+          })
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * [returnMoney 退款]
+     * @return {[type]} [description]
+     */
+    returnMoney() {
+      let self = this
+      wepy.showModal({
+        title: '提示',
+        content: '是否确认退款'
+      }).then((res) => {
+        if (res.confirm) {
+          wepy.request({
+            url: `${self.$parent.globalData.apiUrl}/shop/order/order.php`,
+            data: {
+              act: 'refund',
+              order_id: self.orderDet.order.order_id,
+              user_take: 1
+            }
+          }).then(({data: {errcode, data, msg}}) => {
+            if (errcode === 0) {
+              wepy.showToast({
+                title: '操作成功',
+                icon: 'success',
+                duration: 2000
+              }).then((res) => {
+                self.$navigate(`./orderList?act_type=return`)
+              })
+            } else {
+              console.error('发货失败:' + msg)
+              wepy.showToast({
+                title: msg,
+                icon: 'none',
+                duration: 2000
+              })
+            }
+          })
+        } else if (res.cancel) {
+          return false
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+.mainDet {
+  margin-bottom: 100rpx;
+}
+
+.shopDet {
+  background: #fff;
+  padding: 24rpx; margin-top: 10rpx;
+}
+
+.title_p{
+  background: #fff;
+  height: 40px;
+  line-height: 40px;
+  padding: 0 10px;
+  border-bottom: 1px solid #eee;
+  color: #999;
+  margin-top:10px;
+}
+
+.shopDet .list {
+  margin: 0;
+}
+
+.shopDet .list .list-item {
+  line-height: 1.9;
+}
+
+.shopDet .table {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.shopDet .table .table-tr .table-td {
+  padding:8px;
+  vertical-align: top;
+  font-size: 14px;
+  height: 80px;
+  overflow: hidden;
+}
+
+.shopDet .table .table-tr .table-td image {
+  width: 80px;
+  height: 80px;
+  // height: auto;
+  background-size: cover;
+}
+
+.shopDet .table .table-tr .table-td:first-child {
+  width: 80px;
+}
+
+.shopDet .table .table-tr .table-td .g_name {
+  height: 18px;
+  overflow: hidden;
+}
+
+/*.shopDet table tr td .gd_name {
+  height: 34px;
+  overflow: hidden;
+}*/
+
+.shopDet .table .table-tr .table-td .g_number {
+  color:#999;
+  font-size:12px;
+}
+
+.shopDet .table .table-tr .table-td .g_price {
+  display: block;
+  margin-top: 12px
+}
+
+.shopDet .table .table-tr .eval {
+  width: 60px;
+  text-align: left;
+  vertical-align: middle;
+  font-size:12px; padding:0;
+}
+.shopDet .table .table-tr .eval text {
+  padding: 5px 8px;
+  color: #d6244f;
+  border: 1px solid #d6244f;
+  border-radius: 4px;
+}
+
+.shopDet navigator,
+.shopDet navigator:hover {
+  display: inline;
+  padding: 5px 8px;
+  color: #d6244f;
+  border: 1px solid #d6244f;
+  border-radius: 4px;
+}
+
+.button-sp-area {
+  margin-top: 20px;
+  padding:20px;
+}
+.contactBg{
+  background: rgba(0,0,0,.6);
+  width: 100%;
+  height: 100%;
+}
+.contactShop{
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  z-index: 100;
+}
+.contactShop image{position: absolute; left: 0; right: 0; top: 0; bottom: 0; margin: auto; width: 70%}
+/*新版订单详情*/
+.deliveryState {box-sizing: border-box;background: url(http://wxassets.xf66.com/storeGoods/yifahuo.png) no-repeat; background-size: 100%; padding-left: 92rpx; padding:66rpx 0 30rpx 92rpx; margin:0 -15px; height: 184rpx;}
+.Unprocessed { background: url(http://wxassets.xf66.com/storeGoods/daifahuo.png) no-repeat; background-size: 100%}
+.deliveryState view{line-height: 1.4}
+.o_consigneeName{position: relative;}
+.o_consigneeName text{position: absolute; top: 0; right: 0}
+
+/*物流*/
+.logisticsName, .logisticsInfor, .consigneeInfor, .goodsInfor, .shopOrderInfor{ background: #fff; padding:0 30rpx; margin-top: 10rpx}
+.logisticsName {height: 80rpx; line-height: 80rpx; position: relative;}
+.logisticsName input{margin-left: 10px; outline: none; border: none; box-shadow: none; display:inline-block}
+.logisticsName i{position: absolute; right: 30rpx; top: 0; bottom: 0; margin:auto; width:100rpx; font-style: normal; text-align: right;}
+.logisticsName span{display: inline-block;}
+.logisticsName span:last-child{padding-left: 126rpx;}
+.logisticsInfor{height: 178rpx; position: relative;}
+.logisticsInfor text{position: absolute; right: 30rpx; top: 0; bottom: 0; margin:auto; width: 38rpx; height: 38rpx;}
+.inforTitle{height: 64rpx; line-height: 64rpx;}
+.logisticsInfor .inforCont{ padding-left: 140rpx;}
+
+
+.logisticsName .changeLogis{ display: inline; padding: 0 10px 4px 0; position: relative; margin-right:30rpx;}
+.changeLogis picker{display:inline-block; width:auto; padding-right: 10rpx}
+  .changeLogis:before{position: absolute; content: ''; width: 0; height: 0; right: 0; bottom: 12px; border-style:solid; border-width:8px 5px; border-color:#c8975c transparent transparent; top: 10rpx}
+  .logisticsName .editInput{ padding: 2px 10px 2px 4px; border: none; border-bottom: 1px solid #ccc; border-radius: 0; overflow:inherit}
+.orderTotalMoney{padding: 0.5rem; border-top: 1px solid #eee; background: #fff; position: relative;}
+.orderTotalMoney:before{border-right: 1px solid #eee;
+  border-top: 1px solid #eee;
+  height: 10px;
+  width: 10px;
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+  /*不加这两个属性三角会比上一个略丑, 大家可以试一下*/
+  border-left: 2px solid transparent;
+  border-bottom: 2px solid transparent; position: absolute; top:-5px; right: 1rem; background: #fff
+}
+.orderTotalMoney text{float:right; }
+
+  /* 物流显示弹框 */
+.logistics_track{position: fixed; width: 100%; height: 100%; top: 0; left: 0; z-index: 100}
+.logistics_bg{ background: rgba(0,0,0,.7); z-index: 100; position: absolute; left: 0; top: 0; width: 100%; height: 100%;}
+.logistics_cont{background: #fff; width: 80%; height: 22rem; top: 0; bottom: 0; left: 0; right: 0; margin: auto; z-index: 101; position: absolute; border-radius: 10px; overflow: hidden;}
+.logistics_head{background: #333; height: 234rpx; width: 100%; padding:18rpx 0}
+.logistics_head>text{ text-align: center; padding-bottom: 14rpx; display:block}
+.logistics_head .track_left_td{ width: 140rpx; height:140rpx; position: relative; margin-left:20rpx; display:table-cell; left:20rpx}
+.logistics_head .track_left_td span{position: absolute; bottom: 0; background:rgba(255, 255, 255, .7); display: block;width: 100%; text-align: center}
+.logistics_head image{width:120rpx; height:120rpx; vertical-align: middle; background-size: 100%;}
+.track_rig_td{text-align:left; display: table-cell;padding-left: 40rpx; vertical-align: middle; }
+.track_rig_td text{display:block}
+.logistics_list{height: 703rpx; overflow-y:scroll;}
+.logistics_list ul{ padding: 0 28rpx;}
+.logistics_list .logistics_li{position: relative;  padding-left:50px; }
+.logistics_list .logistics_li span{position: absolute; left: 0; top: 70rpx; bottom: 0; margin: auto 0; width: 40px}
+.logistics_list .logistics_li view{ border-left: 1px solid #f1f1f1; padding-top: 70rpx; padding-left: 15px; position: relative;}
+.logistics_list .logistics_li view:before{ position: absolute; content: '^'; width: 14px; height: 14px; line-height: 14px; text-align: center; left: -8px; background: #999; color: #fff; top: 84rpx; border-radius: 50%; padding-top: 2px}
+.logistics_list .logistics_li:first-child view:before{position: absolute;content: '✓'; border-radius: 50%; font-size: 8px; width:20px; height: 20px; line-height: 20px; text-align: center; background: #39a723; left: -10px; top: 80rpx; color: #fff; z-index: 2; padding: 0;}
+.logistics_list .logistics_li:first-child view:after{ position:absolute; content: ''; width: 1px; height: 65%; left: -1px; top: 0; background: #fff }
+
+.logistics_list .logistics_li:last-child view:before{position: absolute;content: '发'; border-radius: 50%; font-size: 8px; width:20px; height: 20px; line-height: 20px; text-align: center; background: #39a723; left: -10px; top: 40rpx; color: #fff; z-index: 2; padding: 0;}
+.logistics_list .logistics_li:last-child view:after{ position:absolute; content: ''; width: 1px; height: 35%; left: -1px; bottom: 0; background: #fff }
+.logistics_consignee{ padding-left: 140rpx; padding-top: 97rpx; position: relative; padding-right: 36rpx}
+.logistics_consignee:before{position: absolute;content: '收'; border-radius: 50%; font-size: 8px; padding: 1px 4px; text-align: center; background: #999; left: 88rpx; top: 100rpx; color: #fff; z-index: 2 }
+.logistics_consignee:after{position: absolute; content:''; width: 1px; height: 55%; border-left: 1px dashed #f1f1f1; left: 103rpx; bottom: -60px}
+.trackOriginal{ display: none;}
+.showTrack{animation: startShow 0.5s; 
+      -moz-animation: startShow 0.5s; /* Firefox */
+   -webkit-animation: startShow 0.5s;  /* Safari 和 Chrome */
+        -o-animation: startShow 0.5s; /* Opera */}
+.hideTrack{animation: startHide 0.5s; 
+      -moz-animation: startHide 0.5s; /* Firefox */
+   -webkit-animation: startHide 0.5s;  /* Safari 和 Chrome */
+        -o-animation: startHide 0.5s; /* Opera */}
+@keyframes startShow {
+    from{left: 100%; transform: rotate(360deg)}
+    to{left:0; transform: rotate(0deg) }
+}
+@keyframes startHide {
+    from{left:0; transform: rotate(0deg) }
+    to{left: 100%; transform: rotate(360deg)}
+}
+/*底部发货和自提*/
+.bottomCon{background: #fff; line-height: 90rpx; position: fixed; width: 100%; bottom: 0; box-shadow: 1px -10px 50px #fff}
+.fahuo{float: right; width:120rpx; margin: 14rpx; margin-right:5px; text-align: center; border: 1px solid #ccc; height: 56rpx; line-height: 56rpx; background: #333;}
+</style>

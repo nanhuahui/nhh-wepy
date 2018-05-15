@@ -57,6 +57,9 @@
           <view class="list-item">
             订单状态：<text>{{orderDet.order.order_status}}</text>
           </view>
+          <view class="list-item" style="color: #ff0000;">
+            备注： <text>{{orderDet.order.postscript ? orderDet.order.postscript : '无'}}</text>
+          </view>
         </view>
       </view>
       <!-- 物流详情 -->

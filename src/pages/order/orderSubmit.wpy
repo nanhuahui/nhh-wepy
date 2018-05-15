@@ -94,6 +94,11 @@
         无可用优惠券
       </text>
     </view>
+    <!--备注-->
+    <view class="orderAccount couponUse" style="display: flex;">
+      <view style="padding-left:10px;width: 50px;">备注</view>
+      <input class="remark" type="text" name="" value="{{postscript}}" placeholder="选填" bindinput="postscriptInput"/>
+    </view>
     <!--订单结算-->
     <view class="orderPrice" wx:if="{{!auction_id}}">
       <text class="titleInfor">订单结算</text>
@@ -230,7 +235,8 @@
       bonusClass: 'bonusList bonusOriginal', // 优惠券样式
       auction_id: null,
       addressId: null,
-      auction_log_id: null
+      auction_log_id: null,
+      postscript: '' // 留言
     }
     onLoad(q) {
       this.imgUrl = this.$parent.globalData.imgUrl
@@ -344,7 +350,8 @@
             shipping: '4',
             shipping_address: ad.address_id,
             offset: sd.orderInfo.offset,
-            bonus: sd.presentBonus ? sd.presentBonus.bonus_id : ''
+            bonus: sd.presentBonus ? sd.presentBonus.bonus_id : '',
+            postscript: sd.postscript
           }
           // 发送请求
           wepy.request({
@@ -818,6 +825,12 @@
         this.$apply(() => {
           this.addressList = this.data.addressList
         })
+      },
+      // 绑定input框数据
+      postscriptInput(e) {
+        this.$apply(() => {
+          this.postscript = e.detail.value
+        })
       }
     }
   }
@@ -1240,5 +1253,8 @@
   left:0;
   bottom:0;
   border-radius: 0;
+}
+.orderAccount .remark{
+  flex: 1;outline: none;border: none;text-align: right;
 }
 </style>

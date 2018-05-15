@@ -74,6 +74,8 @@ export default class extends wepy.app {
       'pages/uploadGoods/cashDetail',
       'pages/uploadGoods/withdrawIndex',
       'pages/uploadGoods/withdraw',
+      'pages/uploadGoods/orderInfo',
+      'pages/uploadGoods/delivery',
       'pages/commission/withdrawInstruction',
       'pages/commission/withdrawIndex',
       'pages/commission/cashRecord',
