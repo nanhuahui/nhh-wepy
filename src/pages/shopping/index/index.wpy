@@ -12,6 +12,9 @@
     <!-- 店主精选 -->
     <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="shoperChosen"></shoperChosen>
 
+    <!-- 拍卖 -->
+    <auction :imgDomain.sync="img_domain" :auctionList.sync="auctionList" :onlookerNum.sync="onlookerNum" :buyPersonNum.sync="buyPersonNum" componentId="auction"></auction>
+
     <!-- 每日上新 -->
     <newDaily :daily.sync="dailyInfo" :goods.sync="dailyGoods" :imgUrl.sync="imgUrl" componentId="newDaily"></newDaily>
 
@@ -57,6 +60,7 @@ import floorGoods from './components/floor-goods'
 import newDaily from './components/new-daily'
 import flashSale from './components/flash-sale'
 import allDayHot from './components/all-day-hot'
+import auction from './components/auction'
 import { getCategory, getStoreIndex, getRecommend, getDistribution } from '@/utils/api'
 
 export default class Index extends wepy.page {
@@ -76,7 +80,8 @@ export default class Index extends wepy.page {
     newDaily,
     flashSale,
     allDayHot,
-    qrPatchLayer
+    qrPatchLayer,
+    auction
   }
   data = {
     imgUrl: '',
@@ -117,7 +122,10 @@ export default class Index extends wepy.page {
     shopLinkParam: null,
     shareImg: null,
     shareText: null,
-    shareQR: null
+    shareQR: null,
+    auctionList: [], // 推荐的拍卖活动
+    onlookerNum: null, // 拍卖围观人数
+    buyPersonNum: null // 拍卖出价次数
   }
 
   computed = {}
@@ -229,7 +237,38 @@ export default class Index extends wepy.page {
           // 组装菜单
           self.data.categoryArr.push({id: m.cat_id, name: m.cat_name, img: data.img_domain + m.cat_icon})
         }
+        // 设置数据
         self.categoryArr = self.data.categoryArr
+        // 拍卖逻辑
+        if (data.user_auction) {
+          data.user_auction.sort((a, b) => {
+            // 按照状态值排序,1:未开始|2:进行中|3:结束
+            return a.status > b.status
+          })
+          // 获取推荐的拍卖活动
+          // this.limitTimeSwiper()
+          self.$apply(() => {
+            self.auctionList = data.user_auction
+            self.onlookerNum = data.onlooker_num
+            self.buyPersonNum = data.buy_person_num
+          })
+          self.$apply()
+        }
+        // 判断是否有未支付拍卖活动
+        if (data.my_auction && data.my_auction.length > 0) {
+          wepy.showModal({
+            title: '提示',
+            content: `您有${data.my_auction_num}款获拍的商品待支付`,
+            cancelText: '等会儿去',
+            confirmText: '去支付'
+          }).then((res) => {
+            if (res.confirm) {
+              self.$navigate(`../../user/myGetedAuction`)
+            } else if (res.cancel) {
+              console.log('用户点击取消')
+            }
+          })
+        }
         self.$apply()
       } else {
         console.error(msg)
@@ -393,6 +432,44 @@ export default class Index extends wepy.page {
       this.$navigate(`../../thirdWebView/thirdWebView?url=${url}`)
     } else {
       this.$navigate(`${url}`)
+    }
+  }
+  /*
+   * 到信息列表页面
+   */
+  toMessageList () {
+    this.$apply(() => {
+      this.popShow = false
+    })
+    this.$navigate(`../../user/messageList`)
+  }
+  /*
+   * 关闭新信息弹窗
+   */
+  closeMessagePop() {
+    let self = this
+    self.$apply(() => {
+      self.popShow = false
+    })
+    wepy.setStorageSync({
+      key: 'closeMsg',
+      data: true
+    })
+    if (self.myAuctionNum && self.myAuctionNum !== 0) {
+      wepy.showModal({
+        title: '提示',
+        content: '您有' + self.myAuctionNum + '款获拍的商品待支付',
+        confirmText: '去支付',
+        cancelText: '等会儿去'
+      }).then((res) => {
+        if (res.confirm) {
+          wepy.navigateTo({
+            url: '../../user/myGetedAuction'
+          })
+        } else if (res.cancel) {
+          return false
+        }
+      })
     }
   }
 }

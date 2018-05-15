@@ -1,0 +1,177 @@
+<template>
+  <view class="auction" wx:if="{{auctionList.length !== 0}}" style="margin-top: 10rpx;">
+    <navigator class="shoper_header auctionTitle" url="../../auction/auctionList?con=doing">
+      <view class="h1 c3">超值拍卖</view>
+      <text class="h7 c2">低价格 拍到好商品<text class="iconfont-yzg icon-yzg-arrow" style="font-size: 24rpx;"></text></text>
+    </navigator>
+    <!--轮播图-->
+    <view class="we-container">
+      <weSwiper :option.sync="swiper">
+        <view wx:for="{{auctionList}}" wx:for-item="auction" wx:key="index"
+          class="we-slide goods {{index === activeIndex ? 'active' : ''}}">
+          <navigator class="goodsImg" url="../../auction/auctionList?con={{auction.con}}">
+            <image src="{{imgDomain + auction.banner}}" mode="widthFix" />
+            <view class="tips" wx:if="{{auction.status==='1'}}" style="background-color:#5B7853;">
+              <view class="dot"></view>预约中
+            </view>
+            <view class="tips" wx:elif="{{auction.status==='2'}}" style="background-color:#E76A6B;">
+              <view class="dot"></view>进行中
+            </view>
+            <view class="tips" wx:else style="background-color:#3C3C3D;">
+              <view class="dot"></view>已结束
+            </view>
+          </navigator>
+          <view class="goodsInfo">
+            <view class="h7 c3 title">{{auction.act_name}}</view>
+            <view class="h16 c2 number">
+              <text class="h16" wx:if="{{auction.status === '1'}}">起拍价</text>
+              <text class="h16" wx:if="{{auction.status === '2'}}">最高价</text>
+              <text class="h16" wx:if="{{auction.status === '3'}}">成交价</text>
+              <text class="h2 c11">￥{{auction.show_price}}</text>
+            </view>
+          </view>
+        </view>
+      </weSwiper>
+    </view>
+    <view class="auctionData">
+      <text>{{onlookerNum}}人围观</text>
+      <text style="float:right;">{{buyPersonNum}}人叫价</text>
+    </view>
+    <navigator url="../../auction/auctionList?con=doing" class="seeMore c1 h5">
+      查看更多
+    </navigator>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import weSwiper from '../../../../components/swiper'
+
+  export default class auction extends wepy.component {
+    props = {
+      auctionList: Array,
+      onlookerNum: Object,
+      buyPersonNum: Object,
+      imgDomain: Object
+    }
+    components = {
+      weSwiper
+    }
+    data = {
+      activeIndex: null, // 拍卖轮播图当前展示商品的索引
+      swiper: {
+        slideLength: 3,
+        width: 650 * wepy.getSystemInfoSync().windowWidth / 750,
+        direction: 'horizontal',
+        initialSlide: 1,
+        onInit (weswiper) {
+          console.log(weswiper)
+        }
+      }
+    }
+    methods = {}
+    onLoad() {
+      this.$apply()
+    }
+  }
+</script>
+
+<style lang="less">
+/*拍卖部分样式*/
+.auction {
+  background-color:#FEFEFE;
+}
+.auction .we-wrapper{
+  width: 100%;
+  height: 100%;
+  // padding: 24rpx 0 24rpx 75rpx;
+  padding: 24rpx 0 24rpx 54rpx!important;
+  box-sizing: border-box;
+}
+.auction .we-slide{
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  // width: 550rpx;
+  width: 600rpx!important;
+  margin: 25rpx;
+  box-sizing: border-box;
+  color: #fff;
+  font-size: 2rem;
+}
+.auction .auctionTitle{
+  border-bottom: 1px solid #e5e8f1;
+}
+.auction .goods .goodsImg{
+  position:relative;
+  display:inline-block;
+  width:100%;
+}
+.auction .goods .goodsImg image{
+  width:100%;
+  display: block;
+}
+.auction .goods .goodsImg .tips{
+  position:absolute;
+  top:10rpx;
+  left:10rpx;
+  display:inline-block;
+  padding-right:6rpx;
+  height:34rpx;
+  line-height:34rpx;
+  background-color:#BFB7B7;
+  border-radius:3px;
+  font-family:'PingFang-SC_Bold';
+  font-size:20rpx;color:#fff;
+}
+.auction .goods .goodsImg .tips .dot {
+  width:10rpx;
+  height:10rpx;
+  border-radius:50%;
+  background-color:#000;
+  display:inline-block;
+  margin:0 6rpx;
+}
+.auction .goods .goodsInfo{
+  width: 100%;
+  box-sizing: border-box;
+  background-color:#fff;
+  padding:36rpx 30rpx 28rpx;
+}
+.auction .goodsInfo .title{
+  font-size:24rpx;
+  font-family:'PingFang-SC_Bold';
+  overflow:hidden;
+}
+.auction .goodsInfo .number{
+  font-size:24rpx;
+  font-family:'PingFang-SC_Medium';
+}
+.auction .auctionData{
+  padding:0 15px;
+  font-size:24rpx;
+  font-family:'PingFang-SC_Bold';
+  border-bottom:1px solid #eee;
+  padding-bottom:20rpx;
+}
+.auction .seeMore {
+  display:block;
+  height:84rpx;
+  line-height:84rpx;
+  font-family:'PingFang-SC_Medium';
+  text-align:center;
+}
+.auction .goods.active {
+  box-shadow: 0 10rpx 14rpx 2px #ccc;
+}
+.fixTop{
+  position: fixed;
+  top:0;
+  z-index:8;
+  max-width:640px;
+  min-width:320px;
+  width:100%;
+  margin: 0 auto
+}
+</style>
