@@ -85,6 +85,7 @@ export default class extends wepy.app {
       'pages/commission/withdrawIndex',
       'pages/commission/cashRecord',
       'pages/commission/bankBind',
+      'pages/commission/withdraw',
       'pages/thirdWebView/thirdWebView',
       'pages/branchOffice/goodsManage',
       'pages/branchOffice/manageBranch',

@@ -33,7 +33,7 @@
       let self = this
       wepy.showLoading({ title: '加载中' })
       wepy.request({
-        url: `${self.$parent.globalData.apiUrl}/shop/order/order_amount.php`,
+        url: `${self.$parent.globalData.apiUrl}/lncome_union.php`,
         data: {
           act: 'cash'
         }
@@ -52,16 +52,17 @@
         console.log('请求失败', error)
       })
     }
+    /* 立即体现 */
     rightCash() {
       if (this.getFiv() < 1) {
         wepy.showModal({
           title: '提示',
-          content: '请于每月15号之后提现',
+          content: '请于每月15号的0:00——19号的中午12:00之间提现',
           showCancel: false
         })
       } else {
         wepy.request({
-          url: `${this.$parent.globalData.apiUrl}/shop/order/order_amount.php`,
+          url: `${this.$parent.globalData.apiUrl}/lncome_union.php`,
           data: {
             act: 'get_cash',
             account_id: this.data.commiAccount.account_id
@@ -88,7 +89,11 @@
     /* 判断是否为15号之前 */
     getFiv () {
       var nowTime = new Date()
-      return nowTime.getDate()
+      // 限制提现时间为14号至19号12:00
+      if ((nowTime.getDate() >= 15 && nowTime.getDate() <= 18) || (nowTime.getDate() === 19 && nowTime.getHours() < 12)) {
+        return true
+      }
+      return false
     }
     /* 去除字符串空格 */
     removeSpace(str) {

@@ -88,7 +88,7 @@
     getCash () {
       if (this.data.withDrawData.is_binding === 1 && this.data.withDrawData.cash_available > 0 && !this.data.withDrawData.is_black) {
         wepy.navigateTo({
-          url: `../withdraw/withdraw`
+          url: `./withdraw`
         })
       } else if (this.data.withDrawData.is_black) { // 提现黑名单
         wepy.showModal({
@@ -111,7 +111,7 @@
         }).then((res) => {
           if (res.confirm) {
             wepy.navigateTo({
-              url: '../user/bankBind/bankBind'
+              url: './bankBind'
             })
           } else if (res.cancel) {
             return false
