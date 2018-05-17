@@ -40,7 +40,7 @@
           绑定银行卡
         </view>
         <view class="table-td">
-          <navigator url="../user/bankBind/bankBind">
+          <navigator url="./bankBind">
             {{withDrawData.is_binding ? withDrawData.account_number_format : '去设置'}}
             <icon class="iconfont-yzg icon-yzg-arrow"></icon>
           </navigator>
@@ -54,7 +54,7 @@
   import wepy from 'wepy'
   export default class withdrawIndex extends wepy.page {
     config = {
-      navigationBarTitleText: '提现记录'
+      navigationBarTitleText: '提现'
     }
     data = {
       imgUrl: null,

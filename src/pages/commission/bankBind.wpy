@@ -1,0 +1,413 @@
+<template>
+  <scroll-view scroll-y="true" height="100%">
+    <view class="withDraw">
+      <view class="list">
+        <view class="list-item">
+          <text>银行</text>
+          <view style="font-size: 28rpx;">
+            <picker bindchange="showPicker" value="{{index}}" range="{{bankList}}">
+              <view class="picker">
+                {{userAccount.card_bank ? userAccount.card_bank : '请选择发卡银行'}}
+              </view>
+            </picker>
+          </view>
+        </view>
+        <view class="list-item">
+          <text>银行开户行</text>
+          <input type="text" value="{{userAccount.account_bank}}" data-key="account_bank" bindinput="withdrawInput" placeholder="请务必填写银行开户行地址" />
+        </view>
+        <view class="list-item">
+          <text>银行卡号</text>
+          <input type="tel" maxlength="23" value="{{userAccount.account_number_format}}" data-key="account_number_format" bindinput="withdrawInput" placeholder="请填写银行卡号" />
+        </view>
+        <view class="list-item">
+          <text>持卡人</text>
+          <input type="text" value="{{userAccount.real_name}}" data-key="real_name" bindinput="withdrawInput" placeholder="请填写持卡人姓名" />
+        </view>
+        <view class="list-item">
+          <text>身份证号</text>
+          <input type="text" value="{{userAccount.identity_code_format}}" data-key="identity_code_format" bindinput="withdrawInput" placeholder="请填写身份证号" />
+        </view>
+        <view class="list-item">
+          <text>手机号码</text>
+          <view style="flex: 1;position: relative;">
+            <input type="text" value="{{userAccount.mobile_format}}" data-key="mobile_format" bindinput="withdrawInput" placeholder="请填写手机号" style="height: 90rpx;line-height: 90rpx;" />
+            <input type="button" wx:if="{{!btnDisable}}" class="getSecCode" value="{{securityText}}" bindtap="getSecurityCode"/>
+            <input type="button" wx:else class="getSecCode disableBtn" value="{{securityText}}"/>
+          </view>
+        </view>
+        <view class="list-item">
+          <text>验证码</text>
+          <input type="text" value="{{userAccount.securityCode}}" data-key="securityCode" bindinput="withdrawInput" placeholder="请填写验证码" />
+        </view>
+      </view>
+      <navigator class="rightCash" bindtap="binkBank">立即绑定</navigator>
+    </view>
+  </scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import { checkIdcard } from '@/utils'
+
+  export default class cashRecord extends wepy.page {
+    config = {
+      navigationBarTitleText: '绑定银行卡'
+    }
+    data = {
+      bankList: [
+        '中国工商银行',
+        '中国建设银行',
+        '中国农业银行',
+        '中国交通银行',
+        '中国民生银行',
+        '中国光大银行',
+        '中国招商银行',
+        '中国银行',
+        '中国兴业银行',
+        '中国华夏银行',
+        '中国平安银行',
+        '中信银行',
+        '上海浦东发展银行',
+        '广东发展银行',
+        '北京银行',
+        '邮政储蓄',
+        '北京农商银行'
+      ], // 获取银行列表
+      userAccount: {
+        account_bank: '', // 开户行支行
+        account_number: '', // 银行账号
+        account_format: '', // 格式化之前银行账号
+        card_bank: '请选择发卡银行', // 发卡银行
+        identity_code: '', // 身份证号
+        account_number_format: '', // 格式化之前身份证号
+        real_name: '', // 真实姓名
+        mobile_format: '', // 手机号码
+        securityCode: '' // 验证码
+      },  // 用户账号信息
+      securityText: '获取验证码',
+      btnDisable: false, // 获取验证码按钮是否可用
+      index: 0,
+      setInter: ''
+    }
+    onLoad() {
+      this.btnDisable = false
+      this.securityText = '获取验证码'
+      this.$apply()
+      /* 获取初始用户绑定信息 */
+      this.loadUserBank()
+    }
+    onUnload() {
+      let self = this
+      // 清除计时器
+      clearInterval(self.setInter)
+    }
+    loadUserBank () {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/lncome_union.php`,
+        data: {
+          act: 'bank'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          console.log(data)
+          self.userAccount = data
+          self.userAccount.securityCode = ''
+        } else {
+          console.log('fe' + msg)
+        }
+      })
+      .catch(function(error) {
+        console.log(error)
+      })
+    }
+    /**
+     * [showPicker 开户银行选择]
+     */
+    showPicker(e) {
+      console.log('picker发送选择改变，携带值为', e.detail.value)
+      // 设置当前选中的快递名称及id
+      this.$apply(() => {
+        this.index = e.detail.value
+        this.userAccount.card_bank = this.data.bankList[e.detail.value]
+      })
+    }
+    /*
+    * 绑定银行卡
+    */
+    binkBank() {
+      if (this.isIdno(this.userAccount.account_number_format, this.userAccount.account_bank, this.userAccount.card_bank, this.userAccount.identity_code_format, this.userAccount.real_name, this.userAccount.mobile_format, this.userAccount.securityCode)) {
+        let binkParam = {
+          act: 'is_ajax',
+          type: 3,
+          account_number: this.userAccount.account_number_format,
+          card_bank: this.userAccount.card_bank,
+          account_bank: this.userAccount.account_bank,
+          identity_code: this.userAccount.identity_code_format,
+          real_name: this.userAccount.real_name,
+          mobile: this.userAccount.mobile_format,
+          security_code: this.userAccount.securityCode
+        }
+        wepy.request({
+          url: `${this.$parent.globalData.apiUrl}/lncome_union.php`,
+          data: binkParam
+        }).then(({data: {errcode, data, msg}}) => {
+          if (errcode === 0) {
+            wepy.showModal({
+              title: '提示',
+              content: '绑定成功，返回上一页?'
+            }).then((res) => {
+              if (res.confirm) {
+                wepy.navigateBack({
+                  delta: 2
+                })
+              } else if (res.cancel) {
+                return false
+              }
+            })
+          } else {
+            console.log('fe' + msg)
+            wepy.showModal({
+              title: '提示',
+              content: msg,
+              showCancel: false
+            })
+          }
+        })
+        .catch(function(error) {
+          console.log(error)
+        })
+      }
+    }
+    /* 获取验证码 */
+    getSecurityCode() {
+      if (!this.userAccount.mobile_format || !(/^1(3|4|5|7|8)\d{9}$/.test(this.userAccount.mobile_format))) {
+        wepy.showModal({
+          title: '提示',
+          content: '手机号码为空或手机号格式填写不正确',
+          showCancel: false
+        })
+        return false
+      }
+      this.btnDisable = true
+      let countDown = 120
+      let self = this
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/lncome_union.php`,
+        data: {
+          act: 'act_send_code',
+          mobile: self.userAccount.mobile_format
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          this.setInter = setInterval(function() {
+            countDown--
+            if (countDown > 0) {
+              self.$apply(() => {
+                self.securityText = countDown > 9 ? '重新获取' + '(' + countDown + ')' : '重新获取' + '(0' + countDown + ')'
+              })
+            } else {
+              clearInterval(self.setInter)
+              self.$apply(() => {
+                self.btnDisable = false
+                self.securityText = '获取验证码'
+              })
+            }
+          }, 1000)
+        } else {
+          self.btnDisable = false
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+      .catch(function(error) {
+        console.log(error)
+      })
+    }
+    withdrawInput(e) {
+      let val = e.detail.value
+      let key = e.currentTarget.dataset.key
+      if (key === 'account_number_format') { // 格式化之前银行账号
+        val = val.replace(/\s/g, '').replace(/(\d{4})(?=\d)/g, '$1 ')
+      }
+      this.$apply(() => {
+        this.userAccount[key] = val
+      })
+    }
+    /*
+    *输入验证
+    */
+    isIdno(cardNumber, accountBank, bankName, idCard, cardHolder, mobile, securityCode) {
+      // var valid = /(^\d{16}$)|(^\d{18}$)/
+      if (bankName === '' || bankName === '请选择发卡银行') {
+        wepy.showModal({title: '提示', content: '请填写发卡银行', showCancel: false})
+        return false
+      }
+      if (accountBank === '') {
+        wepy.showModal({title: '提示', content: '请填写开户行地址', showCancel: false})
+        return false
+      }
+      if (cardNumber === '') {
+        wepy.showModal({title: '提示', content: '请填写银行卡号', showCancel: false})
+        return false
+      }
+      if (cardHolder === '') {
+        wepy.showModal({title: '提示', content: '请填写持卡人姓名', showCancel: false})
+        return false
+      }
+      if (mobile === '') {
+        wepy.showModal({title: '提示', content: '请填写手机号', showCancel: false})
+        return false
+      }
+      if (idCard === '') {
+        wepy.showModal({title: '提示', content: '请填写身份证号', showCancel: false})
+        return false
+      }
+      if (!(/^1[3456789]\d{9}$/.test(mobile))) {
+        wepy.showModal({title: '提示', content: '手机号码填写不正确', showCancel: false})
+        return false
+      }
+      if (!securityCode) {
+        wepy.showModal({title: '提示', content: '请填写正确的验证码', showCancel: false})
+        return false
+      }
+      // 验证身份证号码
+      let idResult = checkIdcard(idCard)
+      if (idResult !== '1') {
+        wepy.showModal({
+          title: '提示',
+          content: idResult,
+          showCancel: false
+        })
+        return false
+      }
+      return true
+    }
+  }
+</script>
+
+<style lang="less">
+page {
+  font-family: '微软雅黑';
+}
+
+navigator {
+  cursor: pointer;
+}
+
+.withDraw {
+  background: #fff;
+  padding-bottom: 30px;
+}
+
+.withDraw .table {
+  width: 100%;
+  /*padding-left: 30rpx;*/
+}
+
+.withDraw input {
+  font-family: '微软雅黑';
+  font-size: 28rpx;
+  height: 90rpx;
+  line-height: 90rpx;
+}
+
+.rightCash {
+  display: block;
+  background: #4870f6;
+  width: 90%;
+  height: 84rpx;
+  line-height: 84rpx;
+  color: #fff;
+  margin: 0 auto;
+  text-align: center;
+  border-radius: 4px;
+  margin-top: 84rpx;
+}
+
+.rightCash:hover, .rightCash:active, .rightCash:visited, .rightCash:link {
+  color: #fff;
+}
+
+.weui-picker__item {
+  padding: 8px 0 4px;
+}
+
+.withdrawInput {
+  border: none;
+  outline: none;
+  width: 100%;
+}
+
+.withdrawInput[disabled], .withdrawInput[readonly],
+fieldset[disabled] .withdrawInput {
+  background: #fff;
+}
+
+.list .list-item input.getSecCode {
+  background: #fff;
+  color: #4870f6;
+  border: none;
+  height: 30px;
+  line-height: 30px;
+  width: 85px;
+  text-align: center;
+  position: absolute;
+  right: 5px;
+  bottom: 7px;
+  font-size: 24rpx;
+  border-radius: 0;
+  border-left: 1px solid #f1f1f1;
+}
+
+.disableBtn {
+  background: #fff;
+  color: #999;
+}
+
+.list {
+  background-color: #fff;
+}
+
+.list .list-item {
+  height: 90rpx;
+  line-height: 90rpx;
+  border-bottom: 1px solid #f1f1f1;
+  display: flex;
+}
+
+.list .list-item text {
+  width: 180rpx;
+  text-align: left;
+  padding-left: 30rpx;
+  font-size: 28rpx;
+  color: #999;
+}
+
+.list .list-item>input {
+  flex: 1;
+  height: 90rpx;
+  line-height: 90rpx;
+  font-size: 28rpx;
+}
+
+.list .list-item .offset_gold {
+  display: inline-block;
+  width: 50%;
+  padding: 0;
+}
+
+.list .list-item .use_detail {
+  display: inline-block;
+  padding: 0 30rpx;
+  line-height: 2.3;
+  font-size: 26rpx;
+  background-color: #ed3366;
+  color: #fff;
+}
+
+</style>
