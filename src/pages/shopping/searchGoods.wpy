@@ -55,16 +55,18 @@
   		<text class="weui-loadmore__tips">暂无数据</text>
   	</view>
   </scroll-view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </template>
 
 <script>
 import wepy from 'wepy'
-
+import quickIcon from '@/components/quick-icon'
 export default class SearchGoods extends wepy.page {
   config = {
     navigationBarTitleText: '搜索'
   }
-  components = {}
+  components = {quickIcon}
 
   data = {
     imgUrl: null,
@@ -120,8 +122,8 @@ export default class SearchGoods extends wepy.page {
         this.showHistory = true
       })
     }
+    this.$invoke('quickIcon', 'closeQucik')
   }
-
   searchGood(e) {
     console.log(e)
     let objCont

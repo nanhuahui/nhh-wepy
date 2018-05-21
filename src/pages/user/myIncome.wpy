@@ -20,23 +20,28 @@
       <view class="tips" style="color: #666;font-size: 24rpx;">用户每月从该月15日起到该月的19日上午12点可以对上月底之前的所有佣金进行提现。</view>
     </view>
   </scroll-view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </template>
 
 <script>
   import wepy from 'wepy'
+  import quickIcon from '@/components/quick-icon'
 
   export default class myIncome extends wepy.page {
     config = {
       navigationBarTitleText: '我的收入'
     }
-    components = {}
+    components = {quickIcon}
     data = {
       availableIncome: {}
     }
     onLoad() {
       this.getIncome()
     }
-    onShow() {}
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
+    }
     methods = {}
     /**
      * 获取数据

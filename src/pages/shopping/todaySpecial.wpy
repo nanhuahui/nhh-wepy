@@ -122,15 +122,19 @@
 	    </view>
 	  </view>
 	</view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </template>
 
 <script>
 import wepy from 'wepy'
+import quickIcon from '@/components/quick-icon'
 
 export default class TodaySpecial extends wepy.page {
   config = {
     navigationBarTitleText: '今日精选'
   }
+  components = {quickIcon}
   data = {
     imgUrl: '',
     img_domain: null,
@@ -139,6 +143,9 @@ export default class TodaySpecial extends wepy.page {
     goodsList: [],  // 商品列表
     recSpecial: [],
     specialInfo: null
+  }
+  onShow() {
+    this.$invoke('quickIcon', 'closeQucik')
   }
   onLoad(q) {
     console.log(132, q)

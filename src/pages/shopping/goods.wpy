@@ -108,6 +108,8 @@
 
     <!-- 分享小程序码浮层 -->
     <qrPatchLayer bottom="120" :shareImgArr.sync="shareImgs" :shareTextArr.sync="shareText" :shareQR.sync="shareQR"></qrPatchLayer>
+    <!-- 快捷导航 -->
+    <quickIcon></quickIcon>
   </view>
 </template>
 
@@ -117,6 +119,7 @@ import WxParse from '@/utils/wxParse/wxParse'
 import qrPatchLayer from '@/components/qrPatch-layer'
 import {composeImageForGoods, composeTextForGoods} from '@/utils/data'
 import { getGoods, addCollection, addCart, conversionGoodsVideo } from '@/utils/api'
+import quickIcon from '@/components/quick-icon'
 
 let w = wepy.getSystemInfoSync().windowWidth
 let h = wepy.getSystemInfoSync().windowHeight
@@ -124,7 +127,7 @@ export default class Goods extends wepy.page {
   config = {
     navigationBarTitleText: ''
   }
-  components = { qrPatchLayer }
+  components = { qrPatchLayer, quickIcon }
   data = {
     id: null,
     uid: null,
@@ -173,6 +176,7 @@ export default class Goods extends wepy.page {
         self.$apply()
       }, 0)
     }, 500)
+    this.$invoke('quickIcon', 'closeQucik')
 
     console.log('这是路径', url)
     // 普通分享识别参数
@@ -207,7 +211,9 @@ export default class Goods extends wepy.page {
     }
   }
 
-  onShow() {}
+  onShow() {
+    this.$invoke('quickIcon', 'closeQucik')
+  }
 
   onShareAppMessage(options) {
     if (options.from === 'button') {

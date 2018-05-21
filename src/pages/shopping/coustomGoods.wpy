@@ -47,16 +47,20 @@
       </loading>
     </view>
   </view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </view>
 </template>
 
 <script>
   import wepy from 'wepy'
+  import quickIcon from '@/components/quick-icon'
 
   export default class coustomGoods extends wepy.page {
     config = {
       navigationBarTitleText: '消费商列表'
     }
+    components = { quickIcon }
     data = {
       imgUrl: '',
       cid: null,
@@ -73,7 +77,9 @@
       })
       this.loadMore()
     }
-    onShow() {}
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
+    }
     onShareAppMessage(options) {
       if (options.from === 'button') {
         // 来自页面内转发按钮

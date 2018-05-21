@@ -42,17 +42,20 @@
     </view>
   </view>
   <!-- 特卖商品展示end -->
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </view>
 </template>
 
 <script>
   import wepy from 'wepy'
-
+  import quickIcon from '@/components/quick-icon'
   export default class flashSale extends wepy.page {
     config = {
       navigationBarTitleText: ''
     }
     components = {
+      quickIcon
     }
     data = {
       goodsList: [],  // 商品列表
@@ -72,7 +75,9 @@
       })
       this.reloadDataFun()
     }
-    onShow() {}
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
+    }
     methods = {}
     /*
      * 重新加载数据 （切换特卖场）

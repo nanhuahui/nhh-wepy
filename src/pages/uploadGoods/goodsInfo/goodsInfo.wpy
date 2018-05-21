@@ -71,6 +71,8 @@
     <!-- 分享小程序码浮层 -->
     <!-- 分享小程序码浮层 -->
     <qrPatchLayer bottom="120" :shareImgArr.sync="shareImgs" :shareTextArr.sync="shareText" :shareQR.sync="shareQR"></qrPatchLayer>
+    <!-- 快捷导航 -->
+    <quickIcon></quickIcon>
   </view>
 </template>
 
@@ -80,6 +82,7 @@
   import qrPatchLayer from '../../../components/qrPatch-layer'
   // import WxParse from '../../../utils/wxParse/wxParse'
   import {composeImageForGoods, composeTextForGoods} from '../../../utils/data'
+  import quickIcon from '@/components/quick-icon'
 
   let w = wepy.getSystemInfoSync().screenWidth
   let h = wepy.getSystemInfoSync().screenHeight
@@ -87,7 +90,7 @@
     config = {
       navigationBarTitleText: ''
     }
-    components = { qrPatchLayer }
+    components = { qrPatchLayer, quickIcon }
     data = {
       id: null,
       uid: null,
@@ -118,7 +121,9 @@
     computed = {}
 
     methods = {}
-
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
+    }
     onLoad(q) {
       console.log(123, 'meiyouhuoqu')
       console.log(q)

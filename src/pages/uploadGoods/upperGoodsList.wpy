@@ -28,14 +28,23 @@
       </loading>
     </view>
   </view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </template>
 
 <script>
   import wepy from 'wepy'
+  import quickIcon from '@/components/quick-icon'
 
   export default class upperGoodsList extends wepy.page {
     config = {
       navigationBarTitleText: '精选特卖'
+    }
+    components = {
+      quickIcon
+    }
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
     }
     data = {
       cid: null,

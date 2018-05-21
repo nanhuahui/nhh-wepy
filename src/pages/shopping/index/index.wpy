@@ -42,6 +42,8 @@
 
     <!-- 个性推荐 -->
     <recommendSale :recommendList.sync="recommendList" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" :recommendListShow.sync="recommendListShow" :catId.sync="catId" :pageNum.sync="pageNum" :isCollect.sync="isCollect" componentId="recommendSale"></recommendSale>
+    <!-- 快捷导航 -->
+    <quickIcon :currentPageRoute="'pages/shopping/index'"></quickIcon>
   </view>
 </template>
 
@@ -62,6 +64,7 @@ import newDaily from './components/new-daily'
 import flashSale from './components/flash-sale'
 import allDayHot from './components/all-day-hot'
 import auction from './components/auction'
+import quickIcon from '@/components/quick-icon'
 import indexLoading from './components/loading'
 import { getCategory, getStoreIndex, getRecommend, getDistribution } from '@/utils/api'
 
@@ -84,6 +87,7 @@ export default class Index extends wepy.page {
     allDayHot,
     qrPatchLayer,
     auction,
+    quickIcon,
     indexLoading
   }
   data = {
@@ -201,6 +205,7 @@ export default class Index extends wepy.page {
     this.$apply()
     // 加载数据
     this.loadData()
+    this.$invoke('quickIcon', 'closeQucik')
     // this.loadRecommend()
   }
   // 读取是否定制显示海报

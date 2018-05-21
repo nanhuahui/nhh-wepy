@@ -31,10 +31,13 @@
 			</view>
 		</view>
 	</view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </template>
 <script>
   import wepy from 'wepy'
   import weSwiper from '@/components/swiper'
+  import quickIcon from '@/components/quick-icon'
   // let swiper
   export default class classify extends wepy.page {
     config = {
@@ -48,10 +51,15 @@
       swiper: null
     }
     components = {
-      weSwiper
+      weSwiper,
+      quickIcon
     }
     onLoad() {
+      console.log(343434343)
       this.loadCat()
+    }
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
     }
     initSwiper() {
       let self = this

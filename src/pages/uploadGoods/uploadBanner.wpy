@@ -26,23 +26,30 @@
     </swiper>
     <button style="margin-top:93rpx;font-size:28rpx" class="useImg" bindtap="useImg" data-img="{{shop_banner}}" data-url="/pages/shopping/index/index">确定更换</button>
   </view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </template>
 
 <script>
   import wepy from 'wepy'
   import md5 from 'md5'
   import { DEFAULT_UID, API_SIGNATURE } from '@/utils/config'
+  import quickIcon from '@/components/quick-icon'
 
   export default class uploadBanner extends wepy.page {
     config = {
       navigationBarTitleText: '自营管理'
     }
+    components = {quickIcon}
     data = {
       imgUrl: '', // 静态图片资源路径
       img_domain: '',
       shop_banner: null,    // 主图
       localBanner: [],  // 补全图片链接地址 图片预览时使用
       currentItem: 0
+    }
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
     }
     onLoad(option) {
       this.getLocalBanner()

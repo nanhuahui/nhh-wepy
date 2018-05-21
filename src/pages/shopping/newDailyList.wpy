@@ -26,17 +26,21 @@
       </scroll-view>
     </view>
   </view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </view>
+
 </template>
 
 <script>
   import wepy from 'wepy'
-
+  import quickIcon from '@/components/quick-icon'
   export default class newDailyList extends wepy.page {
     config = {
       navigationBarTitleText: ''
     }
     components = {
+      quickIcon
     }
     data = {
       imgUrl: '',
@@ -55,7 +59,9 @@
       })
       this.loadMore()
     }
-    onShow() {}
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
+    }
     methods = {}
     // 查看更多
     loadMore() {

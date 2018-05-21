@@ -24,16 +24,19 @@
       加载中...
     </loading>
   </view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </template>
 
 <script>
   import wepy from 'wepy'
+  import quickIcon from '@/components/quick-icon'
 
   export default class myCollect extends wepy.page {
     config = {
       navigationBarTitleText: ''
     }
-    components = {}
+    components = {quickIcon}
     data = {
       imgUrl: '',
       goods_list: [],
@@ -52,6 +55,7 @@
       this.$apply()
       // 加载数据
       this.loadMore()
+      this.$invoke('quickIcon', 'closeQucik')
     }
     methods = {
       scroll: function (event) {

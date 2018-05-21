@@ -64,19 +64,22 @@
       <button type="primary" class="addBtn" bindtap="goNewAddress">添加新地址</button>
     </view>
   </scroll-view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </template>
 
 <script>
   import wepy from 'wepy'
   import areaPicker from '../../components/picker-city'
   import { checkIdcard } from '../../utils'
+  import quickIcon from '@/components/quick-icon'
 
   export default class addressList extends wepy.page {
     config = {
       navigationBarTitleText: '管理收货地址'
     }
     components = {
-      areaPicker
+      areaPicker, quickIcon
     }
     data = {
       imgUrl: '',
@@ -102,7 +105,9 @@
       this.$apply()
       this.loadAddressList()
     }
-    onShow() {}
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
+    }
     methods = {}
     /**
      * 获取地址数据

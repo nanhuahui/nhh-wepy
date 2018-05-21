@@ -77,17 +77,21 @@
       <view class="h2 c11">确认发布</view>
     </view>
   </scroll-view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </template>
 
 <script>
   import wepy from 'wepy'
   import md5 from 'md5'
   import { DEFAULT_UID, API_SIGNATURE } from '@/utils/config'
+  import quickIcon from '@/components/quick-icon'
 
   export default class uploadGood extends wepy.page {
     config = {
       navigationBarTitleText: '新建商品'
     }
+    components = {quickIcon}
     data = {
       imgUrl: '', // 静态图片资源路径
       img_domain: '',
@@ -103,6 +107,9 @@
       goods_stock: 0,         // 商品库存
       g_id: 0,                 // 商品编辑g_id
       act_type: 'add'
+    }
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
     }
     onLoad(option) {
       let self = this

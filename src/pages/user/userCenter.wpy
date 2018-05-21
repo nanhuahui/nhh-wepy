@@ -235,17 +235,20 @@
       </block>
     </view>
   </view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </template>
 
 <script>
   import wepy from 'wepy'
+  import quickIcon from '@/components/quick-icon'
 
   export default class myCollect extends wepy.page {
     config = {
       navigationBarTitleText: '用户中心',
       enablePullDownRefresh: true
     }
-    components = {}
+    components = {quickIcon}
     data = {
       imgUrl: null,
       headImg: null,
@@ -256,7 +259,9 @@
       this.$apply()
       this.loadIncome()
     }
-    onShow() {}
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
+    }
     onPullDownRefresh() {
       // 获取用户收入
       this.loadIncome()

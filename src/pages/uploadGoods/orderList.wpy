@@ -59,15 +59,18 @@
         </view>
     </scroll-view>
   </view>
+  <!-- 快捷导航 -->
+  <quickIcon></quickIcon>
 </template>
 
 <script>
   import wepy from 'wepy'
-
+  import quickIcon from '@/components/quick-icon'
   export default class orderList extends wepy.page {
     config = {
       navigationBarTitleText: '订单管理'
     }
+    components = {quickIcon}
     data = {
       imgUrl: '',
       img_domain: '',
@@ -79,6 +82,9 @@
       is_show_shipping: '',
       hidden: true,
       load_complete: false
+    }
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
     }
     onLoad(option) {
       this.loadList()
