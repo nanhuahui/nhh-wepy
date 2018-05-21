@@ -1,0 +1,157 @@
+<template>
+	<view class="classify">
+		<view class="classify_search row" bindtap = "toSearch">
+			<view class="col-xs-12">
+	    		<text>雅诗兰黛小棕瓶</text>
+			</view>
+		</view>
+		<view class="classify_cont clearfix">
+			<view class="classify_left">
+				<view class="left_ul">
+					<view class="left_li" wx:for="{{classifyArr}}" wx:for-item = "cat" wx:key = "{{index}}" class="left_li {{currentCatId === cat.cat_id ? 'c3 h3 li_active' : 'c3 h3'}}" bindtap = "getCategoryByIndex" data-index = "{{index}}" data-catId = "{{cat.cat_id}}">{{cat.cat_name}}</view>
+				</view>
+			</view>
+			<view class="classify_right">
+        <!-- wrap -->
+        <weSwiper :option.sync="swiper">
+            <view wx:for="{{classifyArr}}" wx:for-item="item" wx:key="index"
+              class="we-slide goods {{index === 1 ? 'active' : ''}}">
+              <image src="{{item.cat_img ? img_domain + item.cat_img : ''}}" mode="widthFix"></image>
+                  <text style="color: #777; font-size:24rpx; padding-top:20rpx">— {{item.cat_title}} —</text>
+                  <!-- ul -->
+                  <view class="right_ul clearfix">
+                    <view class=" right_li col-xs-4" wx:for = "{{item.son}}" wx:for-item ="cat" wx:key = "index" wx:for-index = "index" bindtap = "toCategory" data-catId = "{{cat.cat_id}}">
+                      <image src="{{imgBase64}}" style="background-image:url({{img_domain + cat.cat_icon}})" alt="" mode="widthFix"></image>
+                      <text class="c2 h5">{{cat.cat_name}}</text>
+                    </view>
+                  </view>
+            </view>
+          </weSwiper>
+          <!-- wrap -->
+			</view>
+		</view>
+	</view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import weSwiper from '@/components/swiper'
+  // let swiper
+  export default class classify extends wepy.page {
+    config = {
+      navigationBarTitleText: '分类列表'
+    }
+    data = {
+      classifyArr: [],
+      img_domain: '',
+      currentCatId: '',
+      imgBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQIW2NkAAIAAAoAAggA9GkAAAAASUVORK5CYII=',
+      swiper: null
+    }
+    components = {
+      weSwiper
+    }
+    onLoad() {
+      this.loadCat()
+    }
+    initSwiper() {
+      let self = this
+      self.swiper = {
+        slideLength: self.classifyArr.length,
+        direction: 'vertical',
+        initialSlide: 0,
+        /**
+         * swiper初始化后执行
+         * @param swiper
+         */
+        onInit (weswiper) {
+        },
+        /**
+         *  weswiper从一个slide过渡到另一个slide结束时执行
+         */
+        onSlideChangeEnd (weswiper) {
+          self.$apply(() => {
+            self.currentCatId = self.classifyArr[weswiper.activeIndex].cat_id
+          })
+        }
+      }
+      self.$apply()
+      self.$invoke('weSwiper', 'onLoad', self.swiper)
+    }
+    /**
+     * [loadCat 获取分类]
+     * @return {[type]} [description]
+     */
+    loadCat() {
+      // 获取分类
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/category_list.php`,
+        data: {
+          act: 'list'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          let temArr = []
+          for (let m of data.list) {
+            temArr.push(m)
+          }
+          this.$apply(() => {
+            this.classifyArr = temArr
+            this.img_domain = data.img_domain
+            this.currentCatId = data.list[0].cat_id
+          })
+        }
+        this.initSwiper()
+      })
+    }
+    /**
+     * [getCategoryByIndex 通过点击相应索引值获取二级分类]
+     * @param  {[type]} e [description]
+     * @return {[type]}   [description]
+     */
+    getCategoryByIndex(e) {
+      this.$apply(() => {
+        this.currentCatId = e.target.dataset.catid
+      })
+      this.$invoke('weSwiper', 'slideTo', e.target.dataset.index)
+    }
+    /**
+     * [toCategory 跳转分类页面]
+     * @param  {[type]} e [description]
+     * @return {[type]}   [description]
+     */
+    toCategory(e) {
+      console.log(333, e)
+      this.$navigate('category', {cid: e.currentTarget.dataset.catid})
+    }
+    toSearch() {
+      this.$navigate('searchGoods')
+    }
+  }
+</script>
+<style lang="less">
+	.classify_search .col-xs-12{padding: 0}
+	.classify_search text{padding-left: 70rpx; outline: none; background: #e5e8f1; background-size: 1.1rem; display: block; width: 620rpx; border: none; border-radius: 16rpx; height: 70rpx; line-height: 70rpx; color: #999}
+	.classify_search{background: #fff; height: 2.1rem; line-height: 96rpx; padding: 12rpx 30rpx; position: fixed; left: 0; width: 100%; z-index: 2; margin: 0; border-bottom:2rpx solid #e5e8f1}
+	/*.classify_cont{padding-top: 2.3rem}*/
+	.classify_left{position:fixed; left: 0; background: #fff; width: 200rpx; top: 100rpx; overflow: hidden; height: 100%;}
+	.classify_left .left_ul{width: 200rpx;  overflow-y:scroll; height: 87%; position: relative;}
+	.classify_left .left_li{ height: 90rpx; line-height: 90rpx; text-align: center; border-bottom: 1px solid #eaeef1; position: relative;}
+	.classify_left .li_active{/*background: #e5e8f1;*/ color: #c2b58d; background: #333;}
+	.classify_right{width: 508rpx; float: right; right: 0; height: 100%; position: absolute; overflow: hidden; padding:0 20rpx; background:#fff}
+	.classify_list{ height: 100%; position: absolute;}
+	.classify_prev{top: -100%}
+	.classify_next{top: 100%}
+	.classify_right .right_ul{padding: 26rpx 24rpx 26rpx 4rpx; width: 100%; height: 100%; overflow-y:scroll;}
+	.classify_left .li_active.active_animate{position: absolute; width: 0.13rem; height: 1.9rem; content: ''; text-align: left; font-size: 1.2rem; top: 0; background: #c2b58d; z-index: 1}
+	.classify_right .right_ul view{padding: 26rpx 0}
+	.classify_right text{text-align: center; display: block}
+	.classify_right image{width: 100%; height:auto}
+	.classify_right .right_ul view image{width: 50%; display: block; margin: 0 auto 10px; background-size: contain; background-repeat: no-repeat; background-position: center}
+	.classify_right .swiper-container{width: 100%;height: 100%;}
+	.classify_right .swiper-container {width: 100%;}
+	.classify_right .swiper-slide {text-align: center;
+	    font-size: 36rpx;
+	    background: #fff;
+		height: 100%;}
+	 .classify_right .we-container {padding-top:120rpx; padding-bottom:40rpx}
+</style>
