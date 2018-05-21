@@ -196,7 +196,7 @@
         <view class="arrow_position">
           <!-- <image class="smallIcon" src="{{imgUrl}}/inviteUser.png" ></image> -->
           <i class="iconfont-yzg icon-yzg-yaoqingkaidian" style="color:#bbb;position:absolute;left:30rpx"></i>
-          <!-- <image class="smallIcon" src="/assets/images/inviteUser.png" ></image> -->
+          <!-- <image class="smallIcon" src="{{imgUrl}}/inviteUser.png" ></image> -->
 
           <!-- <navigator class="text_font link" url="./nhhDetail"> -->
           <navigator class="text_font link">

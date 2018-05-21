@@ -1,4 +1,5 @@
 <template>
+  <indexLoading></indexLoading>
   <view height="100%" wx:if="{{loadComplete}}">
     <!-- 头部 -->
     <header :storeInfo.sync="storeInfo" :storeDetail.sync="storeDetail" :imgUrl.sync="imgUrl" componentId="indexHeader"></header>
@@ -61,6 +62,7 @@ import newDaily from './components/new-daily'
 import flashSale from './components/flash-sale'
 import allDayHot from './components/all-day-hot'
 import auction from './components/auction'
+import indexLoading from './components/loading'
 import { getCategory, getStoreIndex, getRecommend, getDistribution } from '@/utils/api'
 
 export default class Index extends wepy.page {
@@ -81,7 +83,8 @@ export default class Index extends wepy.page {
     flashSale,
     allDayHot,
     qrPatchLayer,
-    auction
+    auction,
+    indexLoading
   }
   data = {
     imgUrl: '',
@@ -179,6 +182,8 @@ export default class Index extends wepy.page {
   }
 
   onLoad() {
+    // 增加loading效果
+    this.$invoke('indexLoading', 'show', {mode: 6})
     this.readyForQr()
   }
 
@@ -342,8 +347,11 @@ export default class Index extends wepy.page {
       } else {
         console.error(msg)
       }
+      // 取消loading
+      self.$invoke('indexLoading', 'hide')
     }).catch((error) => {
       console.log('获取首页数据失败！', error)
+      self.$invoke('indexLoading', 'hide')
     })
     // 消费商专区
     getDistribution().then(({data: {errcode, data, msg}}) => {
