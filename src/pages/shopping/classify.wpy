@@ -55,7 +55,6 @@
       quickIcon
     }
     onLoad() {
-      console.log(343434343)
       this.loadCat()
     }
     onShow() {
@@ -128,7 +127,6 @@
      * @return {[type]}   [description]
      */
     toCategory(e) {
-      console.log(333, e)
       this.$navigate('category', {cid: e.currentTarget.dataset.catid})
     }
     toSearch() {
