@@ -83,7 +83,6 @@ export default class flashSale extends wepy.component {
   onLoad() {}
   methods = {
     render(data, event) {
-      console.log(19029, data)
       this.id = data.id
       this.current = data.current
       this.next = data.next
