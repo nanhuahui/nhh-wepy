@@ -1,0 +1,375 @@
+<template>
+<view height="100%">
+  <!-- 头部标签 -->
+  <view class="navbar-location" style="top:0;">
+    <view class="navbar-yzg-default">
+      <!-- 滑动菜单 -->
+      <scrollMenu :sortMenu.sync="sortMenu" :sortName.sync="sortName" isSortName="true" :activeId.sync="cid"></scrollMenu>
+    </view>
+  </view>
+  <view class="mescroll recommend-goods">
+    <scroll-view scroll-y="true" scroll-top="0"
+      bindscrolltolower="loadMore" bindscroll="scroll"
+      class="goods-lists data-list clearfix"
+      style="height: 100%;display: block;overflow: hidden;">
+      <view class="list-item" wx:for="{{goods_list}}" wx:for-item="g" wx:key="g.upc_id">
+        <navigator url="./goods?gid={{g.upc_id}}">
+          <view class="goods-img">
+            <image src="{{g.img_url?g.img_url:imgUrl+'/no_picture.jpg'}}" mode="widthFix"></image>
+            <span class="vedio_icon" wx:if="{{g.video_url}}">
+              <image src="{{imgUrl}}/vedio_icon.png" mode="widthFix"></image>
+            </span>
+          </view>
+        </navigator>
+        <view class="goods-price">
+          {{g.shop_price}}
+          <span class="goods-price_origin">
+            {{g.market_price ? g.market_price : ''}}
+          </span>
+        </view>
+        <view class="goods-title">{{g.goods_name}}</view>
+      </view>
+    </scroll-view>
+    <view class="body-view">
+      <loading hidden="{{hidden}}" bindchange="loadingChange">
+        加载中...
+      </loading>
+    </view>
+  </view>
+  <quickIcon></quickIcon>
+</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import scrollMenu from '../../components/scroll-menu'
+  import quickIcon from '@/components/quick-icon'
+
+  export default class category extends wepy.page {
+    config = {
+      navigationBarTitleText: '个体洗护'
+    }
+    components = {
+      scrollMenu: scrollMenu,
+      quickIcon
+    }
+    data = {
+      imgUrl: '',
+      cid: null,
+      goods_list: [],
+      img_domain: '',
+      title_name: '',
+      sortMenu: [],
+      sortName: [],
+      hidden: true,
+      scrollTop: 0,
+      pageNum: 0,
+      subitemsExpanded: false
+    }
+    onLoad(q) {
+      wepy.setStorageSync('categoryFood', 'review')
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.$apply()
+      if (!q.cid) {
+        // 默认个体洗护,用于审核
+        q.cid = 100
+      }
+      this.changeCid(q.cid)
+    }
+    onShow() {
+      this.$invoke('quickIcon', 'closeQucik')
+    }
+    methods = {}
+    events = {
+      'menuClicked': (...args) => {
+        this.changeCid(args[0])
+      }
+    }
+    changeCid(cid) {
+      // 获取传递的cid
+      this.$apply(() => {
+        this.cid = cid
+        this.goods_list = []
+        this.pageNum = 0
+        this.scrollTop = 0
+      })
+      // 去加载数据
+      this.loadMore()
+    }
+    scroll(event) {
+      // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+      this.$apply(() => {
+        this.scrollTop = event.detail.scrollTop
+      })
+      // 如果滑动菜单是展开,滚动时需要合并
+      this.$invoke('scrollMenu', 'subitemsHide')
+    }
+    /*
+     * 加载更多
+     */
+    loadMore() {
+      let self = this
+      if (self.data.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.data.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
+        self.hidden = false
+      })
+      // console.log("当前加载页码:" + self.data.pageNum)
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/category.php`,
+        data: {
+          id: self.data.cid,
+          page: self.data.pageNum
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          // console.log("查询结果为:", data)
+          let sortMenu = []
+          let sortName = []
+          for (let m of data.category_list) {
+            // 组装菜单
+            sortMenu.push({ id: m.cat_id, name: m.cat_name })
+            sortName.push({ id: m.cat_id, name: m.cat_name })
+          }
+          sortMenu.push({ id: data.parent_id, name: '全部商品' })
+          sortName.push({ id: data.parent_id, name: '全部商品' })
+          if (data.goods_list.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+              self.hidden = true
+            })
+            return
+          }
+          // 数据组装
+          var list = self.data.goods_list
+          for (var i = 0; i < data.goods_list.length; i++) {
+            list.push(data.goods_list[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.goods_list = list
+            self.img_domain = data.img_domain
+            self.title_name = data.title_name
+            self.hidden = true
+            self.sortMenu = sortMenu
+            self.sortName = sortName
+          })
+          self.$invoke('scrollMenu', 'scrollLeft')
+          wepy.setNavigationBarTitle({ title: self.title_name })
+        } else {
+          console.error(msg)
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+@import '../../assets/styles/store.wxss';
+
+page {
+  font-family: "微软雅黑";
+  background-color: #f1f1f1;
+}
+
+/*分类样式*/
+
+.classify {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+}
+
+.classify_item {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+}
+
+.classify_item .theme {
+  flex: auto;
+  padding: 10rpx 30rpx 0;
+  border-bottom: 1rpx solid #eee;
+  height: 48rpx;
+  font-size: 28rpx;
+  line-height: 48rpx;
+  color: #ed3366;
+}
+
+.classify_item .item_grid {
+  display: -webkit-flex;
+  display: flex;
+  background: #fff;
+  flex-wrap: wrap;
+  padding-bottom: 16rpx;
+}
+
+.item_grid .context {
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 25%;
+  padding-top: 16rpx;
+}
+
+.context image {
+  width: 76rpx;
+}
+
+.context text {
+  font-size: 22rpx;
+}
+
+/*.item-container {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-top: 100rpx;
+}
+
+.item {
+  flex-direction: column;
+  width: 50%;
+  background-color: white;
+}
+
+.item-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid #f1f1f1;
+  border-bottom: 1px solid #f1f1f1;
+  padding: 15rpx 15rpx 20rpx;
+  min-height: 500rpx;
+}
+
+.item-block image {
+  width: 100%;
+  height: 335rpx;
+}
+
+.item-block .first-line {
+  font-size: 27rpx;
+  line-height: 34rpx;
+  text-align: center;
+}
+
+.item-block .second-line {
+  font-size: 32rpx;
+  color: red;
+  text-align: center;
+}
+
+.offline-notice {
+  margin: 100rpx 10rpx 0 10rpx;
+  padding: 40rpx 0 40rpx 0;
+  border-radius: 5rpx;
+  text-align: center;
+  background-color: white;
+  font-size: 33rpx;
+}
+
+
+
+.menu {
+  position: fixed;
+  top: 0px;
+  width: 100%;
+  background: #fff;
+  border-bottom: #eee solid 1px;
+  z-index: 100000;
+}
+
+.top-nav {
+  white-space: nowrap;
+  width: 95%;
+  margin: 0 auto;
+}
+
+.top-btn {
+  display: inline-block;
+  padding: 22rpx;
+}
+
+.top-hoverd-btn {
+  color: #42bd56;
+  border-bottom: #42bd56 solid 1px;
+}*/
+
+/*vue*/
+
+.shop-bag {
+  text-align: right;
+}
+
+.shop-bag span {
+  font-size: 26px;
+}
+
+.sortMenu-ul li:last-child {
+  padding-right: 0 !important;
+  margin-right: 60px !important;
+}
+
+.mescroll {
+  position: fixed;
+  top: 44px;
+  bottom: 2px;
+  height: auto;
+  width: 100%;
+}
+
+/*展示上拉加载的数据列表*/
+
+.data-list {
+  display: none;
+}
+
+.data-list .list-item {
+  position: relative;
+  border-bottom: 1px solid #eee;
+  float: left;
+}
+
+.data-list .pd-img {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  width: 80px;
+  height: 80px;
+}
+
+.data-list .pd-name {
+  font-size: 16px;
+  line-height: 20px;
+  height: 40px;
+  overflow: hidden;
+}
+
+.data-list .pd-price {
+  margin-top: 8px;
+  color: red;
+}
+
+.data-list .pd-sold {
+  font-size: 12px;
+  margin-top: 8px;
+  color: gray;
+}
+
+.goods-lists .list-item {
+  width: 50%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid #f1f1f1;
+  border-top: none;
+  border-left: none;
+}
+
+</style>

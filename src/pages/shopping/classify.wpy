@@ -48,7 +48,8 @@
       img_domain: '',
       currentCatId: '',
       imgBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQIW2NkAAIAAAoAAggA9GkAAAAASUVORK5CYII=',
-      swiper: null
+      swiper: null,
+      isReview: wepy.getStorageSync('categoryFood')
     }
     components = {
       weSwiper,
@@ -99,6 +100,9 @@
         if (errcode === 0) {
           let temArr = []
           for (let m of data.list) {
+            if (this.isReview && (m.cat_id === '112' || m.cat_id === '70')) {
+              continue
+            }
             temArr.push(m)
           }
           this.$apply(() => {
