@@ -260,7 +260,7 @@ export default class Index extends wepy.page {
         // 汇商通知有新消息 且 在此次会话中未关闭新消息
         if (data.unread_circular && data.unread_circular === 1 && wepy.getStorageSync('closeMsg') === false) {
           self.$apply(() => {
-            self.popShow = ture
+            self.popShow = true
           })
         }
         // 拍卖逻辑
@@ -282,7 +282,7 @@ export default class Index extends wepy.page {
           self.myAuctionNum = data.my_auction_num
         })
         // 判断是否有未支付拍卖活动
-        if (data.my_auction && data.my_auction.length > 0  && self.popShow === false) {
+        if (data.my_auction && data.my_auction.length > 0 && self.popShow === false) {
           wepy.showModal({
             title: '提示',
             content: `您有${data.my_auction_num}款获拍的商品待支付`,

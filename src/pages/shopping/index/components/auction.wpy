@@ -70,6 +70,13 @@
       }
     }
     methods = {}
+    events = {
+      'activeIndex': (...args) => {
+        this.$apply(() => {
+          this.activeIndex = args[0]
+        })
+      }
+    }
     onLoad() {
       this.$apply()
     }

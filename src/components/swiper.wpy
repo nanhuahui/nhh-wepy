@@ -227,6 +227,7 @@ export default class weSwiper extends wepy.component {
       const translate = -index * rectDistance
       self.previousIndex = activeIndex
       self.activeIndex = index
+      self.$emit('activeIndex', self.activeIndex)
       self.isBeginning = self.activeIndex === self.initialSlide
       self.isEnd = self.activeIndex === self.slideLength - 1
 
@@ -327,6 +328,7 @@ export default class weSwiper extends wepy.component {
     this.rectDistance = direction === 'horizontal' ? this.width : this.height
     this.XORY = direction === 'horizontal' ? 'X' : 'Y'
     this.activeIndex = initialSlide  //  将初始页码赋给activeIndex
+    this.$emit('activeIndex', this.activeIndex)
     this.noSwiper = false  //  阻止手势滑动
     this.previousIndex = initialSlide  //  返回上一个活动块的索引，切换前的索引
     this.slideTo(initialSlide, 0)
