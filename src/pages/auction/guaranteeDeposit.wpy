@@ -32,7 +32,7 @@
 <view wx:if="{{pageSwitch === 'errormsg'}}" class="errWarning">
   <view class="iconfont-yzg icon-yzg-information"></view>
   <text>{{errorMsg}}</text>
-  <navigator class="navTarget" url="../../shopping/category/category">
+  <navigator class="navTarget" url="../shopping/category">
     随便逛逛
   </navigator>
 </view>

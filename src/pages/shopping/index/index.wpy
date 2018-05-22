@@ -41,6 +41,17 @@
     <recommendSale :recommendList.sync="recommendList" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" :recommendListShow.sync="recommendListShow" :catId.sync="catId" :pageNum.sync="pageNum" :isCollect.sync="isCollect" componentId="recommendSale"></recommendSale>
     <!-- 快捷导航 -->
     <quickIcon isSlot="true" :shareImgArr.sync="shareImg" :shareTextArr.sync="shareText" :shareQR.sync="shareQR" currentPageRoute="index"></quickIcon>
+
+    <!--新增信息弹窗-->
+    <view class="fixedPop" wx:if="{{popShow}}">
+      <view class="fixedPic">
+        <image src="{{imgUrl}}/newMessage.png" mode="widthFix"></image>
+        <view class="toMessageList" bindtap="toMessageList">
+        </view>
+        <text class="close" bindtap="closeMessagePop"></text>
+      </view>
+    </view>
+    <view id="popMask" wx:if="{{popShow}}"></view>
   </view>
 </template>
 
@@ -246,6 +257,12 @@ export default class Index extends wepy.page {
         }
         // 设置数据
         self.categoryArr = self.data.categoryArr
+        // 汇商通知有新消息 且 在此次会话中未关闭新消息
+        if (data.unread_circular && data.unread_circular === 1 && wepy.getStorageSync('closeMsg') === false) {
+          self.$apply(() => {
+            self.popShow = ture
+          })
+        }
         // 拍卖逻辑
         if (data.user_auction) {
           data.user_auction.sort((a, b) => {
@@ -261,8 +278,11 @@ export default class Index extends wepy.page {
           })
           self.$apply()
         }
+        self.$apply(() => {
+          self.myAuctionNum = data.my_auction_num
+        })
         // 判断是否有未支付拍卖活动
-        if (data.my_auction && data.my_auction.length > 0) {
+        if (data.my_auction && data.my_auction.length > 0  && self.popShow === false) {
           wepy.showModal({
             title: '提示',
             content: `您有${data.my_auction_num}款获拍的商品待支付`,
