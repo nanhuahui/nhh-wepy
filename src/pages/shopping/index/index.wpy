@@ -37,13 +37,10 @@
     <!-- 楼层 -->
     <floorGoods :composeFloorArr.sync="composeFloorArr" :imgUrl.sync="imgUrl" componentId="floorGoods"></floorGoods>
 
-    <!-- 分享小程序码浮层 -->
-    <qrPatchLayer bottom="10" isSlot="true" :shareImgArr.sync="shareImg" :shareTextArr.sync="shareText" :shareQR.sync="shareQR"></qrPatchLayer>
-
     <!-- 个性推荐 -->
     <recommendSale :recommendList.sync="recommendList" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" :recommendListShow.sync="recommendListShow" :catId.sync="catId" :pageNum.sync="pageNum" :isCollect.sync="isCollect" componentId="recommendSale"></recommendSale>
     <!-- 快捷导航 -->
-    <quickIcon :currentPageRoute="'pages/shopping/index'"></quickIcon>
+    <quickIcon isSlot="true" :shareImgArr.sync="shareImg" :shareTextArr.sync="shareText" :shareQR.sync="shareQR" currentPageRoute="index"></quickIcon>
   </view>
 </template>
 

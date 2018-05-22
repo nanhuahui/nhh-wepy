@@ -106,10 +106,8 @@
       </view>
     </view>
 
-    <!-- 分享小程序码浮层 -->
-    <qrPatchLayer bottom="120" :shareImgArr.sync="shareImgs" :shareTextArr.sync="shareText" :shareQR.sync="shareQR"></qrPatchLayer>
     <!-- 快捷导航 -->
-    <quickIcon></quickIcon>
+    <quickIcon :shareImgArr.sync="shareImgs" :shareTextArr.sync="shareText" :shareQR.sync="shareQR" currentPageRoute="goods"></quickIcon>
   </view>
 </template>
 
