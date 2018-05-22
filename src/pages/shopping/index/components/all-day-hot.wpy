@@ -1,6 +1,6 @@
 <template>
   <view class="allDayHot" wx:if="{{goods && goods.length > 0}}">
-    <navigator url="../allDayHot/allDayHot?id={{dayHot.id}}">
+    <navigator url="../allDayHot?id={{dayHot.id}}">
       <view class="shoper_header">
         <view class="h1 c3">24小时热销榜</view>
         <text class="h7 c2">{{dayHot.start_time}}<text class="iconfont-yzg icon-yzg-arrow" style="font-size: 24rpx;"></text></text>

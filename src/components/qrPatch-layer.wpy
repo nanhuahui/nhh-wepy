@@ -31,7 +31,7 @@ export default class qrPatchLayer extends wepy.component {
   components = { composeImage }
   props = {
     bottom: String, // 静态传值为父组件向子组件传递常量数据，因此只能传递String字符串类型。
-    isSlot: String,
+    isSlot: Boolean,
     shareImgArr: Object,
     shareTextArr: Object,
     shareQR: Object

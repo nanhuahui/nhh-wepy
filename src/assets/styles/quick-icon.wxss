@@ -1,0 +1,97 @@
+.quickIcon {
+    position: fixed;
+    right: 0;
+    bottom: 234rpx;
+    width: 14rpx;
+    height: 328rpx;
+    z-index: 2;
+}
+.quickIcon > image {
+    width: 45rpx;
+    height: 90rpx;
+    margin-top: 18.75rpx;
+    position: absolute;
+    right: 0;
+    top: 5px;
+    bottom: 0;
+    margin: auto 0;
+}
+.quickCont {
+    position: absolute;
+    right: 24rpx;
+    top: 0;
+    bottom: 0;
+    margin: auto 0;
+}
+.quickCont image {
+    width: 40px;
+    height: 40px;
+    position: absolute;
+}
+.quickCont .quickBack {
+    right: 75px;
+    top: 40%;
+}
+.quickCont .quickCat {
+    top: 70%;
+    right: 50px;
+}
+.quickCont .quickClose {
+    right: 0;
+    top: 40%;
+}
+.quickCont .quickHome {
+    top: -5%;
+    right: 0;
+}
+.quickCont .quickQrcode {
+    right: 0;
+    bottom: -6%;
+}
+.quickCont .quickSearch {
+    top: 10%;
+    right: 50px;
+}
+.quickContAni {
+    width: 281rpx;
+    height: 375rpx;
+    animation: quickContAni 0.3s;
+    -moz-animation: quickContAni 0.3s;
+    /* Firefox */
+    -webkit-animation: quickContAni 0.3s;
+    /* Safari 和 Chrome */
+    -o-animation: quickContAni 0.3s;
+    /* Opera */
+}
+@keyframes quickContAni {
+    from {
+        width: 0;
+        height: 0;
+    }
+    to {
+        width: 281rpx;
+        height: 375rpx;
+    }
+}
+
+.quickHideAni {
+    width: 0;
+    height: 0;
+    animation: quickHideAni 0.3s;
+    -moz-animation: quickHideAni 0.3s;
+    /* Firefox */
+    -webkit-animation: quickHideAni 0.3s;
+    /* Safari 和 Chrome */
+    -o-animation: quickHideAni 0.3s;
+    /* Opera */
+}
+@keyframes quickHideAni {
+    from {
+        width: 281rpx;
+        height: 375rpx;
+    }
+    to {
+        width: 0;
+        height: 0;
+    }
+}

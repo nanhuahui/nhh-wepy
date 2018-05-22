@@ -96,17 +96,18 @@
     </view>
   </view>
   <!-- 快捷导航 -->
-  <quickIcon></quickIcon>
+  <import src="../templates/quick-icon" />
+  <template is="quickIcon" data="{{imgUrl, showQuickIcon}}"/>
 </template>
 
 <script>
   import wepy from 'wepy'
-  import quickIcon from '@/components/quick-icon'
+  import qcMixin from '@/mixins/quickIcon'
   export default class goodList extends wepy.page {
     config = {
       navigationBarTitleText: '商品管理'
     }
-    components = {quickIcon}
+    mixins = [qcMixin]
     data = {
       imgUrl: '',
       img_domain: '',
@@ -122,9 +123,6 @@
     }
     onLoad(option) {
       this.loadGoodsList()
-    }
-    onShow() {
-      this.$invoke('quickIcon', 'closeQucik')
     }
     sortGoods(e) {
       let currentTarget = e.currentTarget.dataset

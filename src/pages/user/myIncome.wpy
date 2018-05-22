@@ -21,22 +21,27 @@
     </view>
   </scroll-view>
   <!-- 快捷导航 -->
-  <quickIcon></quickIcon>
+  <import src="../templates/quick-icon" />
+  <template is="quickIcon" data="{{imgUrl, showQuickIcon}}"/>
 </template>
 
 <script>
   import wepy from 'wepy'
-  import quickIcon from '@/components/quick-icon'
+  import qcMixin from '@/mixins/quickIcon'
 
   export default class myIncome extends wepy.page {
     config = {
       navigationBarTitleText: '我的收入'
     }
-    components = {quickIcon}
+    mixins = [qcMixin]
     data = {
+      imgUrl: '',
       availableIncome: {}
     }
     onLoad() {
+      this.$apply(() => {
+        this.imgUrl = this.$parent.globalData.imgUrl
+      })
       this.getIncome()
     }
     onShow() {
@@ -58,6 +63,7 @@
         wepy.hideLoading()
         if (errcode === 0) {
           self.$apply(() => {
+            self.imgUrl = self.$parent.globalData.imgUrl
             self.availableIncome = data
           })
         } else {

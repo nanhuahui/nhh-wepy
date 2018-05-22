@@ -1,3 +1,107 @@
+<template>
+	<view class="weui-flex today_special">
+	  <navigator class="goods-banner_pic" url="javascript:void(0)">
+	    <image src="{{specialInfo.banner ? (img_domain + specialInfo.banner) : (imgUrl + '/no_picture.jpg')}}" mode="widthFix" style="width: 100%;"></image>
+	  </navigator>
+	  <view style="flex: 1;position: relative;">
+	    <view class="scrollView goods-lists">
+	      <view style="overflow: hidden;">
+	        <navigator class="sub-goods_list" wx:for="{{goodsList}}" wx:for-item="g" wx:key="{{g.upc_id}}" url="./goods?gid={{g.upc_id}}">
+	          <view class="goods-img">
+	            <image src="{{g.master_img}}" mode="widthFix"></image>
+	            <view class="vedio_icon" wx:if="{{g.video}}">
+	              <image src='{{imgUrl}}/vedio_icon.png' mode="widthFix" style="width: 39px;"></image>
+	            </view>
+	          </view>
+	          <view class="goods-brief">{{g.goods_brief}}</view>
+	          <view class="goods-title">{{g.goods_name}}</view>
+	          <view class="goods-price">
+	            {{g.promote_price}}
+	            <text class="goods-price_origin">{{g.market_price}}</text>
+	          </view>
+	        </navigator>
+	      </view>
+	      <view class="separate" style="border-top:1px solid #eee"></view>
+	      <view class="cutPart text-center" style="background: #fff">
+	        <text class="title_tui">
+	          <image class="fang" src="{{imgUrl}}/fang.png" alt=""></image>
+	          <text class="tit">更多精彩推荐</text>
+	          <image class="fang" src="{{imgUrl}}/fang.png" alt=""></image>
+	        </text>
+	      </view>
+	      <view class="choose-con" style="background: #fff" wx:for="{{recSpecial}}" wx:key="{{id}}">
+	        <navigator url="/pages/shopping/todaySpecial?id={{item.id}}">
+	          <view class="col-xs-4 text-imgUrlleft choose_img">
+	            <image src="{{item.banner_new ? img_domain + item.banner_new : ''}}"/>
+	          </view>
+	          <view class="col-xs-8 choose-txt text-left">
+	            <text>{{item.special_name}}</text>
+	            <text>相关产品<text class="numberText">{{item.goods_num}}</text>款,<text class="numberText">{{item.goods_price}}</text>元起售</text>
+	          </view>
+	          <image class="good_arrows" src="{{imgUrl}}/jiantou.png" mode="widthFix"/>
+	        </navigator>
+	      </view>
+	    </view>
+	  </view>
+	</view>
+  <!-- 快捷导航 -->
+	<import src="../templates/quick-icon" />
+  <template is="quickIcon" data="{{imgUrl, showQuickIcon}}"/>
+</template>
+
+<script>
+import wepy from 'wepy'
+import qcMixin from '@/mixins/quickIcon'
+
+export default class TodaySpecial extends wepy.page {
+  config = {
+    navigationBarTitleText: '今日精选'
+  }
+  mixins = [qcMixin]
+  data = {
+    imgUrl: '',
+    img_domain: null,
+    special_id: null,
+    title_name: null,
+    goodsList: [],  // 商品列表
+    recSpecial: [],
+    specialInfo: null
+  }
+  onLoad(q) {
+    this.special_id = q.id
+    this.$apply()
+    this.loadMore()
+  }
+  // 查看更多
+  loadMore() {
+    let self = this
+    wepy.request({
+      url: `${self.$parent.globalData.apiUrl}/special.php`,
+      data: {
+        special_id: self.data.special_id
+      }
+    }).then(({data: {errcode, data, msg}}) => {
+      if (errcode === 0) {
+        // 赋值
+        self.$apply(() => {
+          self.imgUrl = self.$parent.globalData.imgUrl
+          self.img_domain = data.img_domain
+          self.title_name = '今日精选'
+          self.goodsList = data.special_info.goods_list
+          self.recSpecial = data.rec_special
+          self.specialInfo = data.special_info
+        })
+        // wepy.setTitle(this.data.title_name)
+      } else {
+        console.error(msg)
+      }
+    }).catch((error) => {
+      console.log('获取今日精选列表失败', error)
+    })
+  }
+}
+</script>
+
 <style lang="less">
 @import '../../assets/styles/store.wxss';
 .today_special {
@@ -75,110 +179,3 @@
     font-size: 28rpx;
 }
 </style>
-
-<template>
-	<view class="weui-flex today_special">
-	  <navigator class="goods-banner_pic" url="javascript:void(0)">
-	    <image src="{{specialInfo.banner ? (img_domain + specialInfo.banner) : (imgUrl + '/no_picture.jpg')}}" mode="widthFix" style="width: 100%;"></image>
-	  </navigator>
-	  <view style="flex: 1;position: relative;">
-	    <view class="scrollView goods-lists">
-	      <view style="overflow: hidden;">
-	        <navigator class="sub-goods_list" wx:for="{{goodsList}}" wx:for-item="g" wx:key="{{g.upc_id}}" url="./goods?gid={{g.upc_id}}">
-	          <view class="goods-img">
-	            <image src="{{g.master_img}}" mode="widthFix"></image>
-	            <view class="vedio_icon" wx:if="{{g.video}}">
-	              <image src='{{imgUrl}}/vedio_icon.png' mode="widthFix" style="width: 39px;"></image>
-	            </view>
-	          </view>
-	          <view class="goods-brief">{{g.goods_brief}}</view>
-	          <view class="goods-title">{{g.goods_name}}</view>
-	          <view class="goods-price">
-	            {{g.promote_price}}
-	            <text class="goods-price_origin">{{g.market_price}}</text>
-	          </view>
-	        </navigator>
-	      </view>
-	      <view class="separate" style="border-top:1px solid #eee"></view>
-	      <view class="cutPart text-center" style="background: #fff">
-	        <text class="title_tui">
-	          <image class="fang" src="{{imgUrl}}/fang.png" alt=""></image>
-	          <text class="tit">更多精彩推荐</text>
-	          <image class="fang" src="{{imgUrl}}/fang.png" alt=""></image>
-	        </text>
-	      </view>
-	      <view class="choose-con" style="background: #fff" wx:for="{{recSpecial}}" wx:key="{{id}}">
-	        <navigator url="/pages/shopping/todaySpecial?id={{item.id}}">
-	          <view class="col-xs-4 text-imgUrlleft choose_img">
-	            <image src="{{item.banner_new ? img_domain + item.banner_new : ''}}"/>
-	          </view>
-	          <view class="col-xs-8 choose-txt text-left">
-	            <text>{{item.special_name}}</text>
-	            <text>相关产品<text class="numberText">{{item.goods_num}}</text>款,<text class="numberText">{{item.goods_price}}</text>元起售</text>
-	          </view>
-	          <image class="good_arrows" src="{{imgUrl}}/jiantou.png" mode="widthFix"/>
-	        </navigator>
-	      </view>
-	    </view>
-	  </view>
-	</view>
-  <!-- 快捷导航 -->
-  <quickIcon></quickIcon>
-</template>
-
-<script>
-import wepy from 'wepy'
-import quickIcon from '@/components/quick-icon'
-
-export default class TodaySpecial extends wepy.page {
-  config = {
-    navigationBarTitleText: '今日精选'
-  }
-  components = {quickIcon}
-  data = {
-    imgUrl: '',
-    img_domain: null,
-    special_id: null,
-    title_name: null,
-    goodsList: [],  // 商品列表
-    recSpecial: [],
-    specialInfo: null
-  }
-  onShow() {
-    this.$invoke('quickIcon', 'closeQucik')
-  }
-  onLoad(q) {
-    console.log(132, q)
-    this.special_id = q.id
-    this.$apply()
-    this.loadMore()
-  }
-  // 查看更多
-  loadMore() {
-    let self = this
-    wepy.request({
-      url: `${self.$parent.globalData.apiUrl}/special.php`,
-      data: {
-        special_id: self.data.special_id
-      }
-    }).then(({data: {errcode, data, msg}}) => {
-      if (errcode === 0) {
-        // 赋值
-        self.$apply(() => {
-          self.imgUrl = self.$parent.globalData.imgUrl
-          self.img_domain = data.img_domain
-          self.title_name = '今日精选'
-          self.goodsList = data.special_info.goods_list
-          self.recSpecial = data.rec_special
-          self.specialInfo = data.special_info
-        })
-        // wepy.setTitle(this.data.title_name)
-      } else {
-        console.error(msg)
-      }
-    }).catch((error) => {
-      console.log('获取今日精选列表失败', error)
-    })
-  }
-}
-</script>

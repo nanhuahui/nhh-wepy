@@ -1,0 +1,20 @@
+<template name="quickIcon">
+  <view class="quickIcon">
+    <image wx:if="{{showQuickIcon!=='show'}}" bindtap="showQuickIconTap" src="{{imgUrl}}/smallIcon/entry.png"/>
+    <view wx:if="{{showQuickIcon!=='hide'}}" class="{{showQuickIcon === 'default' ? 'quickCont' : (showQuickIcon === 'show' ? 'quickCont quickContAni' : 'quickCont quickHideAni')}}">
+      <!-- back -->
+      <image class="quickBack" bindtap="backPage" src="{{imgUrl}}/smallIcon/back.png"/>
+      <!-- classify -->
+      <image bindtap="toSwitchTab" data-url="/pages/shopping/classify" class="quickCat" src="{{imgUrl}}/smallIcon/category.png"/>
+      <!-- home -->
+      <image bindtap="toSwitchTab" data-url="/pages/shopping/index/index" class="quickHome" src="{{imgUrl}}/smallIcon/home.png"/>
+      <!-- close -->
+      <image bindtap="closeQucik" class="quickClose" src="{{imgUrl}}/smallIcon/close.png"/>
+      <!-- collect -->
+      <image bindtap="toNavigate" data-url="/pages/user/myCollect" class="quickSearch" src="{{imgUrl}}/smallIcon/collect.png"/>
+      <!-- share or search ="{{currentPageRoute!=='page/shopping/searchGoods/searchGoods'}}"-->
+      <image wx:if="{{currentPageRoute === 'index' || currentPageRoute === 'goods' || currentPageRoute === 'pages/uploadGoods/goodsInfo'}}" class="quickQrcode" src="{{imgUrl}}/smallIcon/share.png" bindtap="switchPatch"/>
+      <image wx:else class="quickQrcode" src="{{imgUrl}}/smallIcon/search_index.png" bindtap="toNavigate" data-url="/pages/shopping/searchGoods"/>
+    </view>
+  </view>
+</template>

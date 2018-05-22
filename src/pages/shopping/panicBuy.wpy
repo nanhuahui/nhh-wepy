@@ -37,21 +37,21 @@
   </view>
 </scroll-view>
 <!-- 快捷导航 -->
-<quickIcon></quickIcon>
+<import src="../templates/quick-icon" />
+<template is="quickIcon" data="{{imgUrl, showQuickIcon}}"/>
 </template>
 
 <script>
   import wepy from 'wepy'
   import CountDown from '../../components/countdown'
-  import quickIcon from '@/components/quick-icon'
+  import qcMixin from '@/mixins/quickIcon'
   import shareMixin from '@/mixins/share'
 
   export default class panicBuy extends wepy.page {
     config = {
       navigationBarTitleText: ''
     }
-    components = {quickIcon}
-    mixins = [shareMixin]
+    mixins = [shareMixin, qcMixin]
     data = {
       imgUrl: '',
       goods_list: [],
@@ -76,9 +76,6 @@
       })
       this.$apply()
       this.loadMore()
-    }
-    onShow() {
-      this.$invoke('quickIcon', 'closeQucik')
     }
     loadMore() {
       let self = this

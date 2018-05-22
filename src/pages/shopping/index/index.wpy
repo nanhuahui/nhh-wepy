@@ -40,7 +40,11 @@
     <!-- 个性推荐 -->
     <recommendSale :recommendList.sync="recommendList" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" :recommendListShow.sync="recommendListShow" :catId.sync="catId" :pageNum.sync="pageNum" :isCollect.sync="isCollect" componentId="recommendSale"></recommendSale>
     <!-- 快捷导航 -->
-    <quickIcon isSlot="true" :shareImgArr.sync="shareImg" :shareTextArr.sync="shareText" :shareQR.sync="shareQR" currentPageRoute="index"></quickIcon>
+    <import src="../../templates/quick-icon" />
+    <template is="quickIcon" data="{{imgUrl, showQuickIcon, currentPageRoute: 'index'}}"/>
+
+    <!-- 分享小程序码浮层 -->
+    <qrPatchLayer :bottom.sync="bottom" :isSlot.sync="{{true}}" :shareImgArr.sync="shareImg" :shareTextArr.sync="shareText" :shareQR.sync="shareQR"></qrPatchLayer>
 
     <!--新增信息弹窗-->
     <view class="fixedPop" wx:if="{{popShow}}">
@@ -72,8 +76,8 @@ import newDaily from './components/new-daily'
 import flashSale from './components/flash-sale'
 import allDayHot from './components/all-day-hot'
 import auction from './components/auction'
-import quickIcon from '@/components/quick-icon'
 import indexLoading from './components/loading'
+import qcMixin from '@/mixins/quickIcon'
 import { getCategory, getStoreIndex, getRecommend, getDistribution } from '@/utils/api'
 
 export default class Index extends wepy.page {
@@ -95,9 +99,9 @@ export default class Index extends wepy.page {
     allDayHot,
     qrPatchLayer,
     auction,
-    quickIcon,
     indexLoading
   }
+  mixins = [qcMixin]
   data = {
     imgUrl: '',
     goods_list: [],
@@ -132,7 +136,6 @@ export default class Index extends wepy.page {
     ptTotalNum: null, // 参与拼团人数
     groupGoodsNumber: 0, // 拼团商品数量
     currentPageRoute: null,
-    showQuickIcon: 'default',  // 快捷按钮是否打开
     shopLink: null,
     shopLinkParam: null,
     shareImg: null,
@@ -213,7 +216,7 @@ export default class Index extends wepy.page {
     this.$apply()
     // 加载数据
     this.loadData()
-    this.$invoke('quickIcon', 'closeQucik')
+    this.readyForQr()
     // this.loadRecommend()
   }
   // 读取是否定制显示海报

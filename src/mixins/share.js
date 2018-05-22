@@ -1,7 +1,9 @@
 import wepy from 'wepy'
 
 export default class shareMixin extends wepy.mixin {
-  data = {}
+  data = {
+    showQuickIcon: 'hide'
+  }
   methods = {
     onShareAppMessage(options) {
       let d = options.source.data

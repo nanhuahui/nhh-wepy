@@ -92,19 +92,20 @@
   </view>
 </view>
 <!-- 快捷导航 -->
-  <quickIcon></quickIcon>
+<import src="../templates/quick-icon" />
+<template is="quickIcon" data="{{imgUrl, showQuickIcon}}"/>
 </template>
 
 <script>
   import wepy from 'wepy'
-  import quickIcon from '@/components/quick-icon'
+  import qcMixin from '@/mixins/quickIcon'
   import Touches from '../../assets/js/touches.js'
 
   export default class cart extends wepy.page {
     config = {
       navigationBarTitleText: '购物车'
     }
-    components = {quickIcon}
+    mixins = [qcMixin]
     data = {
       imgUrl: '',
       check: true,
@@ -124,7 +125,6 @@
     onShow() {
       // 加载数据
       this.loadCart()
-      this.$invoke('quickIcon', 'closeQucik')
     }
     methods = {}
     touches = new Touches()

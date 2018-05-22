@@ -107,7 +107,11 @@
     </view>
 
     <!-- 快捷导航 -->
-    <quickIcon :shareImgArr.sync="shareImgs" :shareTextArr.sync="shareText" :shareQR.sync="shareQR" currentPageRoute="goods"></quickIcon>
+    <import src="../templates/quick-icon" />
+    <template is="quickIcon" data="{{imgUrl, showQuickIcon, currentPageRoute: 'goods'}}"/>
+
+    <!-- 分享小程序码浮层 -->
+    <qrPatchLayer :bottom.sync="bottom" :shareImgArr.sync="shareImgs" :shareTextArr.sync="shareText" :shareQR.sync="shareQR"></qrPatchLayer>
   </view>
 </template>
 
@@ -117,7 +121,7 @@ import WxParse from '@/utils/wxParse/wxParse'
 import qrPatchLayer from '@/components/qrPatch-layer'
 import {composeImageForGoods, composeTextForGoods} from '@/utils/data'
 import { getGoods, addCollection, addCart, conversionGoodsVideo } from '@/utils/api'
-import quickIcon from '@/components/quick-icon'
+import qcMixin from '@/mixins/quickIcon'
 
 let w = wepy.getSystemInfoSync().windowWidth
 let h = wepy.getSystemInfoSync().windowHeight
@@ -125,7 +129,8 @@ export default class Goods extends wepy.page {
   config = {
     navigationBarTitleText: ''
   }
-  components = { qrPatchLayer, quickIcon }
+  components = { qrPatchLayer }
+  mixins = [qcMixin]
   data = {
     id: null,
     uid: null,
@@ -151,8 +156,7 @@ export default class Goods extends wepy.page {
     shareText: composeTextForGoods,
     shareQR: null,
     shareLink: null,
-    shareLinkParam: null,
-    showQuickIcon: 'default'  // 快捷按钮是否打开
+    shareLinkParam: null
   }
 
   computed = {}
@@ -160,24 +164,20 @@ export default class Goods extends wepy.page {
   methods = {}
 
   onLoad(options) {
-    console.log(options)
+    console.log(12333, options)
     let self = this
     let pages = self.getCurrentPages() // 获取加载的页面
     let currentPage = pages[pages.length - 1] // 获取当前页面的对象
     let url = currentPage.route // 当前页面url
     self.currentPageRoute = url
 
+    self.showQuickIcon = 'show'
+    self.$apply()
     setTimeout(function() {
-      self.showQuickIcon = 'show'
+      self.showQuickIcon = 'hide'
       self.$apply()
-      setTimeout(function() {
-        self.showQuickIcon = 'hide'
-        self.$apply()
-      }, 0)
-    }, 500)
-    this.$invoke('quickIcon', 'closeQucik')
+    }, 800)
 
-    console.log('这是路径', url)
     // 普通分享识别参数
     if (options.gid || options.g) {
       // 兼容修改参数传递修改前的gid和uid
@@ -208,10 +208,6 @@ export default class Goods extends wepy.page {
         self.loadGood()
       }
     }
-  }
-
-  onShow() {
-    this.$invoke('quickIcon', 'closeQucik')
   }
 
   onShareAppMessage(options) {

@@ -65,22 +65,22 @@
     </view>
   </scroll-view>
   <!-- 快捷导航 -->
-  <quickIcon></quickIcon>
+  <import src="../templates/quick-icon" />
+  <template is="quickIcon" data="{{imgUrl, showQuickIcon}}"/>
 </template>
 
 <script>
   import wepy from 'wepy'
-  import areaPicker from '../../components/picker-city'
-  import { checkIdcard } from '../../utils'
-  import quickIcon from '@/components/quick-icon'
+  import areaPicker from '@/components/picker-city'
+  import { checkIdcard } from '@/utils'
+  import qcMixin from '@/mixins/quickIcon'
 
   export default class addressList extends wepy.page {
     config = {
       navigationBarTitleText: '管理收货地址'
     }
-    components = {
-      areaPicker, quickIcon
-    }
+    components = { areaPicker }
+    mixins = [qcMixin]
     data = {
       imgUrl: '',
       pickCity: null, // 临时装载选择的地址
@@ -104,9 +104,6 @@
       this.imgUrl = this.$parent.globalData.imgUrl
       this.$apply()
       this.loadAddressList()
-    }
-    onShow() {
-      this.$invoke('quickIcon', 'closeQucik')
     }
     methods = {}
     /**

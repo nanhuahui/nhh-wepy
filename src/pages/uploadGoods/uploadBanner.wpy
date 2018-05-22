@@ -27,29 +27,27 @@
     <button style="margin-top:93rpx;font-size:28rpx" class="useImg" bindtap="useImg" data-img="{{shop_banner}}" data-url="/pages/shopping/index/index">确定更换</button>
   </view>
   <!-- 快捷导航 -->
-  <quickIcon></quickIcon>
+  <import src="../templates/quick-icon" />
+  <template is="quickIcon" data="{{imgUrl, showQuickIcon}}"/>
 </template>
 
 <script>
   import wepy from 'wepy'
   import md5 from 'md5'
   import { DEFAULT_UID, API_SIGNATURE } from '@/utils/config'
-  import quickIcon from '@/components/quick-icon'
+  import qcMixin from '@/mixins/quickIcon'
 
   export default class uploadBanner extends wepy.page {
     config = {
       navigationBarTitleText: '自营管理'
     }
-    components = {quickIcon}
+    mixins = [qcMixin]
     data = {
       imgUrl: '', // 静态图片资源路径
       img_domain: '',
       shop_banner: null,    // 主图
       localBanner: [],  // 补全图片链接地址 图片预览时使用
       currentItem: 0
-    }
-    onShow() {
-      this.$invoke('quickIcon', 'closeQucik')
     }
     onLoad(option) {
       this.getLocalBanner()
@@ -63,6 +61,7 @@
         if (errcode === 0) {
           // 赋值
           self.$apply(() => {
+            self.imgUrl = self.$parent.globalData.imgUrl
             self.img_domain = data.img_domain
             self.shop_banner = data.shop_banner
             self.localBanner = data.banner_all

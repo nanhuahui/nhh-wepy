@@ -25,18 +25,19 @@
     </loading>
   </view>
   <!-- 快捷导航 -->
-  <quickIcon></quickIcon>
+  <import src="../templates/quick-icon" />
+  <template is="quickIcon" data="{{imgUrl, showQuickIcon}}"/>
 </template>
 
 <script>
   import wepy from 'wepy'
-  import quickIcon from '@/components/quick-icon'
+  import qcMixin from '@/mixins/quickIcon'
 
   export default class myCollect extends wepy.page {
     config = {
       navigationBarTitleText: ''
     }
-    components = {quickIcon}
+    mixins = [qcMixin]
     data = {
       imgUrl: '',
       goods_list: [],
@@ -55,7 +56,6 @@
       this.$apply()
       // 加载数据
       this.loadMore()
-      this.$invoke('quickIcon', 'closeQucik')
     }
     methods = {
       scroll: function (event) {

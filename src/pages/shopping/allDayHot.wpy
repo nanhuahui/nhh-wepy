@@ -26,21 +26,20 @@
       </scroll-view>
     </view>
   </view>
-  <quickIcon></quickIcon>
+  <import src="../templates/quick-icon" />
+  <template is="quickIcon" data="{{imgUrl, showQuickIcon}}"/>
 </view>
 </template>
 
 <script>
   import wepy from 'wepy'
-  import quickIcon from '@/components/quick-icon'
+  import qcMixin from '@/mixins/quickIcon'
 
   export default class allDayHot extends wepy.page {
     config = {
       navigationBarTitleText: '24小时人气王'
     }
-    components = {
-      quickIcon
-    }
+    mixins = [qcMixin]
     data = {
       imgUrl: '',
       hotId: null,
@@ -55,7 +54,7 @@
       this.loadMore()
     }
     onShow() {
-      this.$invoke('quickIcon', 'closeQucik')
+      // this.$invoke('quickIcon', 'closeQucik')
     }
     methods = {}
     // 查看更多
