@@ -12,7 +12,7 @@
     </view>
     <view style="overflow: hidden;">
       <view class="goods-lists" style="overflow: hidden;">
-        <navigator class="sub-goods_list" wx:for="{{goods_list}}" wx:key="{{item.upc_id}}" url="/pages/shopping/goods/goods?gid={{item.upc_id}}">
+        <navigator class="sub-goods_list" wx:for="{{goods_list}}" wx:key="{{item.upc_id}}" url="/pages/shopping/goods?gid={{item.upc_id}}">
           <view class="goods-img">
             <image src="{{item.img_url ? item.img_url : (imgUrl + '/no_picture.jpg')}}" mode="widthFix"></image>
             <span class="vedio_icon" wx:if="{{item.video_url}}">
@@ -44,12 +44,14 @@
   import wepy from 'wepy'
   import CountDown from '../../components/countdown'
   import quickIcon from '@/components/quick-icon'
+  import shareMixin from '@/mixins/share'
 
   export default class panicBuy extends wepy.page {
     config = {
       navigationBarTitleText: ''
     }
     components = {quickIcon}
+    mixins = [shareMixin]
     data = {
       imgUrl: '',
       goods_list: [],
@@ -61,7 +63,9 @@
       start_time: '', // 活动开始时间
       end_time: '', // 活动结束时间
       actTime: '', // 页面显示的活动时间
-      desc: ''
+      desc: '',
+      shareTitle: '',
+      sharePath: ''
     }
     methods = {}
     onLoad(q) {
@@ -96,6 +100,8 @@
             self.titleName = data.title_name
             self.start_time = data.ac_res.start_time
             self.end_time = data.ac_res.end_time
+            self.shareTitle = data.title_name
+            self.sharePath = 'pages/shopping/panicBuy' + (wepy.getStorageSync('sellerId') ? `?s=${wepy.getStorageSync('sellerId')}` : '')
           })
           this.$parent.setTitle(this.titleName)
           // 倒计时start
