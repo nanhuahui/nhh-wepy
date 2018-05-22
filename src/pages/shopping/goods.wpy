@@ -80,7 +80,7 @@
     </view>
     <view class="fixed-contact_pic" wx:if="{{contactImg}}">
       <view class="fixed-wechat_png">
-        <image src="{{imgUrl}}/weChat.jpg"></image>
+        <image src="{{imgUrl}}/weChat.jpg?i={{random}}" mode="widthFix"></image>
         <view class="dial_phone" @tap="calling" data-tel="4006226777"></view>
         <text class="close" @tap="closeContact"></text>
       </view>
@@ -133,6 +133,7 @@ export default class Goods extends wepy.page {
     uid: null,
     from: null,
     imgUrl: null,
+    random: Math.random(),
     currentPageRoute: null,
     goodsInfo: null, // 商品信息
     goodUpc: null, // 商品upc信息

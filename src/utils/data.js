@@ -11,7 +11,7 @@ module.exports = {
    */
   composeImageForIndex: [
     {
-      src: `${STATIC_IMG_PATH}/share/shopIndexBg.jpg`,
+      src: `${STATIC_IMG_PATH}/share/shopIndexBg.jpg?i=${Math.random()}`,
       w: w,
       h: h,
       x: 0,
