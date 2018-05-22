@@ -3,9 +3,9 @@
 
 <template>
   <!-- 分享小程序码 -->
-  <view class="shareQ" style="bottom: {{bottom}}rpx;z-index: 1700;" wx:if="{{!qrShareShow && sellerId}}" bindtap="switchPatch">
+  <!-- <view class="shareQ" style="bottom: {{bottom}}rpx;z-index: 1700;" wx:if="{{!qrShareShow && sellerId}}" bindtap="switchPatch">
     <image style="width:144rpx;height: 144rpx;" src="{{imgUrl}}/fenxiang.png"></image>
-  </view>
+  </view> -->
 
   <!-- 显示部分 -->
   <view class="shopShare" wx:if="{{qrShareShow}}">
