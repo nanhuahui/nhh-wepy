@@ -29,20 +29,20 @@
     </view>
   </view>
   <!-- 快捷导航 -->
-  <quickIcon></quickIcon>
+  <quickIcon/>
 </template>
 
 <script>
   import wepy from 'wepy'
   import quickIcon from '@/components/quick-icon'
+  import shareMixin from '@/mixins/share'
 
   export default class upperGoodsList extends wepy.page {
     config = {
       navigationBarTitleText: '精选特卖'
     }
-    components = {
-      quickIcon
-    }
+    components = {quickIcon}
+    mixins = [shareMixin]
     onShow() {
       this.$invoke('quickIcon', 'closeQucik')
     }
@@ -55,7 +55,9 @@
       pageNum: 0,
       scrollTop: 0,
       scrollHeight: 0,
-      hidden: true
+      hidden: true,
+      shareTitle: '精选特卖',
+      sharePath: ''
     }
     onLoad(q) {
       this.imgUrl = this.$parent.globalData.imgUrl
@@ -63,13 +65,15 @@
         // 默认美妆,用于审核
         q.cid = 43
       }
+      this.$apply(() => {
+        this.sharePath = `pages/uploadGoods/upperGoodsList?cid=${q.cid}&s=${wepy.getStorageSync('sellerId')}`
+      })
       this.getInfoSys()
       this.changeCid(q.cid)
     }
     getInfoSys(e) {
       let self = this
-      wepy.getSystemInfo()
-      .then((res) => {
+      wepy.getSystemInfo().then((res) => {
         self.scrollHeight = res.windowHeight
         self.$apply()
       })

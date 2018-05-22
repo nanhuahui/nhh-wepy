@@ -1,7 +1,7 @@
 <!-- 限时特卖 -->
 <template>
 <view class="limitSale" wx:if="{{timeList && timeList.length > 0}}">
-  <navigator class="limit_title" url="../flashSale/flashSale?id={{id}}">
+  <navigator class="limit_title" url="../flashSale?id={{id}}">
     <image src="{{imgUrl}}/saleBg_time.gif" mode="widthFix"></image>
     <!-- 倒计时 -->
     <view class="time-count_down" style="position: absolute; top: 150rpx; left: 0; right: 0; margin: 0 auto; text-align: center;">
@@ -15,7 +15,7 @@
   <!-- 滑动菜单 -->
   <scroll-view scroll-x="true" class="scrollView" scroll-into-view="{{toView}}" scroll-with-animation="true">
     <view wx:for="{{timeList}}" wx:for-item="t" wx:key="{{index}}" id="item-{{index + 1}}" class="list-item {{t.act_id === (id + '') ? 'item-active' : ''}}">
-      <navigator url="../flashSale/flashSale?id={{t.act_id}}" class="timePoint">
+      <navigator url="../flashSale?id={{t.act_id}}" class="timePoint">
         <view class="h3 c3">
           {{t.show_time}}
         </view>
@@ -26,7 +26,7 @@
     </view>
   </scroll-view>
   <!-- 滑动菜单end -->
-  <navigator url="../flashSale/flashSale?id={{id}}" style="margin-top: -18rpx;">
+  <navigator url="../flashSale?id={{id}}" style="margin-top: -18rpx;">
     <image src="{{current.banner ? imgDomain + current.banner : ''}}" style="width:100%;" mode="widthFix"></image>
   </navigator>
   <!-- 引用自定义组件 -->
@@ -37,7 +37,7 @@
           <!-- 商品 -->
           <goodsBlock width="116" height="186" nameHeight="32" reverse="true" :name="item.goods_name"
             :shopPrice="item.shop_price" :marketPrice="item.market_price" :imgDomain="imgDomain" :img="item.master_img"
-            url="../flashSale/flashSale?id={{limitEle.limit_id}}" componentId="fs_{{index}}">
+            url="../flashSale?id={{limitEle.limit_id}}" componentId="fs_{{index}}">
           </goodsBlock>
         </view>
       </repeat>

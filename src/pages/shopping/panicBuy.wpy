@@ -70,7 +70,10 @@
     methods = {}
     onLoad(q) {
       this.imgUrl = this.$parent.globalData.imgUrl
-      this.aid = q.id
+      this.$apply(() => {
+        this.aid = q.id
+        this.sharePath = `pages/shopping/panicBuy?id=${q.id}&s=${wepy.getStorageSync('sellerId')}`
+      })
       this.$apply()
       this.loadMore()
     }
@@ -101,7 +104,6 @@
             self.start_time = data.ac_res.start_time
             self.end_time = data.ac_res.end_time
             self.shareTitle = data.title_name
-            self.sharePath = 'pages/shopping/panicBuy' + (wepy.getStorageSync('sellerId') ? `?s=${wepy.getStorageSync('sellerId')}` : '')
           })
           this.$parent.setTitle(this.titleName)
           // 倒计时start

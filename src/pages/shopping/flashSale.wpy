@@ -50,13 +50,14 @@
 <script>
   import wepy from 'wepy'
   import quickIcon from '@/components/quick-icon'
+  import shareMixin from '@/mixins/share'
+
   export default class flashSale extends wepy.page {
     config = {
       navigationBarTitleText: ''
     }
-    components = {
-      quickIcon
-    }
+    components = { quickIcon }
+    mixins = [shareMixin]
     data = {
       goodsList: [],  // 商品列表
       limitMenu: [],  // 整点特卖菜单列表
@@ -67,11 +68,14 @@
       pageNum: 0,
       limitId: '',     // 当前特卖id
       arrowsIcon: '<<',
-      toView: null // 滑动菜单滑动到指定一子元素
+      toView: null, // 滑动菜单滑动到指定一子元素
+      shareTitle: '',
+      sharePath: ''
     }
     onLoad(q) {
       this.$apply(() => {
         this.limitId = q.id
+        this.sharePath = `pages/shopping/flashSale?id=${q.id}&s=${wepy.getStorageSync('sellerId')}`
       })
       this.reloadDataFun()
     }
@@ -142,6 +146,7 @@
             self.titleName = data.title_name
             self.acRes = data.ac_res
             self.hidden = true
+            self.shareTitle = data.title_name
           })
           wepy.setNavigationBarTitle({ title: self.titleName })
           // 滑动菜单：当前时间滚动到中间
@@ -190,7 +195,7 @@
 .fixedTop{position: fixed; top: 0; max-width: 640px; min-width: 320px; width: 100%; margin: 0 auto;z-index: 1000}
 
 
-.flashSale .swiper-container{height: 116rpx; padding-top: 0;} 
+.flashSale .swiper-container{height: 116rpx; padding-top: 0;}
 .flashSale .slide_active text, .flashSale .slide_active text{ color: #c8975c;}
 .showGoods{margin-top: -18rpx;}
 .showGoods > image{width: 100%}
