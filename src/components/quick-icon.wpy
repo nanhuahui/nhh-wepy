@@ -73,7 +73,6 @@ export default class quickIcon extends wepy.component {
   }
   onLoad() {
     this.$apply()
-    console.log(369, qrPatchLayer)
   }
 }
 </script>
