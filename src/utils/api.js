@@ -1,25 +1,16 @@
 import wepy from 'wepy'
 import {API_URL} from './config'
 
-/* 统一封装 */
-function request(config) {
-  if (!wepy.getStorageSync('sessId') && !wepy.getStorageSync('isLogin')) {
-    return doWxLogin()
-  } else {
-    return wepy.request(config)
-  }
-}
-
 // 获取分类菜单
 export function getCategory() {
-  return request({
+  return wepy.request({
     url: `${API_URL}/get_category.php`
   })
 }
 
 // 获取首页数据
 export function getStoreIndex(data) {
-  return request({
+  return wepy.request({
     url: `${API_URL}/store_index.php`,
     data
   })
@@ -27,7 +18,7 @@ export function getStoreIndex(data) {
 
 // 获取个性推荐
 export function getRecommend(data) {
-  return request({
+  return wepy.request({
     method: 'POST',
     header: { 'Content-Type': 'application/x-www-form-urlencoded' },
     url: `${API_URL}/store_index.php?step=get_category_goods`,
@@ -37,14 +28,14 @@ export function getRecommend(data) {
 
 // 获取消费商专区
 export function getDistribution(id) {
-  return request({
+  return wepy.request({
     url: `${API_URL}/distribution.php?act=banner`
   })
 }
 
 // 获取商品详情
 export function getGoods(id) {
-  return request({
+  return wepy.request({
     url: `${API_URL}/goods.php`,
     data: {
       id: id
@@ -54,7 +45,7 @@ export function getGoods(id) {
 
 // 商品添加至收藏
 export function addCollection(id) {
-  return request({
+  return wepy.request({
     url: `${API_URL}/user.php`,
     data: {
       id: id,
@@ -65,7 +56,7 @@ export function addCollection(id) {
 
 // 商品加入购物车
 export function addCart(data) {
-  return request({
+  return wepy.request({
     method: 'POST',
     header: { 'Content-Type': 'application/x-www-form-urlencoded' },
     url: `${API_URL}/flow.php?step=add_to_cart`,
@@ -76,7 +67,7 @@ export function addCart(data) {
 // 转换商品的视频地址
 export function conversionGoodsVideo(vid) {
   let videoUrl = 'https://vv.video.qq.com/getinfo'
-  return request({url: `${videoUrl}?vids=${vid}&platform=101001&charge=0&otype=json`})
+  return wepy.request({url: `${videoUrl}?vids=${vid}&platform=101001&charge=0&otype=json`})
 }
 
 /* 设置店铺名称和店主头像至缓存 */
@@ -114,7 +105,7 @@ export async function setCartNum() {
   // 优先抹掉数量,通过响应判断是否需要请求接口去获取真正的购物车数量
   await wepy.removeTabBarBadge({index: 1}).then(({errMsg}) => {
     if (errMsg === 'removeTabBarBadge:ok') {
-      request({url: `${API_URL}/flow.php`}).then(({data: { errcode, data, msg }}) => {
+      wepy.request({url: `${API_URL}/flow.php`}).then(({data: { errcode, data, msg }}) => {
         if (errcode === 0) {
           // 正常返回
           let cartNum = data.total.real_goods_count
@@ -137,14 +128,12 @@ export async function setCartNum() {
 }
 
 /**
- * 微信登录流程
+ * 根据用户信息进行微信登录
  */
-async function doWxLogin() {
-  console.log('登录请求')
-  wepy.setStorageSync('isLogin', true)
+export async function loginByUser(wxUser) {
+  console.log('登录:', wxUser)
   let loginInfo = await wepy.login()
   console.log('授权code:', loginInfo.code)
-  let wxUser = await wepy.getUserInfo()
   console.log('授权用户:', wxUser)
   // 存储微信的用户信息
   wepy.setStorageSync('user_wx', wxUser.userInfo)
@@ -169,14 +158,14 @@ async function doWxLogin() {
           // 缓存中没有卖家ID且用户已开店时，存储卖家ID
           wepy.setStorageSync('sellerId', data.user_info.user_id)
         }
-
-        /* eslint-disable */
-        var pages = getCurrentPages() // 获取加载的页面
-        /* eslint-enable */
-        var currentPage = pages[pages.length - 1] // 获取当前页面的对象
-        if (currentPage) {
-          var url = currentPage.route // 当前页面url
-          var options = currentPage.options // 如果要获取url中所带的参数可以查看options
+        let op = wepy.getStorageSync('router-options')
+        if (op) {
+          var url = op.path
+          var options = op.query // 如果要获取url中所带的参数可以查看options
+          if (options.s) {
+            // 携带参数有s时去替换缓存中的
+            wepy.setStorageSync('sellerId', options.s)
+          }
           // 组装地址和参数列表
           var newPath = `/${url}`
           if (Object.keys(options).length > 0) {
@@ -196,7 +185,7 @@ async function doWxLogin() {
         setSellerInfo()
         setCartNum()
         // 清除登录标记
-        wepy.removeStorageSync('isLogin')
+        wepy.removeStorageSync('router-options')
       } else {
         console.error('登录失败', msg)
       }

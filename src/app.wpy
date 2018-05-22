@@ -31,6 +31,7 @@ export default class extends wepy.app {
   config = {
     pages: [
       'pages/shopping/index/index',
+      'pages/oauth',
       'pages/shopping/goods',
       'pages/shopping/searchGoods',
       'pages/shopping/coustomGoods',
@@ -207,9 +208,17 @@ export default class extends wepy.app {
     })
   }
 
-  onLaunch() {}
+  onLaunch() {
+  }
 
   onShow(options) {
+    if (!wepy.getStorageSync('sessId')) {
+      /*eslint-disable */
+      wx.setStorageSync('router-options', options)
+      wx.reLaunch({url: '../pages/oauth'})
+      /*eslint-enable */
+      return
+    }
     console.log(716, options)
     // 1.从参数判断
     if (options.query.s) {

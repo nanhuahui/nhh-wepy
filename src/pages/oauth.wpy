@@ -1,0 +1,48 @@
+<template>
+  <view>
+    <!-- 需要使用 button 来授权登录 -->
+    <button wx:if="{{canIUse}}" open-type="getUserInfo" bindgetuserinfo="bindGetUserInfo">授权登录</button>
+    <view wx:else>请升级微信版本</view>
+  </view>
+</template>
+
+<script>
+  /* eslint-disable */
+  import wepy from 'wepy'
+  import { loginByUser } from '@/utils/api'
+
+  export default class oauth extends wepy.page {
+    config = {
+      navigationBarTitleText: '授权'
+    }
+    data = {
+      canIUse: wx.canIUse('button.open-type.getUserInfo'),
+    }
+    onLoad() {
+      let self = this
+      // 查看是否授权
+      wx.getSetting({
+        success: function(res){
+          if (res.authSetting['scope.userInfo']) {
+            wx.getUserInfo({
+              success: function(res) {
+                loginByUser(res)
+              }
+            })
+          }
+        }
+      })
+    }
+    bindGetUserInfo(e) {
+      if (e.detail.errMsg === 'getUserInfo:ok') {
+        loginByUser(e.detail)
+      } else {
+        console.error('获取用户信息失败:', e.detail.errMsg)
+      }
+    }
+  }
+  /* eslint-enable */
+</script>
+
+<style lang="less">
+</style>
