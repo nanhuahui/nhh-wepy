@@ -36,22 +36,19 @@
       </loading>
     </view>
   </view>
-  <quickIcon></quickIcon>
 </view>
 </template>
 
 <script>
   import wepy from 'wepy'
   import scrollMenu from '../../components/scroll-menu'
-  import quickIcon from '@/components/quick-icon'
 
   export default class category extends wepy.page {
     config = {
       navigationBarTitleText: '个体洗护'
     }
     components = {
-      scrollMenu: scrollMenu,
-      quickIcon
+      scrollMenu: scrollMenu
     }
     data = {
       imgUrl: '',
@@ -75,9 +72,6 @@
         q.cid = 100
       }
       this.changeCid(q.cid)
-    }
-    onShow() {
-      this.$invoke('quickIcon', 'closeQucik')
     }
     methods = {}
     events = {

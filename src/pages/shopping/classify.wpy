@@ -45,6 +45,7 @@
       navigationBarTitleText: '分类列表'
     }
     data = {
+      imgUrl: '',
       classifyArr: [],
       img_domain: '',
       currentCatId: '',
@@ -102,6 +103,7 @@
             temArr.push(m)
           }
           this.$apply(() => {
+            this.imgUrl = this.$parent.globalData.imgUrl
             this.classifyArr = temArr
             this.img_domain = data.img_domain
             this.currentCatId = data.list[0].cat_id
