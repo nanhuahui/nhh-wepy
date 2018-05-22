@@ -222,10 +222,7 @@ export default class SearchGoods extends wepy.page {
     if (wepy.getStorageSync('searchHis') === '') { // 如果没有搜索记录 则时间赋值
       self.searchHisList = []
       self.searchHisList.push({text: self.inputVal, time: timestamp})
-      wepy.setStorageSync({
-        key: 'searchHis',
-        data: JSON.stringify(self.searchHisList)
-      })
+      wepy.setStorageSync('searchHis', JSON.stringify(self.searchHisList))
       self.$apply()
     } else {
       self.searchHisList = JSON.parse(wepy.getStorageSync('searchHis'))
@@ -241,10 +238,7 @@ export default class SearchGoods extends wepy.page {
         self.searchHisList.push({text: self.inputVal, time: timestamp})
       }
       self.searchHisList = self.listSortBy(self.searchHisList, 'time', 'desc')
-      wepy.setStorageSync({
-        key: 'searchHis',
-        data: JSON.stringify(self.searchHisList)
-      })
+      wepy.setStorageSync('searchHis', JSON.stringify(self.searchHisList))
       self.$apply()
     }
   }

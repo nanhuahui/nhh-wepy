@@ -481,10 +481,7 @@ export default class Index extends wepy.page {
     self.$apply(() => {
       self.popShow = false
     })
-    wepy.setStorageSync({
-      key: 'closeMsg',
-      data: true
-    })
+    wepy.setStorageSync('closeMsg', true)
     if (self.myAuctionNum && self.myAuctionNum !== 0) {
       wepy.showModal({
         title: '提示',

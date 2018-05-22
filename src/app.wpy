@@ -253,10 +253,7 @@ export default class extends wepy.app {
     }
     // 记录是否关闭汇商通知的新消息
     if (!wepy.getStorageSync('closeMsg')) {
-      wepy.setStorage({
-        key: 'closeMsg',
-        data: false
-      })
+      wepy.setStorageSync('closeMsg', false)
     }
     // 小程序显示时:1、获取店铺信息;2、设置底部菜单购物车数量
     let api = require('@/utils/api')
