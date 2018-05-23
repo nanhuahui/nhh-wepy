@@ -1,8 +1,8 @@
 <template>
-  <view>
+  <view class="oauthBg">
     <!-- 需要使用 button 来授权登录 -->
-    <button wx:if="{{canIUse}}" open-type="getUserInfo" bindgetuserinfo="bindGetUserInfo">授权登录</button>
-    <view wx:else>请升级微信版本</view>
+    <button wx:if="{{canIUse}}" class="buttonStyle" open-type="getUserInfo" bindgetuserinfo="bindGetUserInfo">授权登录</button>
+    <view wx:else class="buttonStyle">请升级微信版本</view>
   </view>
 </template>
 
@@ -45,4 +45,25 @@
 </script>
 
 <style lang="less">
+ .oauthBg {
+  background: url(http://wxassets.xf66.com/oauth.png) no-repeat center top;
+  background-size: 100% 100%;
+  width: 100%;
+  height: 100%;
+  position: relative;
+ }
+ .buttonStyle {
+  position: absolute;
+  left: 50%;
+  margin-left: -300rpx;
+  bottom: 116rpx;
+  width: 600rpx;
+  height: 90rpx;
+  background-color: #C5BB98;
+  color: #514829;
+  font-size:18px;
+  text-align:center;
+  line-height:2.55555556;
+  border-radius:5px;
+ }
 </style>
