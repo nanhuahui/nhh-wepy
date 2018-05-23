@@ -187,8 +187,8 @@
 
 <script>
   import wepy from 'wepy'
-  import WxParse from '../../utils/wxParse/wxParse'
-  import CountDown from '../../components/countdown'
+  import WxParse from '@/utils/wxParse/wxParse'
+  import CountDown from '@/components/countdown'
   import { DEFAULT_NAME } from '@/utils/config'
 
   export default class myCollect extends wepy.page {
@@ -1094,7 +1094,7 @@
   z-index: 106;
   max-width:640px;
   width:100%;
-  height:100%; 
+  height:100%;
   top: 0;
   background-color: rgba(0,0,0,0.5);
 }
@@ -1114,10 +1114,10 @@
   margin-right: -135px;
 }
 .dial_phone{
-  position: absolute; 
-  width: 100%; 
-  height: 50px; 
-  bottom: 20px; 
+  position: absolute;
+  width: 100%;
+  height: 50px;
+  bottom: 20px;
   display: block;
 }
 .top_back_container .title-con_link{

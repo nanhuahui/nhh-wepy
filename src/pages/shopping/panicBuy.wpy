@@ -43,7 +43,7 @@
 
 <script>
   import wepy from 'wepy'
-  import CountDown from '../../components/countdown'
+  import CountDown from '@/components/countdown'
   import qcMixin from '@/mixins/quickIcon'
   import shareMixin from '@/mixins/share'
 

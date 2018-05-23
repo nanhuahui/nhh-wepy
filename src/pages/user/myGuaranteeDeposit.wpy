@@ -56,7 +56,7 @@
 
 <script>
   import wepy from 'wepy'
-  import CountDown from '../../components/countdown'
+  import CountDown from '@/components/countdown'
 
   export default class myGuaranteeDeposit extends wepy.page {
     config = {

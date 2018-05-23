@@ -46,7 +46,7 @@
 
 <script>
   import wepy from 'wepy'
-  import CountDown from '../../components/countdown'
+  import CountDown from '@/components/countdown'
 
   export default class myCompetitiveAuction extends wepy.page {
     config = {
@@ -170,7 +170,7 @@
 </script>
 
 <style lang="less">
-  .scrollView { 
+  .scrollView {
     position: absolute;
     top:2px;
     bottom: 2px;

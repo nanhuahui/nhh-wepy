@@ -44,7 +44,7 @@
 
 <script>
   import wepy from 'wepy'
-  import CountDown from '../../components/countdown'
+  import CountDown from '@/components/countdown'
 
   export default class myGetedAuction extends wepy.page {
     config = {

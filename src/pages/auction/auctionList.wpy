@@ -85,7 +85,7 @@
 
 <script>
   import wepy from 'wepy'
-  import CountDown from '../../components/countdown'
+  import CountDown from '@/components/countdown'
 
   export default class auctionList extends wepy.page {
     config = {

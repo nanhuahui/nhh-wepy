@@ -208,8 +208,8 @@
 
 <script>
   import wepy from 'wepy'
-  import areaPicker from '../../components/picker-city'
-  import { checkIdcard } from '../../utils'
+  import areaPicker from '@/components/picker-city'
+  import { checkIdcard } from '@/utils'
 
   export default class orderSubmit extends wepy.page {
     config = {

@@ -67,7 +67,7 @@
 
 <script>
   import wepy from 'wepy'
-  import scrollMenu from '../../components/scroll-menu'
+  import scrollMenu from '@/components/scroll-menu'
 
   export default class goodsShare extends wepy.page {
     config = {

@@ -45,7 +45,7 @@
 
 <script>
   import wepy from 'wepy'
-  import weSwiper from '../../../../components/swiper'
+  import weSwiper from '@/components/swiper'
 
   export default class auction extends wepy.component {
     props = {
