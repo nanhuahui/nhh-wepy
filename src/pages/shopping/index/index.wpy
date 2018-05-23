@@ -78,7 +78,7 @@ import allDayHot from './components/all-day-hot'
 import auction from './components/auction'
 import indexLoading from './components/loading'
 import qcMixin from '@/mixins/quickIcon'
-import { getCategory, getStoreIndex, getRecommend, getDistribution } from '@/utils/api'
+import { getCategory, getStoreIndex, getRecommend, getDistribution, addCart, addCollection } from '@/utils/api'
 
 export default class Index extends wepy.page {
   config = {
@@ -194,6 +194,12 @@ export default class Index extends wepy.page {
     },
     'toBanner': (...args) => {
       this.toBanner(args[0])
+    },
+    'addToCart': (...args) => {
+      this.addToCart(args[0], args[1], args[2])
+    },
+    'addToCollection': (...args) => {
+      this.addToCollection(args[0], args[1])
     }
   }
 
@@ -217,7 +223,7 @@ export default class Index extends wepy.page {
     // 加载数据
     this.loadData()
     this.readyForQr()
-    // this.loadRecommend()
+    this.loadRecommend()
   }
   // 读取是否定制显示海报
   readyForQr() {
@@ -448,6 +454,65 @@ export default class Index extends wepy.page {
       })
       self.loadRecommend()
     }
+  }
+  /**
+   * 添加收藏
+   */
+  addToCollection(gid) {
+    let self = this
+    // 请求数据
+    addCollection(gid).then(({data: {errcode, data, msg}}) => {
+      if (errcode === 0) {
+        self.isCollect = true
+        self.$apply()
+      } else {
+        wepy.showToast({
+          title: msg,
+          icon: 'none',
+          duration: 2000
+        })
+      }
+    }).catch((error) => {
+      console.log('添加收藏失败！', error)
+    })
+  }
+  /**
+   * 添加购物车
+   */
+  addToCart(goodsId, upcId, number) {
+    let self = this
+    let params = {
+      goods: JSON.stringify({
+        'goods_id': goodsId,
+        'upc_id': upcId,
+        'number': number
+      })
+    }
+    // 发送请求
+    addCart(params).then(({data: {errcode, data, msg}}) => {
+      if (errcode === 0) {
+        console.log(data)
+        if (data.buy_type === 0) {
+          wepy.showToast({
+            title: '添加成功',
+            icon: 'success',
+            duration: 2000
+          })
+          // 设置详情页的购物车数量
+          self.cartCount = data.content
+          self.$apply()
+        } else {
+          // 跳转至订单结算
+          self.$navigate(`../../order/orderSubmit/orderSubmit?one_step_buy=1`)
+        }
+      } else {
+        wepy.showToast({
+          title: msg,
+          icon: 'none',
+          duration: 2000
+        })
+      }
+    })
   }
   // 今日特卖跳转
   navigatAct(isAct, item) {

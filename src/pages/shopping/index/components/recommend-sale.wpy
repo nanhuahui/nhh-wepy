@@ -143,45 +143,34 @@
       </view>
       <view class="person_recommend"
         wx:for="{{recommendListShow}}"
+        wx:for-index="index"
         wx:for-item="recommend"
         wx:key="id">
         <!-- banner图 -->
         <view class="banner_swipe"
           wx:if="{{recommend.special_list && recommend.special_list.length>0}}">
-          <navigator url="../todaySpecial/todaySpecial?id={{recommend.special_list[0].special_id}}">
+          <navigator url="../todaySpecial?id={{recommend.special_list[0].special_id}}">
             <image style="width:100%;" src="{{recommend.special_list[0].banner ? (imgDomain + recommend.special_list[0].banner) : ''}}"  mode="widthFix"></image>
             <!-- 轮播图 -->
             <!-- 引用自定义组件 -->
-            <!-- <scroll-area list="{{recommend.special_list}}" cell-width="178">
-              <block wx:for="{{recommend.special_list}}" wx:key="id"> -->
-                <!-- 商品 -->
-                <!-- <view slot="goodsInfo_{{index}}">
-                  <goods-block width="176" height="244" name="{{item.goods_name}}" desc="{{item.goods_brief}}"
-                    shop-price="{{item.shop_price}}" market-price="{{item.market_price}}"
-                    ellipsis="{{true}}" reverse="{{true}}" img="{{item.master_img}}"
-                    url="../todaySpecial/todaySpecial?id={{recommend.special_list[0].special_id}}"/>
-                </view>
-              </block> -->
-              <!-- 查看更多 -->
-              <!-- <view slot="seeMore">
-                <navigator url="../todaySpecial/todaySpecial?id={{recommend.special_list[0].special_id}}"
-                  class="cell" style="position:relative;border-right: 0;">
-                  <view style="width: 166px;height: 224px;"></view>
-                  <view class="see_more">
-                    <image src="{{imgUrl}}/more.jpg" mode="widthFix"></image>
-                    <text>查看更多</text>
-                    <text class="eng_more">See More</text>
+            <scrollArea goodsCount="recommend.special_list ? recommend.special_list.length : 0" baseWidth="160" baseHeight="224">
+              <view slot="goodsList">
+                <repeat for="{{recommend.special_list}}" key="index" index="index" item="item">
+                  <view class="cell">
+                    <!-- 商品 -->
+                    <goodsBlock width="160" height="224" ellipsis="true" reverse="true" :name="item.goods_name" :desc="item.goods_brief" :shopPrice="item.shop_price" :marketPrice="item.market_price" :img="item.master_img" url="../todaySpecial?id={{recommend.special_list[0].special_id}}" componentId="adh_{{index}}">
+                    </goodsBlock>
                   </view>
-                </navigator>
+                </repeat>
               </view>
-            </scroll-area> -->
+            </scrollArea>
           </navigator>
         </view>
         <!-- 单品 -->
         <view class="single_box"
           wx:if="{{recommend.goods_big && recommend.goods_big.length>0}}">
           <view class="row single_good" wx:for="{{recommend.goods_big}}" wx:for-item="goodsBig" wx:key="id">
-            <navigator url="../goods/goods?gid={{goodsBig.upc_id}}">
+            <navigator url="../goods?gid={{goodsBig.upc_id}}">
               <view class="col-xs-12 text-center bigImg">
                 <image style="width:100%" src="{{goodsBig.master_img}}" mode="widthFix"></image>
               </view>
@@ -189,13 +178,14 @@
             <view class="collect_con">
               <view class="collect_tit">
                 <a data-collect="{{goodsBig.is_collect}}" class="{{isCollect ? 'shoucang_img' : 'weishou'}}" catchtap="addToCollection" data-id="{{goodsBig.goods_id}}">
+                  <text style="font-size:48rpx;color:red">{{goodsBig.is_collect}}</text>
                   <text style="font-size:28rpx;">收藏</text>
                 </a>
                 <view class="buyNum">
                   <text>{{goodsBig.buy}}人</text><text>已购买</text>
                 </view>
               </view>
-              <navigator url="../goods/goods?gid={{goodsBig.upc_id}}">
+              <navigator url="../goods?gid={{goodsBig.upc_id}}">
                 <view class="single_topic">{{goodsBig.goods_name}}</view>
                 <view class="single_des">{{goodsBig.goods_brief}}</view>
                 <view class="buy_single">
@@ -224,7 +214,7 @@
           </view>
           <view class="row details" style="margin:0;">
             <view class="col-xs-4" wx:for="{{recommend.goods_list}}" wx:for-item="value" wx:key="id">
-              <navigator url="../goods/goods?gid={{value.upc_id}}">
+              <navigator url="../goods?gid={{value.upc_id}}">
                 <image style="width:100%" src="{{value.master_img}}" mode="widthFix"></image>
               </navigator>
               <view class="addCart_tuijian">
@@ -243,8 +233,11 @@
 
 <script>
 import wepy from 'wepy'
+import scrollArea from '@/components/scroll-area'
+import goodsBlock from '@/components/goods-block'
 
 export default class recommendSale extends wepy.component {
+  components = { scrollArea, goodsBlock }
   props = {
     recommendList: [], // 个性推荐总转载
     recommendListShow: [], // 要展示的个性推荐数据
@@ -255,9 +248,21 @@ export default class recommendSale extends wepy.component {
     imgUrl: Object,
     isCollect: Boolean
   }
-  data = {}
+  data = {
+  }
   methods = {
     // 点击事件
+    addToCart(e) {
+      const goodsId = e.currentTarget.dataset.gid
+      const upcId = e.currentTarget.dataset.uid
+      const number = 1
+      this.$emit('addToCart', goodsId, upcId, number)
+    },
+    addToCollection(e) {
+      const gid = e.currentTarget.dataset.id
+      const collect = e.currentTarget.dataset.collect
+      this.$emit('addToCollection', gid, collect)
+    }
   }
   onLoad() {}
 }
