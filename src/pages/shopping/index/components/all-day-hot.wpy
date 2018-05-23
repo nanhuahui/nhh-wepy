@@ -75,21 +75,6 @@ export default class allDayHot extends wepy.component {
   margin-bottom: 10rpx !important;
 }
 
-.allDayHot .shoper_header view {
-  padding-left: 48rpx;
-  background: url(http://wxassets.xf66.com/crown.png) no-repeat center left;
-  background-size: 32rpx;
-  font-size: 27rpx;
-}
-
-.new_daily .shoper_header view:before, .allDayHot .shoper_header view:before {
-  position: relative;
-}
-
-.new_daily .shoper_header view:before, .allDayHot .shoper_header {
-  border-bottom: 1px solid #eee;
-}
-
 .ranking {
   position: absolute;
   bottom: 138rpx;
