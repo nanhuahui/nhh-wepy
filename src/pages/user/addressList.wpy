@@ -316,6 +316,7 @@
           self.data.editAddress['province_name'] = item.province_name
           self.data.editAddress['city_name'] = item.city_name
           self.data.editAddress['district_name'] = item.district_name
+          self.data.editAddress['region'] = '中国' + '-' + item.province_name + '-' + item.city_name + '-' + item.district_name
           self.$apply(() => {
             self.editAddress = self.data.editAddress
           })
