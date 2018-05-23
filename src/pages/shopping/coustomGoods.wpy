@@ -14,7 +14,7 @@
         <span class="{{sortType === 'blackLine' ? 'sortCls' : ''}}" bindtap="sortByKey" data-key="blackLine">销量最高</span>
       </view>
       <view class="list-item" wx:for="{{goods_list}}" wx:for-item="g" wx:key="g.upc_id">
-        <navigator url="./goods?gid={{g.upc_id}}&f=d">
+        <navigator url="./goods/goods?gid={{g.upc_id}}&f=d">
           <view class="goods-img">
             <image src="{{g.img_url?g.img_url:imgUrl+'/no_picture.jpg'}}" mode="widthFix"></image>
             <!-- <text class="vedio_icon" wx:if="{{g.video_url}}">

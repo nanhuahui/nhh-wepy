@@ -20,7 +20,7 @@
     <image src="{{acRes.banner ? imgDomain + acRes.banner : ''}}" mode="widthFix"></image>
     <view class="goodsListUl goods-lists" style="overflow: hidden;">
       <view class="list-item sub-goods_list" wx:for="{{goodsList}}" wx:for-item="goods" wx:key="{{*this}}" style="overflow: hidden;">
-        <navigator url="./goods?gid={{goods.upc_id}}&limit_id={{limitData.limit_id}}">
+        <navigator url="./goods/goods?gid={{goods.upc_id}}&limit_id={{limitData.limit_id}}">
           <view class="goods-img" style="position: relative;">
             <image src="{{goods.master_img ? goods.master_img : ''}}" mode="widthFix"></image>
             <view class="flashState" wx:if="{{limitData.start === 3}}">已结束</view>

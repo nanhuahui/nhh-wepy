@@ -2,7 +2,7 @@
   <scroll-view scroll-y="true" scroll-top="{{scrollTop}}" bindscrolltolower="loadMore" bindscroll="scroll" lower-threshold="0" class="scrollView">
     <view class="goods-lists data-list clearfix" style="overflow:hidden;">
       <view class="list-item sub-goods_list collect_list" wx:for="{{goods_list}}" wx:for-item="g" wx:key="g.upc_id" style="overflow:hidden;">
-        <navigator url="../shopping/goods?gid={{g.upc_id}}">
+        <navigator url="../shopping/goods/goods?gid={{g.upc_id}}">
           <view class="goods-img">
             <image src="{{g.img_url?g.img_url:imgUrl+'/no_picture.jpg'}}" mode="widthFix"></image>
           </view>
@@ -11,7 +11,7 @@
         <view class="goods-title">{{g.goods_name}}</view>
         <view class="quitCollect">
           <navigator @tap="quitColById" data-id="{{g.rec_id}}">取消收藏</navigator>
-          <navigator url="../shopping/goods?gid={{g.upc_id}}">去购买</navigator>
+          <navigator url="../shopping/goods/goods?gid={{g.upc_id}}">去购买</navigator>
         </view>
       </view>
     </view>

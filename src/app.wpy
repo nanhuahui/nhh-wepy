@@ -33,7 +33,7 @@ export default class extends wepy.app {
     pages: [
       'pages/shopping/index/index',
       'pages/oauth',
-      'pages/shopping/goods',
+      'pages/shopping/goods/goods',
       'pages/shopping/searchGoods',
       'pages/shopping/coustomGoods',
       'pages/shopping/todaySpecial',

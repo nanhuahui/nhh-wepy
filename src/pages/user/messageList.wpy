@@ -1,6 +1,6 @@
 <template>
   <view class="messageList" wx:if="{{circularList.length > 0}}">
-    <navigator wx:for="{{circularList}}" wx:for-item="circular" wx:key="index" url="../../user/message/message?id={{circular.id}}" class="h3 c3 listItem">
+    <navigator wx:for="{{circularList}}" wx:for-item="circular" wx:key="index" url="../user/message?id={{circular.id}}" class="h3 c3 listItem">
       <image src="{{imgDomain + circular.banner}}" class="messageImg"></image>
       <image src="{{imgUrl}}/tips_dot.png" class="dot" wx:if="{{circular.has_read !== '1'}}"></image>
       {{circular.circular_name}}

@@ -37,7 +37,7 @@
           <!-- 商品 -->
           <goodsBlock width="116" height="186" nameHeight="32" reverse="true" :name="item.goods_name"
             :shopPrice="item.shop_price" :marketPrice="item.market_price" :imgDomain="imgDomain" :img="item.master_img"
-            url="../flashSale?id={{limitEle.limit_id}}" componentId="fs_{{index}}">
+            :url="moreLink" componentId="fs_{{index}}">
           </goodsBlock>
         </view>
       </repeat>
@@ -88,7 +88,7 @@ export default class flashSale extends wepy.component {
       this.next = data.next
       this.timeList = data.timeList
       this.goodsList = data.goodsList
-      this.moreLink = `../flashSale/flashSale?id=${data.id}`
+      this.moreLink = `../flashSale?id=${data.id}`
       if (data.timeList.length > 0) {
         if (Date.now() > data.current.start_time) {
           totalSecond = data.current.end_time * 1000 - Date.now()

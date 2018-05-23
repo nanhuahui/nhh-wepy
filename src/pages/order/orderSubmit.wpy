@@ -164,7 +164,7 @@
   <view wx:if="{{pageSwitch === 'errormsg'}}" class="errWarning">
     <view class="iconfont-yzg icon-yzg-information"></view>
     <text>{{errorMsg}}</text>
-    <navigator class="navTarget" url="../../shopping/category/category">
+    <navigator class="navTarget" url="../shopping/category">
       随便逛逛
     </navigator>
   </view>
@@ -448,7 +448,7 @@
                           console.log('支付成功')
                           // 跳转至已付款
                           wepy.navigateTo({
-                            url: `../../user/groupInfo/groupInfo?orderSn=${self.data.orderSuccess.order_all[0].order.order_sn}&groupNo=${data.group_no}`
+                            url: `../user/groupInfo?orderSn=${self.data.orderSuccess.order_all[0].order.order_sn}&groupNo=${data.group_no}`
                           })
                         })
                       } else {

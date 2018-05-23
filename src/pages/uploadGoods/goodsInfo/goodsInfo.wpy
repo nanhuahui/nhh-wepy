@@ -374,7 +374,7 @@
             self.$apply()
           } else {
             // 跳转至订单结算
-            self.$navigate(`../../../order/orderSubmit/orderSubmit?one_step_buy=1`)
+            self.$navigate(`../../order/orderSubmit/orderSubmit?one_step_buy=1`)
           }
         } else {
           wepy.showToast({
