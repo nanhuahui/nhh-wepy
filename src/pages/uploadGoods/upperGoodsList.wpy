@@ -29,22 +29,22 @@
     </view>
   </view>
   <!-- 快捷导航 -->
-  <quickIcon/>
+  <import src="../templates/quick-icon" />
+  <template is="quickIcon" data="{{imgUrl, showQuickIcon, currentPageRoute: 'goods'}}"/>
 </template>
 
 <script>
   import wepy from 'wepy'
-  import quickIcon from '@/components/quick-icon'
+  import qcMixin from '@/mixins/quickIcon'
   import shareMixin from '@/mixins/share'
 
   export default class upperGoodsList extends wepy.page {
     config = {
       navigationBarTitleText: '精选特卖'
     }
-    components = {quickIcon}
-    mixins = [shareMixin]
+    components = {}
+    mixins = [shareMixin, qcMixin]
     onShow() {
-      this.$invoke('quickIcon', 'closeQucik')
     }
     data = {
       cid: null,
