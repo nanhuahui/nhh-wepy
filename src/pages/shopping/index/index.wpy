@@ -528,7 +528,7 @@ export default class Index extends wepy.page {
         }
       }).then(({data: {errcode, data, msg}}) => {
         if (errcode === 0) {
-          self.$navigate(`../goods?gid=${data.goods_list[0].upc_id}`)
+          self.$navigate(`../goods/goods?gid=${data.goods_list[0].upc_id}`)
         } else {
           console.error('获取商品列表失败:' + msg)
         }
