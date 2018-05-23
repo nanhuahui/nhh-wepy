@@ -178,7 +178,6 @@
             <view class="collect_con">
               <view class="collect_tit">
                 <a data-collect="{{goodsBig.is_collect}}" class="{{isCollect ? 'shoucang_img' : 'weishou'}}" catchtap="addToCollection" data-id="{{goodsBig.goods_id}}">
-                  <text style="font-size:48rpx;color:red">{{goodsBig.is_collect}}</text>
                   <text style="font-size:28rpx;">收藏</text>
                 </a>
                 <view class="buyNum">

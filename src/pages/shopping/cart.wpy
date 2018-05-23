@@ -100,6 +100,7 @@
   import wepy from 'wepy'
   import qcMixin from '@/mixins/quickIcon'
   import Touches from '../../assets/js/touches.js'
+  import { setCartNum } from '@/utils/api'
 
   export default class cart extends wepy.page {
     config = {
@@ -160,7 +161,7 @@
             self.selectedRecId = data.rec_id_uncheckout
             // self.cartNum = data.total.real_goods_count
           })
-          self.$parent.getCartNum()
+          setCartNum()
         } else {
           wepy.showModal({
             content: msg,

@@ -78,7 +78,7 @@ import allDayHot from './components/all-day-hot'
 import auction from './components/auction'
 import indexLoading from './components/loading'
 import qcMixin from '@/mixins/quickIcon'
-import { getCategory, getStoreIndex, getRecommend, getDistribution, addCart, addCollection } from '@/utils/api'
+import { getCategory, getStoreIndex, getRecommend, getDistribution, addCart, addCollection, setCartNum } from '@/utils/api'
 
 export default class Index extends wepy.page {
   config = {
@@ -501,6 +501,7 @@ export default class Index extends wepy.page {
           // 设置详情页的购物车数量
           self.cartCount = data.content
           self.$apply()
+          setCartNum()
         } else {
           // 跳转至订单结算
           self.$navigate(`../../order/orderSubmit/orderSubmit?one_step_buy=1`)
