@@ -41,7 +41,7 @@
     </view>
     <!-- 拍卖商品列表 -->
     <navigator class="goods" wx:for="{{auctionList}}" wx:for-item="auction" wx:key="auction.start_time"
-    url="./goodsDetails?aid={{auction.act_id}}&gid={{auction.upc_id}}">
+      url="./goodsDetails?aid={{auction.act_id}}&gid={{auction.upc_id}}">
       <view class="goodsImg">
         <image src="{{imgDomain + auction.banner}}" mode="widthFix"></image>
         <view class="goodsStatus {{auctionStatus}}">

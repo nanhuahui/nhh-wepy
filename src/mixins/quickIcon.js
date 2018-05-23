@@ -1,7 +1,7 @@
 import wepy from 'wepy'
 import {IMG_URL} from '@/utils/config'
 
-export default class shareMixin extends wepy.mixin {
+export default class qcMixin extends wepy.mixin {
   data = {
     showQuickIcon: 'hide',
     imgPath: IMG_URL

@@ -109,8 +109,6 @@
     data = {
       mailName: DEFAULT_NAME
     }
-    onLoad() {}
-    onShow() {}
   }
 </script>
 

@@ -44,9 +44,7 @@
       })
       this.getIncome()
     }
-    onShow() {
-      this.$invoke('quickIcon', 'closeQucik')
-    }
+
     methods = {}
     /**
      * 获取数据

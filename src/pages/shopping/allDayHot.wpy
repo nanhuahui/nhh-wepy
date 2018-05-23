@@ -53,9 +53,7 @@
       })
       this.loadMore()
     }
-    onShow() {
-      // this.$invoke('quickIcon', 'closeQucik')
-    }
+
     methods = {}
     // 查看更多
     loadMore() {

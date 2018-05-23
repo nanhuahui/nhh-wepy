@@ -129,7 +129,7 @@
 
 <script>
   import wepy from 'wepy'
-  import {composeImageForGoods, composeTextForGoods, composeImageForStroll, composeTextForStroll} from '../../utils/data'
+  import {composeImageForGoods, composeTextForGoods, composeImageForStroll, composeTextForStroll} from '@/utils/data'
   import composeImage from '@/components/compose-image'
 
   export default class stroll extends wepy.page {

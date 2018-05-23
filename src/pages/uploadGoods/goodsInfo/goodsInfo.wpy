@@ -69,7 +69,7 @@
     </view>
 
     <!-- 快捷导航 -->
-    <import src="../templates/quick-icon" />
+    <import src="../../templates/quick-icon" />
     <template is="quickIcon" data="{{imgUrl, showQuickIcon, currentPageRoute: 'goods'}}"/>
 
     <!-- 分享小程序码浮层 -->
@@ -79,10 +79,9 @@
 
 <script>
   import wepy from 'wepy'
-  import WxParse from '../../../utils/wxParse/wxParse'
+  import WxParse from '@/utils/wxParse/wxParse'
   import qrPatchLayer from '@/components/qrPatch-layer'
-  // import WxParse from '../../../utils/wxParse/wxParse'
-  import {composeImageForGoods, composeTextForGoods} from '../../../utils/data'
+  import {composeImageForGoods, composeTextForGoods} from '@/utils/data'
   import qcMixin from '@/mixins/quickIcon'
 
   let w = wepy.getSystemInfoSync().screenWidth
@@ -123,27 +122,9 @@
     computed = {}
 
     methods = {}
-    onShow() {
-      this.$invoke('quickIcon', 'closeQucik')
-    }
+
     onLoad(q) {
-      console.log(q)
       let self = this
-      // let pages = self.getCurrentPages() // 获取加载的页面
-      // let currentPage = pages[pages.length - 1] // 获取当前页面的对象
-      // let url = currentPage.route // 当前页面url
-      // self.currentPageRoute = url
-
-      // setTimeout(function() {
-      //   self.showQuickIcon = 'show'
-      //   self.$apply()
-      //   setTimeout(function() {
-      //     self.showQuickIcon = 'hide'
-      //     self.$apply()
-      //   }, 0)
-      // }, 500)
-
-      // console.log('这是路径', url)
       // 普通分享识别参数
       if (q.upc_id || q.g) {
         console.log(444, q.upc_id)
@@ -160,7 +141,6 @@
       if (q.scene) {
         // q 中的 scene 需要使用 decodeURIComponent 才能获取到生成二维码时传入的 scene
         let scene = decodeURIComponent(q.scene)
-        console.log(108, scene)
         let qrId = self.$parent.getQueryString('qr_id', scene)
         if (qrId) {
           // 参数超过32字符后的处理
@@ -173,8 +153,6 @@
           self.loadGood()
         }
       }
-      // 头部组件初始化,完成方法传递
-      // $header.init();
     }
     onShareAppMessage(options) {
       if (options.from === 'button') {

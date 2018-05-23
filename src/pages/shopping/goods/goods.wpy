@@ -164,19 +164,11 @@ export default class Goods extends wepy.page {
   methods = {}
 
   onLoad(options) {
-    console.log(12333, options)
     let self = this
     let pages = self.getCurrentPages() // 获取加载的页面
     let currentPage = pages[pages.length - 1] // 获取当前页面的对象
     let url = currentPage.route // 当前页面url
     self.currentPageRoute = url
-
-    self.showQuickIcon = 'show'
-    self.$apply()
-    setTimeout(function() {
-      self.showQuickIcon = 'hide'
-      self.$apply()
-    }, 800)
 
     // 普通分享识别参数
     if (options.gid || options.g) {

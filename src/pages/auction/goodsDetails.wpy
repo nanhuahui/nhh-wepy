@@ -322,7 +322,6 @@
         }
       }).then(({data: {errcode, data, msg}}) => {
         if (errcode === 0) {
-          console.log('查询结果为:', data)
           self.auctionInfo = data.auction_info.reverse()
           for (var i = 0; i < self.auctionInfo.length; i++) { // 拍卖记录隐藏出价账户呢称中间字
             if (self.auctionInfo[i].nickname) {
