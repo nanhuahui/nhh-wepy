@@ -32,7 +32,7 @@
         <text style="color: rgb(51, 51, 51); font-size: 12px; display: block; margin-top: -10px;">收藏</text>
       </view>
     </view>
-    <view class="back_home" @tap="navigate({{true}}, '../shopping/index/index')">
+    <view class="back_home" @tap="navigate({{true}}, '../../shopping/index/index')">
       <image style="width:30px;height:30px;" src="{{imgUrl}}/back_home.png" />
     </view>
     <!-- <view class="timeSale clearfix">
@@ -71,7 +71,7 @@
         <view wx:if="{{false}}">
           <video id="goodsVideo" src="{{videoUrl}}" style="width:100%;" controls></video>
         </view>
-        <import src="../../utils/wxParse/wxParse.wxml" />
+        <import src="../../../utils/wxParse/wxParse.wxml" />
         <template is="wxParse" data="{{wxParseData:article.nodes}}" />
       </view>
       <view class="goodCont serviceSystem">
@@ -93,7 +93,7 @@
           <image style="width: 20px;height:20px;margin-top: 5px;" src="{{imgUrl}}/lxkf.png" />
           <text style="color:#333;font-size:10px;display: block;margin-top:-6px;">客服</text>
         </view>
-        <view @tap="navigate({{true}}, './cart')"><!-- class="iconfont-yzg icon-yzg-msnui-cart" -->
+        <view @tap="navigate({{true}}, '../cart')"><!-- class="iconfont-yzg icon-yzg-msnui-cart" -->
           <view class="cartNumber" wx:if="{{cartCount>0}}">{{cartCount}}</view>
           <image style="width: 20px;height:20px;margin-top: 5px;" src="{{imgUrl}}/shop_c.png" />
           <text style="color:#333;font-size:10px;display: block;margin-top:-6px;">购物车</text>
@@ -107,7 +107,7 @@
     </view>
 
     <!-- 快捷导航 -->
-    <import src="../templates/quick-icon" />
+    <import src="../../templates/quick-icon" />
     <template is="quickIcon" data="{{imgUrl, showQuickIcon, currentPageRoute: 'goods'}}"/>
 
     <!-- 分享小程序码浮层 -->
@@ -339,6 +339,7 @@ export default class Goods extends wepy.page {
         wepy.setNavigationBarTitle({ title: self.pageTitle })
         // 设置小程序码
         self.shareQR = { link: shareLinkV, param: param, size: self.qrSize[2], x: self.qrSize[0], y: self.qrSize[1] }
+        console.log(11, self.shareQR)
         /**
         * WxParse.wxParse(bindName , type, data, target,imagePadding)
         * 1.bindName绑定的数据名(必填)
@@ -412,7 +413,7 @@ export default class Goods extends wepy.page {
           self.cartCount = data.content
         } else {
           // 跳转至订单结算
-          self.$navigate(`../../order/orderSubmit/orderSubmit?one_step_buy=1`)
+          self.$navigate(`../../order/orderSubmit?one_step_buy=1`)
         }
       } else {
         wepy.showToast({

@@ -13,7 +13,7 @@
     <!--楼层商品-->
     <view class="goods-lists">
       <block wx:for="{{floor.goods_list}}" wx:for-item="g" wx:key="{{g.goods_id}}">
-        <navigator class="sub-goods_list" url="/pages/shopping/goods?gid={{g.upc_id}}">
+        <navigator class="sub-goods_list" url="/pages/shopping/goods/goods?gid={{g.upc_id}}">
           <view class="goods-img">
             <image src="{{g.img_url}}" mode="widthFix" />
             <!-- <view class="vedio_icon" wx:if="{{g.video_url}}">

@@ -12,7 +12,7 @@
     </view>
     <view style="overflow: hidden;">
       <view class="goods-lists" style="overflow: hidden;">
-        <navigator class="sub-goods_list" wx:for="{{goods_list}}" wx:key="{{item.upc_id}}" url="/pages/shopping/goods?gid={{item.upc_id}}">
+        <navigator class="sub-goods_list" wx:for="{{goods_list}}" wx:key="{{item.upc_id}}" url="/pages/shopping/goods/goods?gid={{item.upc_id}}">
           <view class="goods-img">
             <image src="{{item.img_url ? item.img_url : (imgUrl + '/no_picture.jpg')}}" mode="widthFix"></image>
             <span class="vedio_icon" wx:if="{{item.video_url}}">

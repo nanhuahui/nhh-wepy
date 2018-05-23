@@ -46,7 +46,7 @@
           <text class="sale_price_number">{{g.shop_price}}</text>
         </view>
         <view class="g_name">{{g.goods_name}}</view>
-        <navigator url="/pages/shopping/goods?gid={{g.upc_id}} & from=share">
+        <navigator url="/pages/shopping/goods/goods?gid={{g.upc_id}} & from=share">
           <view class="share-box">
             <image class="share_sign" src="{{imgUrl}}/goodsShare_icon.jpg"></image>
             <image class="share_text" src="{{imgUrl}}/goodsShare_tips.jpg"></image>

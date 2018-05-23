@@ -8,14 +8,14 @@
     </navigator>
 
     <!-- 引用自定义组件 -->
-    <scrollArea moreUrl="../newDailyList/newDailyList?id={{daily.new_id}}" :goodsCount.sync="goodsCount" baseWidth="160" baseHeight="224">
+    <scrollArea :moreUrl.sync="moreUrl" :goodsCount.sync="goodsCount" baseWidth="160" baseHeight="224">
       <view slot="goodsList">
         <repeat for="{{goods}}" key="index" index="index" item="item">
           <view class="cell">
             <!-- 商品 -->
             <goodsBlock width="160" height="224" ellipsis="true" reverse="true" :name="item.goods_name" :desc="item.goods_brief"
               :shopPrice="item.shop_price" :marketPrice="item.market_price" :imgDomain="imgDomain" :img="item.master_img"
-              url="../allDayHot/allDayHot?id={{dayHot.id}}" componentId="adh_{{index}}">
+              :url="moreUrl" componentId="adh_{{index}}">
             </goodsBlock>
             <!-- 排名 -->
             <view slot="attach_{{index}}" wx:if="{{index < 3}}">
@@ -26,7 +26,7 @@
       </view>
     </scrollArea>
 
-    <navigator class="seeAllLimit c1 h5" url="../allDayHot/allDayHot?id={{dayHot.id}}">
+    <navigator class="seeAllLimit c1 h5" url="../allDayHot?id={{dayHot.id}}">
       查看全部
       <text class="iconfont-yzg icon-yzg-arrow" style="font-size: 24rpx;"></text>
     </navigator>
@@ -46,10 +46,14 @@ export default class allDayHot extends wepy.component {
     imgUrl: Object
   }
   data = {
+    moreUrl: null
   }
   computed = {
     goodsCount() {
       return this.goods ? this.goods.length : 0
+    },
+    moreUrl() {
+      return '../allDayHot?id=' + this.dayHot.id
     }
   }
   onLoad() {

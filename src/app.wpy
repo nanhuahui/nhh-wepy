@@ -33,7 +33,7 @@ export default class extends wepy.app {
     pages: [
       'pages/shopping/index/index',
       'pages/oauth',
-      'pages/shopping/goods',
+      'pages/shopping/goods/goods',
       'pages/shopping/searchGoods',
       'pages/shopping/coustomGoods',
       'pages/shopping/todaySpecial',
@@ -210,8 +210,9 @@ export default class extends wepy.app {
       }
     })
   }
-
   onLaunch() {
+    // 首次进入小程序 快捷导航提醒标志
+    wepy.setStorageSync('showQuickIconMsg', true)
     // 程序启动时装载最新的地址库信息
     let api = require('@/utils/api')
     api.getCityData().then((res) => {

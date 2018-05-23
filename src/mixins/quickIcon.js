@@ -38,9 +38,25 @@ export default class shareMixin extends wepy.mixin {
 
   onShow() {
     console.log('mixin onShow')
+    // 不需要提醒时 自动隐藏快捷导航
+    if (!wepy.getStorageSync('showQuickIconMsg')) {
+      this.showQuickIcon = 'hide'
+      this.$apply()
+    }
   }
 
   onLoad() {
+    let self = this
     console.log('mixin onLoad')
+    // 首次进入小程序 快捷导航提醒
+    if (wepy.getStorageSync('showQuickIconMsg')) {
+      this.showQuickIcon = 'show'
+      this.$apply()
+      setTimeout(function() {
+        self.showQuickIcon = 'hide'
+        self.$apply()
+        wepy.setStorageSync('showQuickIconMsg', false)
+      }, 1000)
+    }
   }
 }

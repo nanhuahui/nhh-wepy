@@ -38,7 +38,7 @@
     bindscrolltolower="loadMore" scroll-y="true" lower-threshold="100">
   	<view class="goods-lists clearfix" style="overflow: hidden;">
   		<navigator wx:for="{{goods_list}}" wx:key="*this" class="sub-goods_list collect_list">
-  			<navigator url="/pages/shopping/goods?gid={{item.upc_id}}">
+  			<navigator url="/pages/shopping/goods/goods?gid={{item.upc_id}}">
   				<view class="goods-img">
   					<image src="{{item.img_url ? item.img_url : (imgUrl + '/no_picture.jpg')}}" mode="widthFix"></image>
   				</view>

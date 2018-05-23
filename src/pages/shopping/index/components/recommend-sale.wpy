@@ -170,7 +170,7 @@
         <view class="single_box"
           wx:if="{{recommend.goods_big && recommend.goods_big.length>0}}">
           <view class="row single_good" wx:for="{{recommend.goods_big}}" wx:for-item="goodsBig" wx:key="id">
-            <navigator url="../goods?gid={{goodsBig.upc_id}}">
+            <navigator url="../goods/goods?gid={{goodsBig.upc_id}}">
               <view class="col-xs-12 text-center bigImg">
                 <image style="width:100%" src="{{goodsBig.master_img}}" mode="widthFix"></image>
               </view>
@@ -184,7 +184,7 @@
                   <text>{{goodsBig.buy}}人</text><text>已购买</text>
                 </view>
               </view>
-              <navigator url="../goods?gid={{goodsBig.upc_id}}">
+              <navigator url="../goods/goods?gid={{goodsBig.upc_id}}">
                 <view class="single_topic">{{goodsBig.goods_name}}</view>
                 <view class="single_des">{{goodsBig.goods_brief}}</view>
                 <view class="buy_single">
@@ -206,14 +206,14 @@
               </view>
             </view>
             <view class="col-xs-4" style="text-align:right;margin-left:-30rpx">
-              <navigator url="../category/category?id={{recommend.goods_list[0].cat_id}}">
+              <navigator url="../category?id={{recommend.goods_list[0].cat_id}}">
                 <text>更多<text class="iconfont-yzg icon-yzg-arrow" style="font-size: 24rpx;"></text></text>
               </navigator>
             </view>
           </view>
           <view class="row details" style="margin:0;">
             <view class="col-xs-4" wx:for="{{recommend.goods_list}}" wx:for-item="value" wx:key="id">
-              <navigator url="../goods?gid={{value.upc_id}}">
+              <navigator url="../goods/goods?gid={{value.upc_id}}">
                 <image style="width:100%" src="{{value.master_img}}" mode="widthFix"></image>
               </navigator>
               <view class="addCart_tuijian">

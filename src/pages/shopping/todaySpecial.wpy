@@ -6,7 +6,7 @@
 	  <view style="flex: 1;position: relative;">
 	    <view class="scrollView goods-lists">
 	      <view style="overflow: hidden;">
-	        <navigator class="sub-goods_list" wx:for="{{goodsList}}" wx:for-item="g" wx:key="{{g.upc_id}}" url="./goods?gid={{g.upc_id}}">
+	        <navigator class="sub-goods_list" wx:for="{{goodsList}}" wx:for-item="g" wx:key="{{g.upc_id}}" url="./goods/goods?gid={{g.upc_id}}">
 	          <view class="goods-img">
 	            <image src="{{g.master_img}}" mode="widthFix"></image>
 	            <view class="vedio_icon" wx:if="{{g.video}}">

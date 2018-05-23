@@ -111,7 +111,7 @@
         }).then((res) => {
           if (res.confirm) {
             wepy.navigateTo({
-              url: '../user/bankBind/bankBind'
+              url: '../commission/bankBind'
             })
           } else if (res.cancel) {
             return false
