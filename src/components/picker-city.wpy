@@ -22,7 +22,8 @@
 </template>
 <script>
 import wepy from 'wepy'
-import regions from '../utils/regions.js'
+import { getCityData } from '@/utils/api'
+let regions = null
 
 export default class AreaPicker extends wepy.component {
   data = {
@@ -193,7 +194,6 @@ export default class AreaPicker extends wepy.component {
     }
 
     // 选择成功后把相应的数组赋值给相应的变量
-
     this.provinces = provinces
     this.cities = cities
     this.areas = areas
@@ -201,7 +201,23 @@ export default class AreaPicker extends wepy.component {
     this.selectedRegion = defaultValue
     this.$apply()
   }
-  onLoad() {}
+  onLoad() {
+    this.readyForCityData()
+  }
+  readyForCityData() {
+    let cityStorage = wepy.getStorageSync('cityData')
+
+    if (cityStorage && cityStorage.length > 0) {
+      // 缓存中有且不为空优先使用缓存中数据
+      regions = cityStorage
+    } else {
+      // 缓存中不存在时去请求城市列表数据并存储
+      getCityData().then((res) => {
+        regions = res.data
+        wepy.setStorageSync('cityData', res.data)
+      })
+    }
+  }
 }
 
 </script>

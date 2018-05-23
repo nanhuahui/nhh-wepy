@@ -2,6 +2,14 @@ import wepy from 'wepy'
 import {API_URL} from './config'
 
 // 获取分类菜单
+export function getCityData() {
+  return wepy.request({
+    url: `http://127.0.0.1:8080/static/js/city.json`,
+    method: 'get'
+  })
+}
+
+// 获取分类菜单
 export function getCategory() {
   return wepy.request({
     url: `${API_URL}/get_category.php`

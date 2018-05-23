@@ -212,6 +212,11 @@ export default class extends wepy.app {
   }
 
   onLaunch() {
+    // 程序启动时装载最新的地址库信息
+    let api = require('@/utils/api')
+    api.getCityData().then((res) => {
+      wepy.setStorageSync('cityData', res.data)
+    })
   }
 
   onShow(options) {
