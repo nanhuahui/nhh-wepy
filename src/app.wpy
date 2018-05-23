@@ -117,7 +117,7 @@ export default class extends wepy.app {
       list: [{
         pagePath: 'pages/shopping/index/index',
         iconPath: 'assets/icon/iconfont-shop.png',
-        selectedIconPath: 'assets/icon/iconfont-shop.png',
+        selectedIconPath: 'assets/icon/iconfont-shop-active.png',
         text: '特卖'
       }, {
         pagePath: 'pages/shopping/cart',
