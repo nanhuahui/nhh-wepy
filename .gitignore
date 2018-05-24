@@ -6,3 +6,5 @@ package-lock.json
 src/config.js
 
 .wepycache
+
+src/utils/config.js
