@@ -42,10 +42,9 @@
     <!--商品详情-->
     <view class="goodsDet">
       <text class="detTitle">#商品详情#</text>
-      <!-- <import src="../../../utils/wxParse/wxParse.wxml" />
-      <template is="wxParse" data="{{wxParseData:article.nodes}}" /> -->
-      {{goodsInfo.goods_desc_m}}
-      <image wx:for = "{{goodsDecImg}}" mode = "widthFix" wx:for-item = "img" wx:key = "img.img_id" src = "{{img_domain + img.goods_img}}"></image>
+      <block wx:for="{{goodsDecImg}}" wx:for-item="img" wx:key="{{img.img_id}}">
+        <image mode = "widthFix" src="{{img_domain + img.goods_img}}"></image>
+      </block>
     </view>
     <view class="goodsDet">
       <text class="detTitle">#跨境贴士#</text>
@@ -58,7 +57,7 @@
           <view class="cartNumber" wx:if="{{cartCount>0}}">{{cartCount}}</view>
         </view>
         <view bindtap="addToCollection">
-          <icon class="iconfont-yzg icon-yzg-shouc_no" style="{{style_img}}"/>
+          <icon class="iconfont-yzg icon-yzg-shouc_no" style="{{styleImg}}"/>
         </view>
       </view>
       <view class="animationBall" style="left: {{x}}px; top: {{y}}px;" wx:if="{{showBall}}"></view>
@@ -98,6 +97,7 @@
       from: null,
       imgUrl: null,
       img_domain: null,
+      goodsDecImg: null,
       showBall: false,
       currentPageRoute: null,
       goodsInfo: null, // 商品信息
@@ -108,6 +108,7 @@
       x: 260,
       y: 10,
       cartAnimation: {},
+      styleImg: null,
       pageTitle: '',
       qrShareShow: false,
       qrSize: [ w * 0.64, h - w / 2.5, w / 3 ],
@@ -293,6 +294,8 @@
      */
     addToCollection() {
       let self = this
+      self.styleImg = 'transform:scale(1.3);'
+      self.$apply()
       // 请求数据
       wepy.request({
         url: `${self.$parent.globalData.apiUrl}/user.php`,
@@ -301,6 +304,10 @@
           act: 'collect'
         }
       }).then(({data: {errcode, data, msg}}) => {
+        setTimeout(function() {
+          self.styleImg = 'transform:scale(1);'
+          self.$apply()
+        }, 500)
         if (errcode === 0) {
           self.isCollect = true
           self.$apply()
