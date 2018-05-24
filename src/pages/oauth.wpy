@@ -1,8 +1,8 @@
 <template>
   <view class="oauthBg">
     <!-- 需要使用 button 来授权登录 -->
-    <button wx:if="{{canIUse}}" class="buttonStyle" open-type="getUserInfo" bindgetuserinfo="bindGetUserInfo">授权登录</button>
-    <view wx:else class="buttonStyle">请升级微信版本</view>
+    <button wx:if="{{canIUse && showBtn}}" class="buttonStyle" open-type="getUserInfo" bindgetuserinfo="bindGetUserInfo">授权登录</button>
+    <!-- <view wx:else class="buttonStyle">请升级微信版本</view> -->
   </view>
 </template>
 
@@ -16,6 +16,7 @@
       navigationBarTitleText: '授权'
     }
     data = {
+      showBtn: false,
       canIUse: wx.canIUse('button.open-type.getUserInfo'),
     }
     onLoad() {
@@ -26,8 +27,15 @@
           if (res.authSetting['scope.userInfo']) {
             wx.getUserInfo({
               success: function(res) {
+                self.setData({
+                  showBtn: false
+                })
                 loginByUser(res)
               }
+            })
+          } else {
+            self.setData({
+              showBtn: true
             })
           }
         }
