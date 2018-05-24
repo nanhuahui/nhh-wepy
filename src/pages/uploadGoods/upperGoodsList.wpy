@@ -56,7 +56,7 @@
       scrollTop: 0,
       scrollHeight: 0,
       hidden: true,
-      shareTitle: '精选特卖',
+      shareTitle: '精心为你推荐',
       sharePath: ''
     }
     onLoad(q) {

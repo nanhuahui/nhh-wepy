@@ -35,12 +35,14 @@
 
 <script>
   import wepy from 'wepy'
+  import shareMixin from '@/mixins/share'
   import qcMixin from '@/mixins/quickIcon'
+
   export default class newDailyList extends wepy.page {
     config = {
       navigationBarTitleText: ''
     }
-    mixins = [qcMixin]
+    mixins = [qcMixin, shareMixin]
     data = {
       imgUrl: '',
       daily_id: null,
@@ -49,12 +51,15 @@
       pageNum: 0,
       img_domain: '',
       ac_res: [],
-      title_name: ''
+      title_name: '',
+      shareTitle: '喊你早间抢便宜',
+      sharePath: ''
     }
     onLoad(q) {
       this.$apply(() => {
         this.imgUrl = this.$parent.globalData.imgUrl
         this.daily_id = q.id
+        this.sharePath = `pages/shopping/newDailyList?id=${q.id}&s=${wepy.getStorageSync('sellerId')}`
       })
       this.loadMore()
     }
