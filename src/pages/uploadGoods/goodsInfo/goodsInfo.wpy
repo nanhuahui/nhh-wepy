@@ -9,7 +9,7 @@
       </swiper-item>
       <block wx:for="{{goodsImg}}" wx:for-item="img" wx:key="{{img.goods_img}}">
         <swiper-item>
-          <image src="{{img_domain + img.goods_img}}" class="slide-image" width="355" height="150" />
+          <image src="{{img_domain + img.goods_img}}" class="slide-image" width="355" height="150" mode="widthFix"/>
         </swiper-item>
       </block>
     </swiper>
