@@ -16,6 +16,7 @@ import md5 from 'md5'
 import wepy from 'wepy'
 import { API_URL, IMG_URL, DEFAULT_UID, API_SIGNATURE } from '@/utils/config'
 import 'wepy-async-function'
+import notificationCenter from '@/utils/notification'
 
 // 1001->发现栏小程序主入口;
 // 1005->顶部搜索框的搜索结果页;
@@ -48,6 +49,7 @@ export default class extends wepy.app {
       'pages/shopping/expertSession',
       'pages/shopping/promotion',
       'pages/shopping/classify',
+      'pages/shopping/placard',
       'pages/user/userCenter',
       'pages/user/myCollect',
       'pages/user/sellerIncome',
@@ -150,6 +152,8 @@ export default class extends wepy.app {
     imgUrl: IMG_URL
   }
 
+  notificationCenter = null
+
   constructor() {
     super()
     this.use('promisify')
@@ -211,6 +215,7 @@ export default class extends wepy.app {
     })
   }
   onLaunch() {
+    this.notificationCenter = notificationCenter.center()
     // 首次进入小程序 快捷导航提醒标志
     wepy.setStorageSync('showQuickIconMsg', true)
     // 程序启动时装载最新的地址库信息

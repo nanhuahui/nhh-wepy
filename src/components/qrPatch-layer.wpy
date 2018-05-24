@@ -13,7 +13,7 @@
     <view class="shopShareCont">
       <composeImage bgColor="#ffffff">
         <view wx:if="{{isSlot}}" slot="composeSlot" style="float: right;margin: 0 5px -5px 0;">
-          <navigator url="../placard/placard" hover-class="navigator-hover">
+          <navigator url="/pages/shopping/placard" hover-class="navigator-hover">
             <button class="weui-btn" type="primary" size="mini">选模板</button>
           </navigator>
         </view>
@@ -31,7 +31,7 @@ export default class qrPatchLayer extends wepy.component {
   components = { composeImage }
   props = {
     bottom: String, // 静态传值为父组件向子组件传递常量数据，因此只能传递String字符串类型。
-    isSlot: Boolean,
+    isSlot: String,
     shareImgArr: Object,
     shareTextArr: Object,
     shareQR: Object
@@ -42,8 +42,12 @@ export default class qrPatchLayer extends wepy.component {
     qrShareShow: false
   }
   methods = {
-    switchPatch(e) {
+    switchPatch(p, e) {
       this.qrShareShow = !this.qrShareShow
+      // 针对选择海报后重绘,传递参数
+      if (p === 'show') {
+        this.qrShareShow = true
+      }
       if (this.qrShareShow) {
         // 处理小程序码贴片
         console.log(this.shareImgArr, this.shareTextArr, this.shareQR)

@@ -1,0 +1,404 @@
+<template>
+<view style="background: {{showPreview ? '#000' : '#fff'}};">
+  <view wx:if="{{showPreview}}">
+    <view class="pre-top-bar" style="background-color: rgba(0, 0, 0, 0.5);">
+      <view class="pre-counter">{{currentPreIndex + 1}} / {{imgList.length}}</view>
+      <button class="pre-button pre-button--close" title="Close (Esc)" bindtap="closePre"></button>
+    </view>
+    <swiper indicator-dots="{{false}}" autoplay="{{false}}" interval="{{5000}}" duration="{{1000}}" current="{{currentPreIndex}}" bindchange="movePre" style="height: {{windowHeight}}px; width: {{windowWidth}}px">
+      <block wx:for="{{imgList}}" wx:key="{{url}}">
+        <swiper-item class="qrImg">
+          <image src="{{item.url}}" mode="widthFix" binderror="loadError" @tap="previewFn({{index}})"></image>
+        </swiper-item>
+      </block>
+    </swiper>
+    <view class="bottomCon">
+      <view class="h3 c9" bindtap="selectTemplate" data-index="{{currentPreIndex}}" wx:if="{{storageIndex!==currentPreIndex}}">确认使用</view>
+      <view class="h3 c5" bindtap="selectTemplate" data-index="{{-1}}" wx:else>取消使用</view>
+    </view>
+  </view>
+
+  <view wx:else>
+    <view>
+      <block wx:for="{{imgList}}" wx:key="{{url}}">
+        <view class="img_box" style="top:{{item.top}}px;left:{{item.left}}px">
+          <image src="{{item.url}}" mode="widthFix" binderror="loadError" bindtap="previewFn({{index}})"></image>
+          <view class="item_desc" style="height:{{descHeight}}px" wx:if="{{item.title}}">{{item.title}}</view>
+        </view>
+      </block>
+    </view>
+    <view class="loading_box" wx:if="{{pageStatus}}" style="top:{{(leftHeight>rightHeight?leftHeight:rightHeight)-40}}px">
+      <view class="loading_fade_circle"></view>
+    </view>
+  </view>
+</view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import composeData from '@/utils/data'
+
+export default class placard extends wepy.page {
+  config = {
+    navigationBarTitleText: '选择模板'
+  }
+  data = {
+    imgList: [],
+    leftHeight: 0,
+    rightHeight: 0,
+    pageSize: 6,
+    pageNum: 0,
+    currentPreIndex: 0,
+    descHeight: 30, // 图片文字描述的高度
+    pageStatus: true,
+    imgWidth: 750,
+    imgHeight: 1334,
+    showPreview: false,
+    storageIndex: wepy.getStorageSync('placardIndex'),
+    windowWidth: wepy.getSystemInfoSync().windowWidth,
+    windowHeight: wepy.getSystemInfoSync().windowHeight
+  }
+  onLoad() {
+    this.loadRemoteImg()
+  }
+  loadRemoteImg() {
+    let vm = this
+    if (vm.pageNum === -1) {
+      // 分页条码为负均不加载
+      return
+    }
+    let num = vm.data.pageNum + 1
+    vm.$apply(() => {
+      vm.pageNum = num
+      vm.pageStatus = true
+    })
+    console.log('当前加载页码:' + vm.pageNum)
+    let tempList = []
+    for (let k = (vm.pageNum - 1) * vm.pageSize; k < (vm.pageNum * vm.pageSize); k++) {
+      // 获取图片的路径
+      let nextObj = composeData.placardPreImg(k)
+      tempList.push(nextObj)
+    }
+    vm.$apply(() => {
+      vm.pageNum = num
+      vm.imgList = vm.data.imgList.concat(tempList)
+      vm.pageStatus = false
+    })
+
+    // 瀑布流算法实现
+    let arr = vm.imgList
+    for (var index = 0; index < arr.length; index++) {
+      let windowWidth = wepy.getSystemInfoSync().windowWidth
+      arr[index].height = windowWidth / 2 / vm.imgWidth * vm.imgHeight
+      var count = 0
+      for (var i = (vm.pageNum - 1) * vm.pageSize; i < arr.length; i++) {
+        if (arr[i].height) {
+          count++
+        }
+      }
+      if (count === vm.pageSize) {
+        for (var k = (vm.pageNum - 1) * vm.pageSize; k < arr.length; k++) {
+          if (vm.leftHeight <= vm.rightHeight) {
+            arr[k].top = vm.leftHeight
+            arr[k].left = windowWidth * 0.005
+            vm.$apply(() => {
+              vm.leftHeight = vm.data.leftHeight + arr[k].height + (arr[k].title ? vm.descHeight : -10)
+            })
+          } else {
+            arr[k].top = vm.rightHeight
+            arr[k].left = windowWidth / 2 - windowWidth * 0.005
+            vm.$apply(() => {
+              vm.rightHeight = vm.rightHeight + arr[k].height + (arr[k].title ? vm.descHeight : -10)
+            })
+          }
+        }
+        vm.$apply(() => {
+          vm.imgList = arr
+        })
+      }
+    }
+  }
+  loadError(e) {
+    let vm = this
+    let index = e.currentTarget.dataset.index
+    let arr = vm.imgList
+    // 删除无效图片
+    arr.splice(index, 1)
+    vm.$apply(() => {
+      vm.pageNum = -1
+      vm.imgList = arr
+    })
+  }
+  onReachBottom() {
+    this.loadRemoteImg()
+  }
+  previewFn(e) {
+    let index = e.currentTarget.dataset.wpypreviewfnA
+    this.$apply(() => {
+      this.currentPreIndex = index
+      this.showPreview = !this.showPreview
+    })
+  }
+  closePre() {
+    this.showPreview = false
+    this.$apply()
+  }
+  movePre(e) {
+    let vm = this
+    let index = e.detail.current
+    vm.$apply(() => {
+      vm.currentPreIndex = index
+    })
+    if (index + 1 === vm.imgList.length && vm.pageNum !== -1) {
+      setTimeout(() => {
+        vm.loadRemoteImg()
+      }, 1000)
+    }
+  }
+  selectTemplate(e) {
+    let cpi = e.currentTarget.dataset.index
+    if (cpi >= 0) {
+      // 记录选择的海报序号
+      wepy.setStorageSync('placardIndex', cpi)
+    } else {
+      // 删除选择的海报序号
+      wepy.removeStorageSync('placardIndex')
+    }
+    // 返回首页
+    wepy.switchTab({
+      url: '/pages/shopping/index/index?reDraw=true'
+    })
+    // 通知重新绘制小程序码
+    this.$parent.notificationCenter.post('drawQrPatch', {
+      // 任意通知object
+    })
+  }
+}
+</script>
+
+<style lang="less">
+.pre-top-bar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 44px;
+    width: 100%;
+    z-index: 1602;
+}
+
+.pre-counter {
+    position: absolute;
+    left: 44%;
+    top: 0;
+    height: 44px;
+    font-size: 14px;
+    line-height: 44px;
+    color: #FFF;
+    opacity: 0.75;
+    padding: 0 10px;
+}
+
+.pre-button {
+    width: 44px;
+    height: 44px;
+    position: relative;
+    background: none;
+    cursor: pointer;
+    overflow: visible;
+    -webkit-appearance: none;
+    display: block;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    float: right;
+    opacity: 0.75;
+    -webkit-transition: opacity 0.2s;
+    transition: opacity 0.2s;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+.pre-button:focus,
+.pre-button:hover {
+    opacity: 1;
+}
+
+.pre-button:active {
+    outline: none;
+    opacity: 0.9;
+}
+
+.pre-button::-moz-focus-inner {
+    padding: 0;
+    border: 0;
+}
+
+.pre-ui--over-close .pre-button--close {
+    opacity: 1;
+}
+
+.pre-button,
+.pre-button--arrow--left:before,
+.pre-button--arrow--right:before {
+    background: url("http://wxassets.xf66.com/pre-icon.png") 0 0 no-repeat;
+    background-size: 264px 88px;
+    width: 44px;
+    height: 44px;
+}
+
+@media (-webkit-min-device-pixel-ratio: 1.1), (-webkit-min-device-pixel-ratio: 1.09375), (min-resolution: 105dpi), (min-resolution: 1.1dppx) {
+    .pswp--svg .pre-button,
+    .pswp--svg .pre-button--arrow--left:before,
+    .pswp--svg .pre-button--arrow--right:before {
+        background-image: url("http://wxassets.xf66.com/pre-icon.svg");
+    }
+    .pswp--svg .pre-button--arrow--left,
+    .pswp--svg .pre-button--arrow--right {
+        background: none;
+    }
+}
+
+.pre-button--close {
+    background-position: 0 -44px;
+}
+
+.pre-button--share {
+    background-position: -44px -44px;
+}
+
+.pre-button--fs {
+    display: none;
+}
+
+.pswp--supports-fs .pre-button--fs {
+    display: block;
+}
+
+.pswp--fs .pre-button--fs {
+    background-position: -44px 0;
+}
+
+.pre-button--zoom {
+    display: none;
+    background-position: -88px 0;
+}
+
+.pswp--zoom-allowed .pre-button--zoom {
+    display: block;
+}
+
+.pswp--zoomed-in .pre-button--zoom {
+    background-position: -132px 0;
+}
+
+.pswp--touch .pre-button--arrow--left,
+.pswp--touch .pre-button--arrow--right {
+    visibility: hidden;
+}
+
+.bottomCon {
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+    z-index: 1600;
+}
+
+.bottomCon view {
+    float: right;
+    width: 80px;
+    margin: 20px 14px 14px 0;
+    text-align: center;
+    background: #0bb20c;
+    height: 28px;
+    line-height: 28px;
+}
+
+.qrImg {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    margin-top: 4%;
+}
+
+.waterfall {
+    width: 100%;
+    position: relative;
+}
+
+.img_box {
+    width: 50%;
+    position: absolute;
+    text-align: center;
+    animation: fadeShow 1s;
+}
+
+.img_box image {
+    width: 94%;
+}
+
+.item_desc {
+    font-size: 24rpx;
+}
+
+.loading_box {
+    width: 100%;
+    text-align: center;
+    position: absolute;
+    z-index: 1000;
+    bottom: 30rpx;
+    left: 49%;
+}
+
+.loading_fade_circle {
+    width: 30rpx;
+    height: 30rpx;
+    background: #1ab394;
+    border-radius: 50%;
+    -webkit-animation: fading_circle 1s ease-out infinite alternate;
+    animation: fading_circle 1s ease-out infinite alternate;
+}
+
+@-webkit-keyframes fading_circle {
+    0% {
+        transform: scale(1.5);
+        opacity: 0.2;
+    }
+
+    100% {
+        transform: scale(0.1);
+        opacity: 1;
+    }
+}
+
+@keyframes fading_circle {
+    0% {
+        transform: scale(1.5);
+        opacity: 0.2;
+    }
+
+    100% {
+        transform: scale(0.1);
+        opacity: 1;
+    }
+}
+
+@-webkit-keyframes fadeShow {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeShow {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+</style>

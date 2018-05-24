@@ -44,7 +44,7 @@
     <template is="quickIcon" data="{{imgUrl, showQuickIcon, currentPageRoute: 'index'}}"/>
 
     <!-- 分享小程序码浮层 -->
-    <qrPatchLayer :bottom.sync="bottom" :isSlot.sync="{{true}}" :shareImgArr.sync="shareImg" :shareTextArr.sync="shareText" :shareQR.sync="shareQR"></qrPatchLayer>
+    <qrPatchLayer isSlot="true" :shareImgArr.sync="shareImg" :shareTextArr.sync="shareText" :shareQR.sync="shareQR"></qrPatchLayer>
 
     <!--新增信息弹窗-->
     <view class="fixedPop" wx:if="{{popShow}}">
@@ -206,18 +206,11 @@ export default class Index extends wepy.page {
   onLoad() {
     // 增加loading效果
     this.$invoke('indexLoading', 'show', {mode: 6})
+    // 接收通知渲染小程序码贴片
+    this.$parent.notificationCenter.register('drawQrPatch', this, 'didReceviceQrPathNotification')
   }
 
-  onShow() {
-    // let self = this
-    // self.dailyGoods = [
-    //   {goods_id: 1007275, goods_name: '澳洲 Bio Island 比奥岛 婴幼儿全天然牛乳提取液体乳钙 90粒/瓶', goods_brief: '192'},
-    //   {goods_id: 1027678, goods_name: '九味药草泡脚液 女士暖宫 解郁安神（女士专用）', goods_brief: '92'},
-    //   {goods_id: 1028182, goods_name: '法国 Rene Furterer 馥绿德雅防脱发洗发水250ml', goods_brief: '12'}
-    // ]
-    // self.dailyInfo['now_time'] = '04月25日'
-    // self.dailyInfo['new_id'] = 13
-    // self.loadComplete = true
+  onShow(e) {
     this.imgUrl = this.$parent.globalData.imgUrl
     this.$apply()
     // 加载数据
@@ -225,7 +218,15 @@ export default class Index extends wepy.page {
     this.readyForQr()
     this.loadRecommend()
   }
-  // 读取是否定制显示海报
+  didReceviceQrPathNotification(notification) {
+    // 不要直接使用 this
+    var _this = notification._this
+    setTimeout(() => {
+      // 重绘小程序码贴片
+      _this.$invoke('qrPatchLayer', 'switchPatch', 'show')
+    }, 500)
+  }
+  // 小程序码合成参数准备
   readyForQr() {
     let k = parseFloat(wepy.getStorageSync('placardIndex'))
     let w = wepy.getSystemInfoSync().windowWidth
@@ -245,7 +246,6 @@ export default class Index extends wepy.page {
     // 设置贴图的图片
     this.shareImg[1].src = wepy.getStorageSync('store_nhh').avatar
     this.shareText[0].text = wepy.getStorageSync('store_nhh') ? wepy.getStorageSync('store_nhh').name : '南华汇商城'
-
     this.$apply()
   }
   loadData() {
@@ -405,7 +405,6 @@ export default class Index extends wepy.page {
     }).catch((error) => {
       console.log('获取消费商数据失败！', error)
     })
-    self.readyForQr()
   }
   // 个性推荐
   loadRecommend() {
