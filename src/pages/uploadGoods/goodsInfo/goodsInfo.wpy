@@ -95,8 +95,8 @@ import {
 } from '@/utils/data'
 import qcMixin from '@/mixins/quickIcon'
 
-let w = wepy.getSystemInfoSync().screenWidth
-let h = wepy.getSystemInfoSync().screenHeight
+let w = wepy.getSystemInfoSync().windowWidth
+let h = wepy.getSystemInfoSync().windowHeight
 export default class goodsInfo extends wepy.page {
   config = {
     navigationBarTitleText: ''
@@ -231,7 +231,7 @@ export default class goodsInfo extends wepy.page {
         // 没有标签,相应元素上移
         self.shareImgs[2].y -= 30
         self.shareImgs[3].y -= 30
-        self.qrSize[1] -= 100
+        self.qrSize[1] -= 30
         self.shareText.find((value, index) => {
           value.y -= 30
         })
