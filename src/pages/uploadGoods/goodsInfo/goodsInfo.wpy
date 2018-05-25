@@ -53,15 +53,18 @@
     <!--底部导航-->
     <view class="fixedFooter clearfix">
       <view class="leftIcon">
-        <view bindtap="navigate" data-url="../../shopping/cart" data-tab="true" class="iconfont-yzg icon-yzg-msnui-cart">
-          <view class="cartNumber" wx:if="{{cartCount>0}}">{{cartCount}}</view>
+        <view class="kefu" @tap="contact" data-url="" data-tab="true">
+          <image style="width: 20px;height:20px;margin-top: 5px;" src="{{imgUrl}}/lxkf.png" />
+          <text style="color:#333;font-size:10px;display: block;margin-top:-6px;">客服</text>
         </view>
-        <view bindtap="addToCollection">
-          <icon class="iconfont-yzg icon-yzg-shouc_no" style="{{styleImg}}"/>
+        <view @tap="navigateFn({{true}}, '../../shopping/cart')">
+          <view class="cartNumber" wx:if="{{cartCount>0}}">{{cartCount}}</view>
+          <image style="width: 20px;height:20px;margin-top: 5px;" src="{{imgUrl}}/shop_c.png" />
+          <text style="color:#333;font-size:10px;display: block;margin-top:-6px;">购物车</text>
         </view>
       </view>
       <view class="animationBall" style="left: {{x}}px; top: {{y}}px;" wx:if="{{showBall}}"></view>
-      <view class="addToCart" bindtap="addToCart" data-type='0'>
+      <view class="addToCart" @tap="addToCart" data-type='0'>
         <view class="iconfont-yzg icon-yzg-msnui-cart"></view>
         <text>加入购物车</text>
       </view>
@@ -234,6 +237,7 @@
             self.goodsImg = data.goods_img
             self.goodsInfo = data.goods_info
             self.pageTitle = data.goods_info.goods_name
+            self.cartCount = data.content
             self.shareImgs = self.data.shareImgs
             self.shareText = self.data.shareText
             self.shareLink = shareLinkV
@@ -423,9 +427,9 @@
     /**
      * 跳转
      */
-    navigate(e) {
-      let url = e.currentTarget.dataset.url
-      let tab = e.currentTarget.dataset.tab
+    navigateFn(e) {
+      let url = e.currentTarget.dataset.wpynavigatefnB
+      let tab = e.currentTarget.dataset.wpynavigatefnA
       if (tab) {
         // 跳转菜单
         this.$switch({url: url})
@@ -537,7 +541,7 @@
   position: fixed;
   width: 100%;
   height: 96rpx;
-  background: #f4f4f4;
+  background: #fff;
   bottom: -4rpx;
   color: #fff;
 }
@@ -545,12 +549,26 @@
 .fixedFooter .addToCart {
   position: relative;
   left: 46%;
-  width: 52%;
-  background: #ed3366;
-  height: 72rpx;
-  line-height: 68rpx;
+  width: 55%;
+  background: #c61134;
+  height: 96rpx;
+  line-height: 85rpx;
   text-align: center;
-  top: 12rpx;
+  /*top: 12rpx;*/
+}
+
+
+.fixedFooter .leftIcon {
+  width: 46%;
+  position: absolute;
+  left: 0;
+  /*top: 12rpx;*/
+  color: #444;
+  padding-left: 16rpx;
+}
+
+.fixedFooter .iconfont-yzg {
+  font-size: 20px;
 }
 
 .addToCart > view {
@@ -563,30 +581,34 @@
   margin: -30rpx 0 0 10rpx;
 }
 
-.fixedFooter .leftIcon {
-  width: 46%;
-  position: absolute;
-  left: 0;
-  top: 12rpx;
-  color: #444;
-  padding-left: 16rpx;
-}
-
 .leftIcon > view {
   width: 150rpx;
-  height: 66rpx;
+  height: 48px;
   float: left;
   text-align: center;
-  line-height: 60rpx;
+  /*line-height: 96rpx;*/
   margin: 3rpx;
-  border: 1px solid #aaa;
-  border-radius: 2px;
 }
 
-.fixedFooter .iconfont-yzg {
-  font-size: 20px;
+.leftIcon .kefu{
+  border-right:1px solid #eee;
 }
-
+.leftIcon view{
+  position:relative
+}
+.leftIcon .cartNumber{
+  position: absolute;
+  top: 0;
+  right: 40rpx;
+  font-size: 24rpx;
+  color: #fff;
+  display: block;
+  width: 30rpx;
+  height: 30rpx;
+  background: #ed3366;
+  border-radius: 50%;
+  line-height: 30rpx;
+}
 .goodsMain swiper {
   height: 640rpx;
 }
@@ -609,22 +631,6 @@
   display: block;
 }
 
-.leftIcon view{
-  position:relative
-}
-.leftIcon .cartNumber{
-  position: absolute;
-  top: 0;
-  right: 40rpx;
-  font-size: 24rpx;
-  color: #fff;
-  display: block;
-  width: 30rpx;
-  height: 30rpx;
-  background: #ed3366;
-  border-radius: 50%;
-  line-height: 30rpx;
-}
 .animationBall {
   background: #ed3366;
   height: 28rpx;
