@@ -424,8 +424,8 @@
      * 跳转
      */
     navigate(e) {
-      let url = e.currentTarget.dataset.wpynavigateB
-      let tab = e.currentTarget.dataset.wpynavigateA
+      let url = e.currentTarget.dataset.url
+      let tab = e.currentTarget.dataset.tab
       if (tab) {
         // 跳转菜单
         this.$switch({url: url})
