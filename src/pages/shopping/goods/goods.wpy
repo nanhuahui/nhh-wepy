@@ -8,7 +8,7 @@
         <view class="maskShade maskShade_right"></view>
       </swiper-item>
       <swiper-item wx:for="{{goodsImg}}" wx:for-item="img" wx:key="goods_img">
-        <image src="{{img.goods_img}}" class="slide-image" width="355" mode="widthFix"/>
+        <image src="{{img.goods_img}}" class="slide-image" width="355" height="150" mode="widthFix"/>
       </swiper-item>
     </swiper>
     <!--标题价格规格-->
@@ -346,9 +346,17 @@ export default class Goods extends wepy.page {
           self.changeVedioUrl(data.goods.video_url)
         }
         self.$apply()
-      } else if (errcode !== -2 && errcode !== -3) {
-        // $wuxDialog.alert({title: '提示', content: msg, onConfirm(e) {}})
-        // console.error(msg)
+      } else {
+        wepy.showModal({
+          title: '提示',
+          content: msg,
+          showCancel: false,
+          confirmText: '返回'
+        }).then((res) => {
+          if (res.confirm) {
+            wepy.navigateBack({delta: 1})
+          }
+        })
       }
     })
   }
@@ -753,13 +761,20 @@ export default class Goods extends wepy.page {
 }
 
 .goodsMain swiper {
-  height: 320px;
+  height: 640rpx;
 }
 
 .goodsMain swiper image {
   margin: 10px auto;
+  width:640rpx;
   display: block;
-  height:320px;
+  height: 640rpx;
+  position:absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
 }
 
 .goodsMain swiper video {

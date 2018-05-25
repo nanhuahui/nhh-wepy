@@ -2,7 +2,7 @@
 <scroll-view scroll-y="true" height="100%">
   <!-- 购物车商品 -->
   <view class="cart-contain" wx:if="{{goods_list}}">
-    <view class="goods-box" wx:for="{{goods_list}}" wx:for-item="g" wx:key="*this" wx:for-index="idx">
+    <view class="goods-box" wx:for="{{goods_list}}" wx:for-item="g" wx:key="id" wx:for-index="idx">
       <view class="weui-cells weui-cells_checkbox goods-box_title">
         <label class="weui-cell weui-check__label">
           <view class="weui-cell__hd cart_checkbox {{g.is_suppliers_select_all ? 'checked' : 'unchecked'}}" bindtap="checkChange" data-id="{{idx}}" data-type="0" data-value="{{!g.is_suppliers_select_all}}">
@@ -256,7 +256,7 @@
      * 跳转至列表页
      */
     toCategory(event) {
-      this.$navigate(`../category`)
+      this.$navigate(`./category`)
     }
     /**
      * 商品选中切换 is_uncheckout->是否被选中结算(0：没有；1：是)
