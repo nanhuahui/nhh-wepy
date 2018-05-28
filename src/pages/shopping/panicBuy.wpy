@@ -74,7 +74,6 @@
         this.aid = q.id
         this.sharePath = `pages/shopping/panicBuy?id=${q.id}&s=${wepy.getStorageSync('sellerId')}`
       })
-      this.$apply()
       this.loadMore()
     }
     loadMore() {

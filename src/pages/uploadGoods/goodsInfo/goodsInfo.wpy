@@ -144,7 +144,6 @@ export default class goodsInfo extends wepy.page {
     let self = this
     // 普通分享识别参数
     if (q.upc_id || q.g) {
-      console.log(444, q.upc_id)
       // 兼容修改参数传递修改前的gid和uid
       let gid = q.g ? q.g : (q.upc_id ? q.upc_id : '')
       let uid = q.u ? q.u : (q.uid ? q.uid : '')
@@ -205,21 +204,15 @@ export default class goodsInfo extends wepy.page {
       title: '加载中'
     })
     let self = this
-    let questParam = {
-      upc_id: self.data.id
-    }
     // 请求数据
     wepy.request({
       url: `${self.$parent.globalData.apiUrl}/shop/goods/goods.php?act=get_goods_info`,
       method: 'POST',
-      header: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      data: questParam
+      header: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      data: { upc_id: self.data.id }
     }).then(({data: { errcode, data, msg }}) => {
       wepy.hideLoading()
       if (errcode === 0) {
-        console.log('商品数据', data)
         /* 二维码分享合成图片赋值 */
         self.shareImgs[0].src = data.goods_img.length > 0 ? (data.img_domain + data.goods_img[0].goods_img) : `${self.$parent.globalData.imgUrl}/no_picture.jpg`
         self.shareText[1].text = `￥${data.goods_info.shop_price}`
@@ -272,7 +265,6 @@ export default class goodsInfo extends wepy.page {
           self.changeVedioUrl(data.goods_info.video_url)
         }
         self.$apply()
-        // $wuxDialog.alert({title: '提示', content: '发布成功', onConfirm(e) {}});
       } else {
         wepy.showModal({
           content: msg,
@@ -280,6 +272,11 @@ export default class goodsInfo extends wepy.page {
         })
       }
     }).catch((error) => {
+      wepy.hideLoading()
+      wepy.showModal({
+        content: '网络请求失败!',
+        showCancel: false
+      })
       console.log('请求失败', error)
     })
   }
