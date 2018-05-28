@@ -29,14 +29,21 @@
       </view>
     </view>
     <view class="info_goods clearfix">
-      <view style="text-align:left">
-        <image src="{{imgUrl}}/zheng.png" /> 正品保证
+      <view>
+        <image src="{{imgUrl}}/zpbz.png"></image>
+        <view class="info_tit">正品保证</view>
       </view>
-      <view style="text-align:center;">
-        <image src="{{imgUrl}}/qu.png" /> 全球直采
+      <view>
+        <image src="{{imgUrl}}/qqzc.png"></image>
+        <view class="info_tit">全球直采</view>
       </view>
-      <view style="text-align:right;">
-        <image src="{{imgUrl}}/bao.png" /> 满99包邮
+      <view>
+        <image src="{{imgUrl}}/gjjx.png"></image>
+        <view class="info_tit">国际精选</view>
+      </view>
+      <view>
+        <image src="{{imgUrl}}/jsfh.png"></image>
+        <view class="info_tit">极速发货</view>
       </view>
     </view>
     <!--商品详情-->
@@ -300,7 +307,7 @@
       wepy.request({
         url: `${self.$parent.globalData.apiUrl}/user.php`,
         data: {
-          id: self.data.id,
+          id: self.goodsInfo.g_id,
           act: 'collect'
         }
       }).then(({data: {errcode, data, msg}}) => {
@@ -495,16 +502,19 @@
 }
 
 .info_goods {
-  height: 46px;
-  background: #f8f8f8;
-  line-height: 46px;
-  padding: 0 15px;
   text-align: center;
+  background: #fff;
+  border-top: 5px solid #f8f8f8;
+  border-bottom: 5px solid #f8f8f8;
+  height: 50px;
+  padding: 15px 0 5px 0;
+  line-height: 1.5;
 }
 
-.info_goods view {
-  width: 33.33%;
-  float: left;
+.info_goods>view {
+  width: 25%;
+  display: inline-block;
+  text-align: center;
   font-size: 14px;
 }
 
