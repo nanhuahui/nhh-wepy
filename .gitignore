@@ -8,5 +8,3 @@ src/config.js
 .wepycache
 
 src/utils/config.js
-
-*.wpy
