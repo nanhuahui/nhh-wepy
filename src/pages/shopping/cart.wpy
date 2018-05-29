@@ -1,99 +1,107 @@
 <template>
-<scroll-view scroll-y="true" height="100%">
-  <!-- 购物车商品 -->
-  <view class="cart-contain" wx:if="{{goods_list}}">
-    <view class="goods-box" wx:for="{{goods_list}}" wx:for-item="g" wx:key="*this" wx:for-index="idx">
-      <view class="weui-cells weui-cells_checkbox goods-box_title">
-        <label class="weui-cell weui-check__label">
-          <view class="weui-cell__hd cart_checkbox {{g.is_suppliers_select_all ? 'checked' : 'unchecked'}}" bindtap="checkChange" data-id="{{idx}}" data-type="0" data-value="{{!g.is_suppliers_select_all}}">
-            <checkbox checked="{{g.is_suppliers_select_all}}" class="weui-check"/>
-            <text class="weui-icon-checked"></text>
+  <scroll-view scroll-y="true" wx:if="{{!showTips}}" style="height: {{wHeight - 45}}px;">
+    <!-- 购物车商品 -->
+    <view class="cart-contain">
+      <repeat for="{{goods_list}}" item="g" key="id" index="idx">
+        <view class="goods-box">
+          <view class="weui-cells weui-cells_checkbox goods-box_title">
+            <label class="weui-cell weui-check__label">
+              <view class="weui-cell__hd cart_checkbox {{g.is_suppliers_select_all ? 'checked' : 'unchecked'}}"
+                @tap.stop="checkChange({{idx}}, 0, {{!g.is_suppliers_select_all}})">
+                <checkbox checked="{{g.is_suppliers_select_all}}" class="weui-check"/>
+                <text class="weui-icon-checked"></text>
+              </view>
+              <view class="weui-cell__bd">
+                <view>{{g.suppliers}}</view>
+              </view>
+            </label>
           </view>
-          <view class="weui-cell__bd">
-            <view>{{g.suppliers}}</view>
-          </view>
-        </label>
-      </view>
-      <view class="goods-box_body" wx:for="{{g.data}}" wx:for-item="pro" wx:key="pro.rec_id">
-        <view class="product-list" style="left:{{pro.left + 'rpx'}}">
-          <view class="product-list_wrap" data-index="{{pro.rec_id}}"
-            bindtouchstart="touchS" bindtouchmove="touchM" bindtouchend="touchE">
-            <view class="weui-cells weui-cells_checkbox product-list_checkbox">
-              <label class="weui-cell weui-check__label">
-                <view class="weui-cell__hd cart_checkbox {{pro.is_uncheckout === '0' ? 'checked' : 'unchecked'}}" bindtap="checkChange" data-id="{{pro.rec_id}}" data-type="1" data-value="{{pro.is_uncheckout}}">
-                  <checkbox checked="{{pro.is_uncheckout}}" class="weui-check"/>
-                  <text class="weui-icon-checked"></text>
-                </view>
-              </label>
-            </view>
-            <view class="product-content">
-              <view class="product-box">
-                <view class="product-pic">
-                  <image src="{{pro.img_url?pro.img_url:imgUrl+'/no_picture.jpg'}}"></image>
-                </view>
-                <view class="product-con">
-                  <text class="product-title">{{pro.goods_name}}</text>
-                  <view class="cell-price">{{pro.goods_price}}</view>
-                </view>
-                <view class="product-option">
-                  <view class="product-num">
-                    <navigator class="num-reduce" bindtap="updateCartNum" data-pro="{{pro}}" data-type="{{-1}}">-</navigator>
-                    <input type="number" class="num-value" value="{{pro.goods_number}}" style="z-index: 0;" bindblur="inputCartNum" data-pro="{{pro}}" />
-                    <navigator class="num-add" bindtap="updateCartNum" data-pro="{{pro}}" data-type="{{1}}">+</navigator>
+          <repeat for="{{g.data}}" item="pro" key="pro.rec_id" index="pro.rec_id">
+            <view class="goods-box_body">
+              <view class="product-list" style="left:{{pro.left + 'rpx'}}" data-index="{{pro.rec_id}}"
+                @touchstart="touchS" @touchmove="touchM" @touchend="touchE">
+                <view class="product-list_wrap">
+                  <view class="weui-cells weui-cells_checkbox product-list_checkbox">
+                    <label class="weui-cell weui-check__label">
+                      <view class="weui-cell__hd cart_checkbox {{pro.is_uncheckout === '0' ? 'checked' : 'unchecked'}}"
+                        @tap.stop="checkChange({{pro.rec_id}}, 1, {{pro.is_uncheckout}})">
+                        <checkbox checked="{{pro.is_uncheckout}}" class="weui-check"/>
+                        <text class="weui-icon-checked"></text>
+                      </view>
+                    </label>
                   </view>
+                  <view class="product-content">
+                    <view class="product-box">
+                      <view class="product-pic">
+                        <image wx:if="{{pro.img_url}}" src="{{pro.img_url}}"/>
+                        <image wx:else src="{{imgUrl+'/no_picture.jpg'}}"></image>
+                      </view>
+                      <view class="product-con">
+                        <text class="product-title">{{pro.goods_name}}</text>
+                        <view class="cell-price">{{pro.goods_price}}</view>
+                      </view>
+                      <view class="product-option">
+                        <view class="product-num">
+                          <navigator class="num-reduce" @tap.stop="updateCartNum" data-pro="{{pro}}" data-type="{{-1}}">-</navigator>
+                          <input type="number" class="num-value" value="{{pro.goods_number}}" style="z-index: 0;" bindblur="inputCartNum" data-pro="{{pro}}" />
+                          <navigator class="num-add" @tap.stop="updateCartNum" data-pro="{{pro}}" data-type="{{1}}">+</navigator>
+                        </view>
+                      </view>
+                    </view>
+                  </view>
+                </view>
+                <view class="product-list_oper" @tap.stop="itemDelete({{pro.rec_id}})">
+                  <view class="oper-delete">删除</view>
                 </view>
               </view>
             </view>
-          </view>
-          <view class="product-list_oper" catchtap="itemDelete" data-index="{{pro.rec_id}}">
-              <view class="oper-delete">删除</view>
-          </view>
+          </repeat>
         </view>
+      </repeat>
+    </view>
+  </scroll-view>
+
+  <!-- 为空提示 -->
+  <view class="goods-alert_title" wx:if="{{showTips}}">
+    <view class="goods-alert_pic">
+      <image src="{{imgUrl}}/noGoods.png" mode="widthFix"></image>
+    </view>
+    <view class="goods-alert_content">
+      <view class="no-goods_cart">您的购物车还没有添加任何商品</view>
+      <navigator class="random-stroll_shop" url="./category">
+        随便逛逛
+      </navigator>
+    </view>
+  </view>
+
+  <!-- 底部 -->
+  <view class="cart-footer" wx:if="{{!showTips}}">
+    <view class="col-xs-12 layout-footer" style="padding-left: 15px;">
+      <view class="weui-cells weui-cells_checkbox checkAll">
+        <label class="weui-cell weui-check__label">
+          <view class="weui-cell__hd cart_checkbox {{is_select_all ? 'checked' : 'unchecked'}}"
+            @tap.stop="checkChange(null, 2, {{!is_select_all}})">
+            <checkbox checked="{{is_select_all}}" class="weui-check"/>
+            <text class="weui-icon-checked"></text>
+          </view>
+          <view class="weui-cell__bd">
+            <view>全选</view>
+          </view>
+        </label>
+      </view>
+      <view class="checkout-info">
+        <view>
+          合计：<text class="red">{{total.goods_price}}</text>
+        </view>
+      </view>
+      <view class="btn btn-checkout redBgColor" @tap="checkoutCart">
+        去结算({{total.real_goods_count}})
       </view>
     </view>
   </view>
-</scroll-view>
-
-<!-- 为空提示 -->
-<view class="goods-alert_title" wx:if="{{showTips}}">
-  <view class="goods-alert_pic">
-    <image src="{{imgUrl}}/noGoods.png" mode="widthFix"></image>
-  </view>
-  <view class="goods-alert_content">
-    <view class="no-goods_cart">您的购物车还没有添加任何商品</view>
-    <navigator class="random-stroll_shop" bindtap="toCategory">
-      随便逛逛
-    </navigator>
-  </view>
-</view>
-
-<!-- 底部 -->
-<view class="cart-footer" wx:if="{{!showTips}}">
-  <view class="col-xs-12 layout-footer" style="padding-left: 15px;">
-    <view class="weui-cells weui-cells_checkbox checkAll">
-      <label class="weui-cell weui-check__label">
-        <view class="weui-cell__hd cart_checkbox {{is_select_all ? 'checked' : 'unchecked'}}"  bindtap="checkChange" data-id="null" data-type="2" data-value="{{!is_select_all}}">
-          <checkbox checked="{{is_select_all}}" class="weui-check"/>
-          <text class="weui-icon-checked"></text>
-        </view>
-        <view class="weui-cell__bd">
-          <view>全选</view>
-        </view>
-      </label>
-    </view>
-    <view class="checkout-info">
-      <view>
-        合计：<text class="red">{{total.goods_price}}</text>
-      </view>
-    </view>
-    <view class="btn btn-checkout redBgColor" bindtap="checkoutCart">
-      去结算({{total.real_goods_count}})
-    </view>
-  </view>
-</view>
-<!-- 快捷导航 -->
-<import src="../templates/quick-icon" />
-<template is="quickIcon" data="{{imgUrl, showQuickIcon}}"/>
+  <!-- 快捷导航 -->
+  <import src="../templates/quick-icon" />
+  <template is="quickIcon" data="{{imgUrl, showQuickIcon}}"/>
 </template>
 
 <script>
@@ -117,7 +125,8 @@
       showTips: false,
       img_domain: '',
       selectedRecId: [],
-      startX: null
+      startX: null,
+      wHeight: wepy.getSystemInfoSync().windowHeight
     }
     onLoad() {
       this.imgUrl = this.$parent.globalData.imgUrl
@@ -129,9 +138,6 @@
     }
     methods = {}
     touches = new Touches()
-    bindTapProduct() {
-      this.$navigate(`./goods/goods?id=1`)
-    }
     /**
      * 获取购物车数据
      */
@@ -221,7 +227,7 @@
      */
     itemDelete(e) {
       let self = this
-      let delId = e.currentTarget.dataset.index
+      let delId = e.currentTarget.dataset.wpyitemdeleteA
       wepy.showModal({
         title: '提示',
         content: '您确实要把选中的商品移出购物车吗?'
@@ -253,28 +259,23 @@
       })
     }
     /**
-     * 跳转至列表页
-     */
-    toCategory(event) {
-      this.$navigate(`../category`)
-    }
-    /**
      * 商品选中切换 is_uncheckout->是否被选中结算(0：没有；1：是)
      */
     checkChange(e) {
-      this.$apply(() => {
-        this.check = e.currentTarget.dataset.value
-      })
+      let i = e.currentTarget.dataset.wpycheckchangeA
+      let t = e.currentTarget.dataset.wpycheckchangeB
+      let v = e.currentTarget.dataset.wpycheckchangeC
+      this.$apply(() => { this.check = v })
       // op->
       // 全选/全不选：all_checkout/all_uncheckout,此时不用传第一个参数；
       // 单选/单不选：single_checkout/single_uncheckout；
       // 供应商选择/供应商取消选择：suppliers_checkout/suppliers_uncheckout，此时第一个参数是供应商编号
       let op = ''
-      if (e.currentTarget.dataset.type === '0') { // 根据供应商选择
+      if (t === '0') { // 根据供应商选择
         op = this.check ? 'suppliers_checkout' : 'suppliers_uncheckout'
-      } else if (e.currentTarget.dataset.type === '1') { // 单选/单不选
+      } else if (t === '1') { // 单选/单不选
         op = (this.check === '0') ? 'single_uncheckout' : 'single_checkout'
-      } else if (e.currentTarget.dataset.type === '2') { // 全选/全不选
+      } else if (t === '2') { // 全选/全不选
         op = this.check ? 'all_checkout' : 'all_uncheckout'
       }
       // op不为空才去发送请求
@@ -284,7 +285,7 @@
           url: `${self.$parent.globalData.apiUrl}/flow.php`,
           data: {
             step: 'select_cart_goods',
-            id: e.currentTarget.dataset.id, // 商品ID
+            id: i, // 商品ID
             op: op
           }
         }).then(({data: {errcode, data, msg}}) => {

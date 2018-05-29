@@ -3,7 +3,7 @@
   <view class="panic-buying_activity">
     <view class="recommend-goods">
       <navigator class="goods-banner_pic" href="javascript:void(0)">
-        <image src="{{ac_res ? (img_domain + ac_res.banner) : (imgUrl + '/no_picture.jpg')}}" mode="widthFix"></image>
+        <image wx:if="{{imgUrl}}" src="{{ac_res ? (img_domain + ac_res.banner) : (imgUrl + '/no_picture.jpg')}}" mode="widthFix"></image>
       </navigator>
       <view class="time-count_down">
         <text>{{desc}}</text>
@@ -14,7 +14,7 @@
       <view class="goods-lists" style="overflow: hidden;">
         <navigator class="sub-goods_list" wx:for="{{goods_list}}" wx:key="{{item.upc_id}}" url="/pages/shopping/goods/goods?gid={{item.upc_id}}">
           <view class="goods-img">
-            <image src="{{item.img_url ? item.img_url : (imgUrl + '/no_picture.jpg')}}" mode="widthFix"></image>
+            <image wx:if="{{imgUrl}}" src="{{item.img_url ? item.img_url : (imgUrl + '/no_picture.jpg')}}" mode="widthFix"></image>
             <span class="vedio_icon" wx:if="{{item.video_url}}">
               <image src="{{imgUrl}}/vedio_icon.png" mode="widthFix"></image>
             </span>
@@ -74,7 +74,6 @@
         this.aid = q.id
         this.sharePath = `pages/shopping/panicBuy?id=${q.id}&s=${wepy.getStorageSync('sellerId')}`
       })
-      this.$apply()
       this.loadMore()
     }
     loadMore() {

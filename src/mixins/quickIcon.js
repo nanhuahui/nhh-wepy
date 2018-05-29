@@ -37,7 +37,7 @@ export default class qcMixin extends wepy.mixin {
   }
 
   onShow() {
-    console.log('mixin onShow')
+    console.log('quickIconMixin onShow')
     // 不需要提醒时 自动隐藏快捷导航
     if (!wepy.getStorageSync('showQuickIconMsg')) {
       this.showQuickIcon = 'hide'
@@ -47,7 +47,7 @@ export default class qcMixin extends wepy.mixin {
 
   onLoad() {
     let self = this
-    console.log('mixin onLoad')
+    console.log('quickIconMixin onLoad')
     // 首次进入小程序 快捷导航提醒
     if (wepy.getStorageSync('showQuickIconMsg')) {
       this.showQuickIcon = 'show'

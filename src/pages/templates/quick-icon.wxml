@@ -1,5 +1,5 @@
 <template name="quickIcon">
-  <view class="quickIcon">
+  <view class="quickIcon" wx:if="{{imgUrl}}">
     <image wx:if="{{showQuickIcon!=='show'}}" bindtap="showQuickIconTap" src="{{imgUrl}}/smallIcon/entry.png"/>
     <view wx:if="{{showQuickIcon!=='hide'}}" class="{{showQuickIcon === 'default' ? 'quickCont' : (showQuickIcon === 'show' ? 'quickCont quickContAni' : 'quickCont quickHideAni')}}">
       <!-- back -->
@@ -13,7 +13,8 @@
       <!-- collect -->
       <image bindtap="toNavigate" data-url="/pages/user/myCollect" class="quickSearch" src="{{imgUrl}}/smallIcon/collect.png"/>
       <!-- share or search ="{{currentPageRoute!=='page/shopping/searchGoods/searchGoods'}}"-->
-      <image wx:if="{{currentPageRoute === 'index' || currentPageRoute === 'goods' || currentPageRoute === 'pages/uploadGoods/goodsInfo'}}" class="quickQrcode" src="{{imgUrl}}/smallIcon/share.png" bindtap="switchPatch"/>
+      <image wx:if="{{currentPageRoute === 'index' || currentPageRoute === 'goods' || currentPageRoute === 'pages/uploadGoods/goodsInfo'}}" class="quickQrcode"
+        src="{{imgUrl}}/smallIcon/share.png" bindtap="switchPatch"/>
       <image wx:else class="quickQrcode" src="{{imgUrl}}/smallIcon/search_index.png" bindtap="toNavigate" data-url="/pages/shopping/searchGoods"/>
     </view>
   </view>

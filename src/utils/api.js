@@ -196,6 +196,18 @@ export async function loginByUser(wxUser) {
         wepy.removeStorageSync('router-options')
       } else {
         console.error('登录失败', msg)
+        wepy.showModal({
+          title: '登录失败',
+          content: msg,
+          cancelText: '取消',
+          confirmText: '重新登录'
+        }).then((res) => {
+          if (res.confirm) {
+            wepy.reLaunch({url: '/pages/oauth'})
+          } else if (res.cancel) {
+            console.log('取消再次登录')
+          }
+        })
       }
       wepy.hideLoading()
     }).catch((error) => {
