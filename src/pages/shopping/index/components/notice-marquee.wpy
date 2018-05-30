@@ -1,0 +1,91 @@
+<template>
+  <view class="notice-box" v-if="noticeText" style="margin-top: 0.2167rem">
+    <view class="notice">
+      <image class="notice_img" src="{{imgUrl}}/notice.png"></image>
+      <text>通知</text>
+    </view>
+    <view class="marquee_box scrollTop">
+      <view class="marquee_text" style="{{orientation}}:{{marqueeDistance}}px;font-size: {{size}}px;">
+        {{noticeText}}
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+
+export default class noticeMarquee extends wepy.component {
+  props = {
+    orientation: String,
+    marqueeDistance: Number,
+    size: Number,
+    noticeText: String,
+    imgUrl: Object
+  }
+  onLoad() {
+  }
+  data = {
+  }
+  methods = {
+    // 点击事件
+  }
+}
+</script>
+
+<style lang="less">
+/*通知栏*/
+.notice-box{
+  display:flex;background:white;
+}
+.notice{
+  padding-left:20rpx;
+  height:60rpx;
+  width:120rpx;
+  display:inline-block;
+  line-height:2
+}
+.notice .notice_img{
+  width:35rpx;height:30rpx;
+  vertical-align:sub;
+  display:inline-block;
+}
+.notice text{
+  font-size:28rpx;
+  font-weight:bold;
+  color:#D2A475;
+  display:inline-block;
+  margin-left:20rpx;
+  position:relative;
+}
+.notice text:before{
+  content:'';
+  height:32rpx;
+  width:1px;
+  position:absolute;
+  top:14rpx;
+  left:-10rpx;
+  background:#eee;
+}
+/*.example {
+  display: block;
+  width: 100%;
+  height: 100rpx;
+}*/
+.marquee_box {
+  flex:1;
+  position: relative;
+}
+.marquee_text {
+  padding-top:4rpx;
+  line-height: 1.9;
+  background:#fff;
+  font-size:24rpx;
+  position: absolute;
+  left: 0;
+  padding-left:10rpx;
+}
+.scrollTop{
+  height:60rpx; overflow: hidden; padding-left: 7px;
+}
+</style>

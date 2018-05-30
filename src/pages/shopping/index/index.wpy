@@ -10,6 +10,9 @@
     <!-- 分类 -->
     <category :categoryList.sync="categoryArr" :imgUrl.sync="imgUrl" componentId="indexSwiper"></category>
 
+    <!-- 通知 -->
+    <noticeMarquee :orientation.sync="orientation" :marqueeDistance.sync="marqueeDistance" :size.sync="size" :noticeText.sync="noticeText" :imgUrl.sync="imgUrl" componentId="noticeMarquee"></noticeMarquee>
+
     <!-- 店主精选 -->
     <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="shoperChosen"></shoperChosen>
 
@@ -78,6 +81,7 @@ import allDayHot from './components/all-day-hot'
 import auction from './components/auction'
 import indexLoading from './components/loading'
 import qcMixin from '@/mixins/quickIcon'
+import noticeMarquee from './components/notice-marquee'
 import { getCategory, getStoreIndex, getRecommend, getDistribution, addCart, addCollection, setCartNum } from '@/utils/api'
 
 export default class Index extends wepy.page {
@@ -99,10 +103,18 @@ export default class Index extends wepy.page {
     allDayHot,
     qrPatchLayer,
     auction,
-    indexLoading
+    indexLoading,
+    noticeMarquee
   }
   mixins = [qcMixin]
   data = {
+    noticeText: null,
+    marqueeH: null,
+    marqueePace: 1,  // 滚动速度
+    marqueeDistance: 20,  // 初始滚动距离
+    size: 14,
+    orientation: 'top',  // 滚动方向
+    interval: 50,   // 时间间隔
     imgUrl: '',
     goods_list: [],
     active: [],
@@ -382,9 +394,23 @@ export default class Index extends wepy.page {
           self.ptList = data.pt_list
           self.ptTotalNum = data.pt_total_num
           self.special = data.special
+          self.noticeText = data.circular
           // self.groupGoodsNumber = groupGoodsNumber
           self.loadComplete = true
         })
+        // wepy使用获取元素节点的方法需加定时器，否则获取不到res
+        setTimeout(() => {
+          // 获取滚动内容盒子的高度
+          let query = wepy.createSelectorQuery()
+          // 选择类名
+          query.select('.marquee_text').boundingClientRect()
+          query.exec(function (res) {
+            // 取高度
+            self.marqueeH = res[0].height
+            self.$apply()
+          })
+          self.marquee()  // 水平一行字滚动完了再按照原来的方向滚动
+        }, 500)
       } else {
         console.error(msg)
       }
@@ -405,6 +431,22 @@ export default class Index extends wepy.page {
     }).catch((error) => {
       console.log('获取消费商数据失败！', error)
     })
+  }
+  marquee() {
+    var self = this
+    var interval = setInterval(function () {
+      if (-self.data.marqueeDistance < self.data.marqueeH) {
+        self.marqueeDistance = self.data.marqueeDistance - self.data.marqueePace
+        self.$apply()
+        if (-self.data.marqueeDistance === self.data.marqueeH) {
+          self.marqueeDistance = 0
+          self.$apply()
+        }
+      } else {
+        clearInterval(interval)
+        self.marquee()
+      }
+    }, self.data.interval)
   }
   // 个性推荐
   loadRecommend() {
