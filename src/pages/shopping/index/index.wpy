@@ -111,7 +111,7 @@ export default class Index extends wepy.page {
     noticeText: null,
     marqueeH: null,
     marqueePace: 1,  // 滚动速度
-    marqueeDistance: 20,  // 初始滚动距离
+    marqueeDistance: 0,  // 初始滚动距离
     size: 14,
     orientation: 'top',  // 滚动方向
     interval: 50,   // 时间间隔
@@ -439,7 +439,7 @@ export default class Index extends wepy.page {
         self.marqueeDistance = self.data.marqueeDistance - self.data.marqueePace
         self.$apply()
         if (-self.data.marqueeDistance === self.data.marqueeH) {
-          self.marqueeDistance = 0
+          self.marqueeDistance = 30
           self.$apply()
         }
       } else {
