@@ -11,7 +11,7 @@
     <category :categoryList.sync="categoryArr" :imgUrl.sync="imgUrl" componentId="indexSwiper"></category>
 
     <!-- 通知 -->
-    <noticeMarquee :noticeText.sync="noticeText" :imgUrl.sync="imgUrl" componentId="noticeMarquee"></noticeMarquee>
+    <noticeMarquee :imgUrl.sync="imgUrl" componentId="noticeMarquee"></noticeMarquee>
 
     <!-- 店主精选 -->
     <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="shoperChosen"></shoperChosen>
@@ -108,7 +108,6 @@ export default class Index extends wepy.page {
   }
   mixins = [qcMixin]
   data = {
-    noticeText: null,
     imgUrl: '',
     goods_list: [],
     active: [],
@@ -227,6 +226,7 @@ export default class Index extends wepy.page {
   onHide() {
     // 离开时调用限时特卖的倒计时不再执行
     this.$invoke('flashSale', 'uninstall')
+    this.$invoke('noticeMarquee', 'uninstall')
   }
   didReceviceQrPathNotification(notification) {
     // 不要直接使用 this
@@ -396,6 +396,8 @@ export default class Index extends wepy.page {
           // self.groupGoodsNumber = groupGoodsNumber
           self.loadComplete = true
         })
+        // 通知
+        this.$invoke('noticeMarquee', 'render', { noticeText: data.circular })
       } else {
         console.error(msg)
       }
