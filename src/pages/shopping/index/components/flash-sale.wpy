@@ -61,6 +61,7 @@ export default class flashSale extends wepy.component {
     imgDomain: Object
   }
   data = {
+    isActivation: false,
     imgUrl: IMG_URL,
     id: null,
     current: null,
@@ -81,8 +82,13 @@ export default class flashSale extends wepy.component {
     }
   }
   onLoad() {}
+
   methods = {
+    uninstall() {
+      this.isActivation = false
+    },
     render(data, event) {
+      this.isActivation = true
       this.id = data.id
       this.current = data.current
       this.next = data.next
@@ -107,6 +113,9 @@ export default class flashSale extends wepy.component {
   }
   countDown() {
     let self = this
+    if (!self.isActivation) {
+      return
+    }
     // 渲染倒计时时钟
     // 位数不足补零
     function fillZeroPrefix(num) {

@@ -224,6 +224,10 @@ export default class Index extends wepy.page {
     this.readyForQr()
     this.loadRecommend()
   }
+  onHide() {
+    // 离开时调用限时特卖的倒计时不再执行
+    this.$invoke('flashSale', 'uninstall')
+  }
   didReceviceQrPathNotification(notification) {
     // 不要直接使用 this
     var _this = notification._this
