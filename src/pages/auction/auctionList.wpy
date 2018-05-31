@@ -199,9 +199,9 @@
             return
           }
           // 数据组装
-          var list = self.auctionList
-          var countDown
-          for (var i = 0; i < data.auction_info.length; i++) {
+          let list = self.auctionList
+          let countDown
+          for (let i = 0; i < data.auction_info.length; i++) {
             let actTime, desc
             // 倒计时start
             countDown = new CountDown({

@@ -123,6 +123,7 @@ import {composeImageForGoods, composeTextForGoods} from '@/utils/data'
 import { getGoods, addCollection, addCart, conversionGoodsVideo } from '@/utils/api'
 import qcMixin from '@/mixins/quickIcon'
 
+let intervalTimer
 let w = wepy.getSystemInfoSync().windowWidth
 let h = wepy.getSystemInfoSync().windowHeight
 export default class Goods extends wepy.page {
@@ -461,7 +462,7 @@ export default class Goods extends wepy.page {
     let index = 30
     let self = this
     let bezierPoints = linePos['bezier_points']
-    this.timer = setInterval(function () {
+    intervalTimer = setInterval(function () {
       index--
       if (bezierPoints[index]) {
         self.showBall = true
@@ -470,7 +471,7 @@ export default class Goods extends wepy.page {
       }
       if (index === 0) {
         self.showBall = false
-        clearInterval(self.timer)
+        clearInterval(intervalTimer)
       }
       self.$apply()
     }, 10)

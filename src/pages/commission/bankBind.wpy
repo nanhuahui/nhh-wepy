@@ -50,6 +50,7 @@
   import wepy from 'wepy'
   import { checkIdcard } from '@/utils'
 
+  let intervalTimer
   export default class cashRecord extends wepy.page {
     config = {
       navigationBarTitleText: '绑定银行卡'
@@ -201,14 +202,14 @@
         }
       }).then(({data: {errcode, data, msg}}) => {
         if (errcode === 0) {
-          this.setInter = setInterval(function() {
+          intervalTimer = setInterval(function() {
             countDown--
             if (countDown > 0) {
               self.$apply(() => {
                 self.securityText = countDown > 9 ? '重新获取' + '(' + countDown + ')' : '重新获取' + '(0' + countDown + ')'
               })
             } else {
-              clearInterval(self.setInter)
+              clearInterval(intervalTimer)
               self.$apply(() => {
                 self.btnDisable = false
                 self.securityText = '获取验证码'

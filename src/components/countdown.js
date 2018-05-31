@@ -172,6 +172,7 @@ class Countdown {
     this.render()
     if (this.options.refresh) {
       this.interval = setInterval(() => {
+        console.log(123332)
         this.render()
       }, this.options.refresh)
     }
