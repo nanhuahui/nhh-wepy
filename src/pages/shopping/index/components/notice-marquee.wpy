@@ -5,7 +5,7 @@
       <text>通知</text>
     </view>
     <view class="marquee_box scrollTop">
-      <view class="marquee_text" style="{{orientation}}:{{marqueeDistance}}px;font-size: {{size}}px;">
+      <view animation="{{animationData}}" class="marquee_text" style="{{orientation}}:{{marqueeDistance}}px;font-size: {{size}}px;">
         {{noticeText}}
       </view>
     </view>
@@ -21,22 +21,29 @@ export default class noticeMarquee extends wepy.component {
     imgUrl: Object
   }
   onLoad() {
-    let self = this
-    // wepy使用获取元素节点的方法需加定时器，否则获取不到res
-    setTimeout(() => {
-      // 获取滚动内容盒子的高度
-      let query = wepy.createSelectorQuery()
-      // 选择类名
-      query.select('.marquee_text').boundingClientRect()
-      query.exec(function (res) {
-        // 取高度
-        self.marqueeH = res[0].height
-        self.$apply()
-        self.marqueeFn()  // 水平一行字滚动完了再按照原来的方向滚动
-      })
-    }, 500)
+    // let self = this
+    // // wepy使用获取元素节点的方法需加定时器，否则获取不到res
+    // setTimeout(() => {
+    //   // 获取滚动内容盒子的高度
+    //   let query = wepy.createSelectorQuery()
+    //   // 选择类名
+    //   query.select('.marquee_text').boundingClientRect()
+    //   query.exec(function (res) {
+    //     // 取高度
+    //     self.marqueeH = res[0].height
+    //     self.$apply()
+    //     // self.marqueeFn()  // 水平一行字滚动完了再按照原来的方向滚动
+    //   })
+    // }, 500)
+
+    this.animation = wepy.createAnimation({
+      duration: 1000,
+      timingFunction: 'linear'
+    })
+    this.autoPlay()
   }
   data = {
+    animationData: {},
     size: 14,
     orientation: 'top', // 滚动方向
     interval: 50, // 时间间隔
@@ -51,14 +58,24 @@ export default class noticeMarquee extends wepy.component {
       if (-self.marqueeDistance < self.marqueeH) {
         self.marqueeDistance = self.marqueeDistance - self.marqueePace
         self.$apply()
-        if (-self.marqueeDistance === self.marqueeH) {
-          self.marqueeDistance = 30
-          self.$apply()
-        }
+      } else if (-self.marqueeDistance === self.marqueeH) {
+        self.marqueeDistance = 30
+        self.$apply()
       } else {
         clearInterval(interval)
       }
     }, self.interval)
+  }
+  autoPlay() {
+    setTimeout(function() {
+      // 先旋转后放大
+      for (var i = 0; i < 105; i++) {
+        this.animation.translateY(-i * 10).step()
+      }
+      this.$apply(() => {
+        this.animationData = this.animation.export()
+      })
+    }.bind(this), 1500)
   }
 }
 </script>
