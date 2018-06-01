@@ -27,7 +27,7 @@ export default class noticeMarquee extends wepy.component {
     animationData: {},
     size: 14,
     orientation: 'top', // 滚动方向
-    interval: 50, // 时间间隔
+    interval: 200, // 时间间隔
     marqueeH: null,
     marqueePace: 1,  // 滚动速度
     marqueeDistance: 0  // 初始滚动距离
