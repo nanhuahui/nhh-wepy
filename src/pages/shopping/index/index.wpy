@@ -395,7 +395,6 @@ export default class Index extends wepy.page {
           self.ptList = data.pt_list
           self.ptTotalNum = data.pt_total_num
           self.special = data.special
-          self.noticeText = data.circular
           // self.groupGoodsNumber = groupGoodsNumber
           self.loadComplete = true
         })
