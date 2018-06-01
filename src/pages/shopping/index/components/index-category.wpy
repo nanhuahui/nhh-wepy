@@ -23,10 +23,12 @@
 
 <template>
   <view class="row category" style="overflow: hidden;margin: 0;">
-    <view class="col-xs-3" wx:for="{{categoryList}}" wx:key="index" data-item="{{item}}" bindtap="toCategory">
-      <image src="{{item.img ? item.img : imgUrl + '/no_picture.jpg'}}" mode="widthFix"></image>
-      <text class="c3 h7">{{item.name}}</text>
-    </view>
+    <repeat for="{{categoryList}}" key="index" index="index" item="item">
+      <view class="col-xs-3" data-item="{{item}}" bindtap="toCategory">
+        <image src="{{item.img ? item.img : imgUrl + '/no_picture.jpg'}}" mode="widthFix"></image>
+        <text class="c3 h7">{{item.name}}</text>
+      </view>
+    </repeat>
   </view>
 </template>
 

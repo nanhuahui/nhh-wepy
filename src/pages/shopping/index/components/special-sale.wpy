@@ -145,29 +145,31 @@
     <view class="hot-sale_title">
       <text>今日特卖</text>
     </view>
-    <view wx:for="{{active}}" wx:for-item="list" wx:key="list.hotId" class="hot-sale_goods" bindtap="navigat_act" data-isact="{{isActivity}}" data-item="{{list}}">
-      <!--特卖banner-->
-      <view class="hot-sale_img">
-        <image src="{{list.banner ? imgDomain + list.banner : ''}}" mode="widthFix"></image>
-      </view>
-      <!--特卖商品描述-->
-      <view class="hot-sale_info">
-        <view class="goods_info">
-          <view class="goods_title">
-            <text class="discount">{{list.act_price}}</text>
-            <text>{{list.act_brief}}</text>
+    <repeat for="{{active}}" key="list.hotId" item="list">
+      <view class="hot-sale_goods" bindtap="navigat_act" data-isact="{{isActivity}}" data-item="{{list}}">
+        <!--特卖banner-->
+        <view class="hot-sale_img">
+          <image src="{{list.banner ? imgDomain + list.banner : ''}}" mode="widthFix"></image>
+        </view>
+        <!--特卖商品描述-->
+        <view class="hot-sale_info">
+          <view class="goods_info">
+            <view class="goods_title">
+              <text class="discount">{{list.act_price}}</text>
+              <text>{{list.act_brief}}</text>
+            </view>
+            <view class="goods_detail">
+              {{list.act_name}}
+            </view>
           </view>
-          <view class="goods_detail">
-            {{list.act_name}}
+          <view class="buy_info">
+            <text class="discount_price"> {{list.act_price_favourable}}</text>
+            <text class="origin_price"> {{list.act_price_original}}</text>
+            <text class="buy_btn">立即抢购</text>
           </view>
         </view>
-        <view class="buy_info">
-          <text class="discount_price"> {{list.act_price_favourable}}</text>
-          <text class="origin_price"> {{list.act_price_original}}</text>
-          <text class="buy_btn">立即抢购</text>
-        </view>
       </view>
-    </view>
+    </repeat>
   </view>
 </template>
 

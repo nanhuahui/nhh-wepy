@@ -12,23 +12,25 @@
       bindscrolltolower="loadMore" bindscroll="scroll"
       class="goods-lists data-list clearfix"
       style="height: 100%;display: block;overflow: hidden;">
-      <view class="list-item" wx:for="{{goods_list}}" wx:for-item="g" wx:key="g.upc_id">
-        <navigator url="./goods/goods?gid={{g.upc_id}}">
-          <view class="goods-img">
-            <image src="{{g.img_url?g.img_url:imgUrl+'/no_picture.jpg'}}" mode="widthFix"></image>
-            <span class="vedio_icon" wx:if="{{g.video_url}}">
-              <image src="{{imgUrl}}/vedio_icon.png" mode="widthFix"></image>
+      <repeat for="{{goods_list}}" key="g.upc_id" item="g">
+        <view class="list-item">
+          <navigator url="./goods/goods?gid={{g.upc_id}}">
+            <view class="goods-img">
+              <image src="{{g.img_url?g.img_url:imgUrl+'/no_picture.jpg'}}" mode="widthFix"></image>
+              <span class="vedio_icon" wx:if="{{g.video_url}}">
+                <image src="{{imgUrl}}/vedio_icon.png" mode="widthFix"></image>
+              </span>
+            </view>
+          </navigator>
+          <view class="goods-price">
+            {{g.shop_price}}
+            <span class="goods-price_origin">
+              {{g.market_price ? g.market_price : ''}}
             </span>
           </view>
-        </navigator>
-        <view class="goods-price">
-          {{g.shop_price}}
-          <span class="goods-price_origin">
-            {{g.market_price ? g.market_price : ''}}
-          </span>
+          <view class="goods-title">{{g.goods_name}}</view>
         </view>
-        <view class="goods-title">{{g.goods_name}}</view>
-      </view>
+      </repeat>
     </scroll-view>
     <view class="body-view">
       <loading hidden="{{hidden}}" bindchange="loadingChange">

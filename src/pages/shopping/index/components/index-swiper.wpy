@@ -1,16 +1,13 @@
-<style lang="less">
-</style>
-
 <template>
   <swiper style="height:410rpx;" wx:if="{{turnsInfo.length > 0}}"
     indicator-dots="true" autoplay="true" interval="4500" duration="1000" circular="true">
-    <block wx:for="{{turnsInfo}}" wx:key="id">
+    <repeat for="{{turnsInfo}}" key="id" index="index" item="item">
       <swiper-item>
         <view style="height: 100%;" data-item="{{item.turns_link}}" bindtap="toBanner">
           <image class="slide-img" src="{{imgDomain + item.banner}}" mode="scaleToFill"/>
         </view>
       </swiper-item>
-    </block>
+    </repeat>
   </swiper>
 </template>
 

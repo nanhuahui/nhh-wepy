@@ -7,30 +7,31 @@
     <!--轮播图-->
     <view class="we-container">
       <weSwiper :option.sync="swiper">
-        <view wx:for="{{auctionList}}" wx:for-item="auction" wx:key="index"
-          class="we-slide goods {{index === activeIndex ? 'active' : ''}}">
-          <navigator class="goodsImg" url="../../auction/auctionList?con={{auction.con}}">
-            <image src="{{imgDomain + auction.banner}}" mode="widthFix" />
-            <view class="tips" wx:if="{{auction.status==='1'}}" style="background-color:#5B7853;">
-              <view class="dot"></view>预约中
-            </view>
-            <view class="tips" wx:elif="{{auction.status==='2'}}" style="background-color:#E76A6B;">
-              <view class="dot"></view>进行中
-            </view>
-            <view class="tips" wx:else style="background-color:#3C3C3D;">
-              <view class="dot"></view>已结束
-            </view>
-          </navigator>
-          <view class="goodsInfo">
-            <view class="h7 c3 title">{{auction.act_name}}</view>
-            <view class="h16 c2 number">
-              <text class="h16" wx:if="{{auction.status === '1'}}">起拍价</text>
-              <text class="h16" wx:if="{{auction.status === '2'}}">最高价</text>
-              <text class="h16" wx:if="{{auction.status === '3'}}">成交价</text>
-              <text class="h2 c11">￥{{auction.show_price}}</text>
+        <repeat for="{{auctionList}}" key="index" index="index" item="auction">
+          <view class="we-slide goods {{index === activeIndex ? 'active' : ''}}">
+            <navigator class="goodsImg" url="../../auction/auctionList?con={{auction.con}}">
+              <image src="{{imgDomain + auction.banner}}" mode="widthFix" />
+              <view class="tips" wx:if="{{auction.status==='1'}}" style="background-color:#5B7853;">
+                <view class="dot"></view>预约中
+              </view>
+              <view class="tips" wx:elif="{{auction.status==='2'}}" style="background-color:#E76A6B;">
+                <view class="dot"></view>进行中
+              </view>
+              <view class="tips" wx:else style="background-color:#3C3C3D;">
+                <view class="dot"></view>已结束
+              </view>
+            </navigator>
+            <view class="goodsInfo">
+              <view class="h7 c3 title">{{auction.act_name}}</view>
+              <view class="h16 c2 number">
+                <text class="h16" wx:if="{{auction.status === '1'}}">起拍价</text>
+                <text class="h16" wx:if="{{auction.status === '2'}}">最高价</text>
+                <text class="h16" wx:if="{{auction.status === '3'}}">成交价</text>
+                <text class="h2 c11">￥{{auction.show_price}}</text>
+              </view>
             </view>
           </view>
-        </view>
+        </repeat>
       </weSwiper>
     </view>
     <view class="auctionData">

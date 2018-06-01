@@ -14,16 +14,18 @@
   </navigator>
   <!-- 滑动菜单 -->
   <scroll-view scroll-x="true" class="scrollView" scroll-into-view="{{toView}}" scroll-with-animation="true">
-    <view wx:for="{{timeList}}" wx:for-item="t" wx:key="{{index}}" id="item-{{index + 1}}" class="list-item {{t.act_id === (id + '') ? 'item-active' : ''}}">
-      <navigator url="../flashSale?id={{t.act_id}}" class="timePoint">
-        <view class="h3 c3">
-          {{t.show_time}}
-        </view>
-        <view class="c2 h7">
-          {{t.start}}
-        </view>
-      </navigator>
-    </view>
+    <repeat for="{{timeList}}" key="index" index="index" item="t">
+      <view id="item-{{index + 1}}" class="list-item {{t.act_id === (id + '') ? 'item-active' : ''}}">
+        <navigator url="../flashSale?id={{t.act_id}}" class="timePoint">
+          <view class="h3 c3">
+            {{t.show_time}}
+          </view>
+          <view class="c2 h7">
+            {{t.start}}
+          </view>
+        </navigator>
+      </view>
+    </repeat>
   </scroll-view>
   <!-- 滑动菜单end -->
   <navigator url="../flashSale?id={{id}}" style="margin-top: -18rpx;">

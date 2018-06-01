@@ -5,20 +5,22 @@
     <view class="scrollView">
       <scroll-view class="goods-lists" style="height: 100%;" scroll-y="true" scroll-top="0" bindscrolltolower="loadMore" bindscroll="scroll">
         <view style="overflow: hidden;">
-          <navigator class="sub-goods_list" wx:for="{{goodsList}}" wx:for-item="g" wx:key="{{g.upc_id}}" url="./goods/goods?gid={{g.upc_id}}">
-            <view class="goods-img">
-              <image src="{{g.master_img}}" mode="widthFix"></image>
-              <view class="vedio_icon" wx:if="{{g.video}}">
-                <image src='{{imgUrl}}/vedio_icon.png' mode="widthFix" style="width: 39px;"></image>
+          <repeat for="{{goodsList}}" key="g.upc_id" item="g">
+            <navigator class="sub-goods_list" url="./goods/goods?gid={{g.upc_id}}">
+              <view class="goods-img">
+                <image src="{{g.master_img}}" mode="widthFix"></image>
+                <view class="vedio_icon" wx:if="{{g.video}}">
+                  <image src='{{imgUrl}}/vedio_icon.png' mode="widthFix" style="width: 39px;"></image>
+                </view>
               </view>
-            </view>
-            <view class="goods-brief">{{g.goods_brief}}</view>
-            <view class="goods-title">{{g.goods_name}}</view>
-            <view class="goods-price">
-              {{g.promote_price}}
-              <text class="goods-price_origin">{{g.market_price}}</text>
-            </view>
-          </navigator>
+              <view class="goods-brief">{{g.goods_brief}}</view>
+              <view class="goods-title">{{g.goods_name}}</view>
+              <view class="goods-price">
+                {{g.promote_price}}
+                <text class="goods-price_origin">{{g.market_price}}</text>
+              </view>
+            </navigator>
+          </repeat>
         </view>
         <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}" style="height:4.2em;">
           <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>

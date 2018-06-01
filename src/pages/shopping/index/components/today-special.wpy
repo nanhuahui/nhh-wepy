@@ -12,7 +12,7 @@
 
 .choose-con div:first-child image {
   margin-left: -0.427rem;
-  
+
 }
 
 .choose_img image {
@@ -48,7 +48,7 @@
   height: 0.512rem;
   margin-top: 1.28rem;
   margin-left: 0.853rem;
-}  
+}
 </style>
 
 <template>
@@ -58,19 +58,21 @@
     <view class="shoper_header" style="border-bottom: 2rpx solid #eee;">
       <view class="h1 c3">今日精选</view>
       <text class="h7 c2" style="font-size:24rpx;">好货清单</text>
-    </view>   
-    <view class="choose-con" style="background: #fff" wx:for="{{special}}" wx:key="{{id}}">
-      <navigator url="/pages/shopping/todaySpecial?id={{item.id}}">
-        <view class="col-xs-4 text-left choose_img">
-          <image src="{{item.banner_new ? imgDomain + item.banner_new : ''}}"/>
-        </view>
-        <view class="col-xs-8 choose-txt text-left">
-          <text>{{item.special_name}}</text>
-          <text>相关产品<text class="numberText">{{item.goods_num}}</text>款,<text class="numberText">{{item.goods_price}}</text>元起售</text>
-        </view>
-        <image class="good_arrows" src="{{imgUrl}}/jiantou.png" mode="widthFix"/>
-      </navigator>
     </view>
+    <repeat for="{{special}}" key="id">
+      <view class="choose-con" style="background: #fff">
+        <navigator url="/pages/shopping/todaySpecial?id={{item.id}}">
+          <view class="col-xs-4 text-left choose_img">
+            <image src="{{item.banner_new ? imgDomain + item.banner_new : ''}}"/>
+          </view>
+          <view class="col-xs-8 choose-txt text-left">
+            <text>{{item.special_name}}</text>
+            <text>相关产品<text class="numberText">{{item.goods_num}}</text>款,<text class="numberText">{{item.goods_price}}</text>元起售</text>
+          </view>
+          <image class="good_arrows" src="{{imgUrl}}/jiantou.png" mode="widthFix"/>
+        </navigator>
+      </view>
+    </repeat>
   </view>
 </template>
 

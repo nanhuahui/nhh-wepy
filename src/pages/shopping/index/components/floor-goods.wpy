@@ -1,44 +1,46 @@
 <template>
-  <view class="recommend-goods" wx:for="{{composeFloorArr}}" wx:for-item="floor" wx:key="floor.cat_id">
-    <!--间隔线-->
-    <view class="separate"></view>
-    <view class="floor_title">
-      <image src="{{imgUrl}}/floor_title.png"></image>
-      <text>{{floor.title}}</text>
-    </view>
-    <!--楼层banner-->
-    <navigator url="/pages/shopping/category?cid={{floor.cat_id}}" style="margin-bottom: -6px;">
-      <image class="goods-banner_pic" src="{{imgUrl}}/floorBanner/{{floor.banner}}" mode="widthFix" />
-    </navigator>
-    <!--楼层商品-->
-    <view class="goods-lists">
-      <block wx:for="{{floor.goods_list}}" wx:for-item="g" wx:key="{{g.goods_id}}">
-        <navigator class="sub-goods_list" url="/pages/shopping/goods/goods?gid={{g.upc_id}}">
-          <view class="goods-img">
-            <image src="{{g.img_url}}" mode="widthFix" />
-            <!-- <view class="vedio_icon" wx:if="{{g.video_url}}">
-              <image src="{{imgUrl}}/vedio_icon.png" mode="widthFix"></image>
-            </view>  -->           
-          </view>
-          <view class="goods-price">
-            <text class="promote">{{g.shop_price}}</text>
-            <text class="goods-price_origin">{{g.market_price}}</text>
-          </view>
-          <view class="goods-brief">{{g.goods_brief}}</view>
-          <view class="goods-title">{{g.goods_name}}</view>
-        </navigator>
-      </block>
-      <navigator class="sub-goods_list goods-more_list" url="/pages/shopping/category?cid={{floor.cat_id}}">
-        <image src="{{imgUrl}}/lettle_bg.png" mode="widthFix" style="width:100%;"></image>
-        <view class="see_more">
-          <image src="{{imgUrl}}/more.jpg"></image>
-          <text class="ch_more">查看更多</text>
-          <text class="eng_more">See More</text>
-        </view>
-        <view class="space" style="height:198rpx;width: 100%;"></view>
+  <repeat for="{{composeFloorArr}}" key="floor.cat_id" index="index" item="floor">
+    <view class="recommend-goods">
+      <!--间隔线-->
+      <view class="separate"></view>
+      <view class="floor_title">
+        <image src="{{imgUrl}}/floor_title.png"></image>
+        <text>{{floor.title}}</text>
+      </view>
+      <!--楼层banner-->
+      <navigator url="/pages/shopping/category?cid={{floor.cat_id}}" style="margin-bottom: -6px;">
+        <image class="goods-banner_pic" src="{{imgUrl}}/floorBanner/{{floor.banner}}" mode="widthFix" />
       </navigator>
+      <!--楼层商品-->
+      <view class="goods-lists">
+        <repeat for="{{floor.goods_list}}" key="g.goods_id" index="index" item="g">
+          <navigator class="sub-goods_list" url="/pages/shopping/goods/goods?gid={{g.upc_id}}">
+            <view class="goods-img">
+              <image src="{{g.img_url}}" mode="widthFix" />
+              <!-- <view class="vedio_icon" wx:if="{{g.video_url}}">
+                <image src="{{imgUrl}}/vedio_icon.png" mode="widthFix"></image>
+              </view>  -->
+            </view>
+            <view class="goods-price">
+              <text class="promote">{{g.shop_price}}</text>
+              <text class="goods-price_origin">{{g.market_price}}</text>
+            </view>
+            <view class="goods-brief">{{g.goods_brief}}</view>
+            <view class="goods-title">{{g.goods_name}}</view>
+          </navigator>
+        </repeat>
+        <navigator class="sub-goods_list goods-more_list" url="/pages/shopping/category?cid={{floor.cat_id}}">
+          <image src="{{imgUrl}}/lettle_bg.png" mode="widthFix" style="width:100%;"></image>
+          <view class="see_more">
+            <image src="{{imgUrl}}/more.jpg"></image>
+            <text class="ch_more">查看更多</text>
+            <text class="eng_more">See More</text>
+          </view>
+          <view class="space" style="height:198rpx;width: 100%;"></view>
+        </navigator>
+      </view>
     </view>
-  </view>
+  </repeat>
 </template>
 
 <script>

@@ -2,7 +2,7 @@
   <view class="loaders" hidden="{{ !visible }}">
 		<view class="loader">
 			<view class="loader-inner" class="{{className}}">
-				<view wx:for="{{divCount}}" wx:key="{{index}}"></view>
+        <repeat for="{{divCount}}" key="index"><view></view></repeat>
 			</view>
 		</view>
 	</view>
