@@ -1,17 +1,4 @@
-/**
- * 
- * htmlParser改造自: https://github.com/blowsie/Pure-JavaScript-HTML5-Parser
- * 
- * author: Di (微信小程序开发工程师)
- * organization: WeAppDev(微信小程序开发论坛)(http://weappdev.com)
- *               垂直微信小程序开发交流社区
- * 
- * github地址: https://github.com/icindy/wxParse
- * 
- * for: 微信小程序富文本解析
- * detail : http://weappdev.com/t/wxparse-alpha0-1-html-markdown/184
- */
-// Regular Expressions for parsing tags and attributes
+/*eslint-disable */
 var startTag = /^<([-A-Za-z0-9_]+)((?:\s+[a-zA-Z_:][-a-zA-Z0-9_:.]*(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,
 	endTag = /^<\/([-A-Za-z0-9_]+)[^>]*>/,
 	attr = /([a-zA-Z_:][-a-zA-Z0-9_:.]*)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;
@@ -83,9 +70,9 @@ function HTMLParser(html, handler) {
 				index = html.indexOf("<");
 				var text = ''
 				while (index === 0) {
-                                  text += "<";
-                                  html = html.substring(1);
-                                  index = html.indexOf("<");
+          text += "<";
+          html = html.substring(1);
+          index = html.indexOf("<");
 				}
 				text += index < 0 ? html : html.substring(0, index);
 				html = index < 0 ? "" : html.substring(index);
@@ -103,8 +90,6 @@ function HTMLParser(html, handler) {
 
 				return "";
 			});
-
-
 			parseEndTag("", stack.last());
 		}
 
@@ -190,3 +175,4 @@ function makeMap(str) {
 }
 
 module.exports = HTMLParser;
+/* eslint-enable */
