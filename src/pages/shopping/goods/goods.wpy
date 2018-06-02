@@ -9,7 +9,7 @@
       </swiper-item>
       <repeat for="{{goodsImg}}" key="img.goods_img" item="img">
         <swiper-item>
-          <image src="{{img.goods_img}}" width="240" height="240"/>
+          <image src="{{img.goods_img}}" width="240" height="240" mode="aspectFit"/>
         </swiper-item>
       </repeat>
     </swiper>
@@ -551,7 +551,7 @@ export default class Goods extends wepy.page {
 }
 
 .titlePrice {
-  padding: 15px;
+  padding: 4rpx 30rpx 30rpx 30rpx;
   position: relative;
 }
 
