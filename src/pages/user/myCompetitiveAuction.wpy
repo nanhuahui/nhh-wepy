@@ -46,7 +46,7 @@
 
 <script>
   import wepy from 'wepy'
-  import CountDown from '@/components/countdown'
+  import CountDown from '@/utils/countdown'
 
   export default class myCompetitiveAuction extends wepy.page {
     config = {
@@ -55,6 +55,7 @@
     components = {}
     data = {
       imgUrl: '',
+      cdObj: null,
       imgDomain: '',
       auctionList: [], // 我的竞拍拍卖列表
       pageNum: 0,
@@ -63,7 +64,14 @@
     onLoad() {
       this.loadMore()
     }
-    onShow() {}
+    onHide() {
+      // 停止定时器
+      this.cdObj.stop()
+    }
+    onUnload() {
+      // 停止定时器
+      this.cdObj.stop()
+    }
     scroll(event) {
       // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
       this.$apply(() => {
@@ -105,10 +113,10 @@
           }
           // 数据组装
           var list = self.auctionList
-          let countDown, actTime, desc
+          let actTime, desc
           for (var i = 0; i < data.my_auction.length; i++) {
             // 倒计时start
-            countDown = new CountDown({
+            self.cdObj = new CountDown({
               start: data.my_auction[i].start_time * 1000,
               end: data.my_auction[i].end_time * 1000,
               render(date) {
@@ -138,7 +146,6 @@
             data.my_auction[i].desc = desc
             list.push(data.my_auction[i])
           }
-          console.log(countDown)
           // 赋值
           self.$apply(() => {
             self.auctionList = list

@@ -188,7 +188,7 @@
 <script>
   import wepy from 'wepy'
   import WxParse from '@/utils/wxParse/wxParse'
-  import CountDown from '@/components/countdown'
+  import CountDown from '@/utils/countdown'
   import { DEFAULT_NAME } from '@/utils/config'
 
   export default class myCollect extends wepy.page {
@@ -198,6 +198,7 @@
     components = {}
     data = {
       imgUrl: '',
+      cdObj: null,
       actId: null,
       upcId: null,
       goodsInfo: null, // 商品详情
@@ -242,6 +243,14 @@
     onShow() {}
     onReady() {
       // this.animation = wepy.createAnimation({transformOrigin: '0% 0%'})
+    }
+    onHide() {
+      // 停止定时器
+      this.cdObj.stop()
+    }
+    onUnload() {
+      // 停止定时器
+      this.cdObj.stop()
     }
     onPageScroll(e) {
       let self = this
@@ -345,7 +354,7 @@
           }
           // 倒计时start
           let actTime, desc
-          let countDown = new CountDown({
+          self.cdObj = new CountDown({
             start: data.goods_info.start_time * 1000,
             end: data.goods_info.end_time * 1000,
             render(date) {
@@ -375,7 +384,6 @@
               })
             }
           })
-          console.log(countDown)
           // 赋值
           self.imgDomain = data.img_domain
           self.goodsInfo = data.goods_info

@@ -85,14 +85,14 @@
 
 <script>
   import wepy from 'wepy'
-  import CountDown from '@/components/countdown'
+  import CountDown from '@/utils/countdown'
 
   export default class auctionList extends wepy.page {
     config = {
       navigationBarTitleText: '拍卖'
     }
-    components = {}
     data = {
+      cdList: [],
       imgUrl: '',
       auctionMessage: null, // 获拍消息提醒数据
       imgDomain: '',
@@ -117,6 +117,18 @@
     onShow() {
       this.imgUrl = this.$parent.globalData.imgUrl
       this.$apply()
+    }
+    onHide() {
+      // 停止定时器
+      this.cdList.map((i) => {
+        i.stop()
+      })
+    }
+    onUnload() {
+      // 停止定时器
+      this.cdList.map((i) => {
+        i.stop()
+      })
     }
     onShareAppMessage(options) {
       if (options.from === 'button') {
@@ -168,6 +180,12 @@
      */
     loadData() {
       let self = this
+      if (self.auctionStatus === 'done') {
+        // 拍卖历史时停止定时器
+        self.cdList.map((i) => {
+          i.stop()
+        })
+      }
       if (self.pageNum === -1) {
         // 分页条码为负均不加载
         return
@@ -198,15 +216,14 @@
             self.$apply()
             return
           }
+          /* eslint-disable */
           // 数据组装
-          let list = self.auctionList
-          let countDown
-          for (let i = 0; i < data.auction_info.length; i++) {
-            let actTime, desc
+					data.auction_info.map((a) => {
             // 倒计时start
-            countDown = new CountDown({
-              start: data.auction_info[i].start_time * 1000,
-              end: data.auction_info[i].end_time * 1000,
+            let td = new CountDown({
+              start: a.start_time * 1000,
+              end: a.end_time * 1000,
+							refresh: 1000,
               render(date) {
                 const days = this.leadingZeros(date.days, 2) === '00' ? '' : `${this.leadingZeros(date.days, 2)} 天`
                 const hours = this.leadingZeros(date.hours, 2) + ' : '
@@ -226,18 +243,17 @@
                   default:
                     text = '未知状态'
                 }
-                actTime = days + hours + min + sec
-                desc = text
+                a.act_time = days + hours + min + sec
+                a.desc = text
+								self.$apply()
               }
             })
-            data.auction_info[i].act_time = actTime
-            data.auction_info[i].desc = desc
-            list.push(data.auction_info[i])
-          }
-          console.log(countDown)
+						self.cdList.push(td)
+          })
           // 赋值
-          self.auctionList = list
+          self.auctionList = data.auction_info
           self.$apply()
+					/*eslint-enable */
         } else {
           wepy.showModal({
             content: msg,

@@ -1,3 +1,4 @@
+/* eslint-disable */
 class Countdown {
   constructor(options = {}) {
     Object.assign(this, {options})
@@ -8,8 +9,8 @@ class Countdown {
 	 * 初始化
 	 */
   __init() {
-    this.page = getCurrentPages()[getCurrentPages().length - 1]
-    this.setData = this.page.setData.bind(this.page)
+    // this.page = getCurrentPages()[getCurrentPages().length - 1]
+    // this.setData = this.page.setData.bind(this.page)
     this.restart(this.options)
   }
 
@@ -172,7 +173,7 @@ class Countdown {
     this.render()
     if (this.options.refresh) {
       this.interval = setInterval(() => {
-        console.log(123332)
+        console.log('CD is working:', this.interval)
         this.render()
       }, this.options.refresh)
     }
@@ -199,3 +200,4 @@ class Countdown {
 }
 
 export default Countdown
+/* eslint-enable */

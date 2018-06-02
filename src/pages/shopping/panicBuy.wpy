@@ -43,7 +43,7 @@
 
 <script>
   import wepy from 'wepy'
-  import CountDown from '@/components/countdown'
+  import CountDown from '@/utils/countdown'
   import qcMixin from '@/mixins/quickIcon'
   import shareMixin from '@/mixins/share'
 
@@ -54,6 +54,7 @@
     mixins = [shareMixin, qcMixin]
     data = {
       imgUrl: '',
+      cdObj: null,
       goods_list: [],
       img_domain: '',
       ac_res: null,
@@ -75,6 +76,14 @@
         this.sharePath = `pages/shopping/panicBuy?id=${q.id}&s=${wepy.getStorageSync('sellerId')}`
       })
       this.loadMore()
+    }
+    onHide() {
+      // 停止定时器
+      this.cdObj.stop()
+    }
+    onUnload() {
+      // 停止定时器
+      this.cdObj.stop()
     }
     loadMore() {
       let self = this
@@ -104,7 +113,7 @@
           this.$parent.setTitle(this.titleName)
           // 倒计时start
           let actTime, desc
-          let countDown = new CountDown({
+          this.cdObj = new CountDown({
             start: self.data.start_time * 1000,
             end: self.data.end_time * 1000,
             render(date) {
@@ -134,7 +143,6 @@
               })
             }
           })
-          console.log(countDown)
           if (data.goods_list.length === 0) {
             // 返回数据长度为0时,设置页码为-1
             self.$apply(() => {
