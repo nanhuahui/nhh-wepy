@@ -11,7 +11,7 @@
     <category :categoryList.sync="categoryArr" :imgUrl.sync="imgUrl" componentId="indexSwiper"></category>
 
     <!-- 通知 -->
-    <noticeMarquee :imgUrl.sync="imgUrl" componentId="noticeMarquee"></noticeMarquee>
+    <!-- <noticeMarquee :imgUrl.sync="imgUrl" componentId="noticeMarquee"></noticeMarquee> -->
 
     <!-- 店主精选 -->
     <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="shoperChosen"></shoperChosen>
@@ -81,7 +81,7 @@ import allDayHot from './components/all-day-hot'
 import auction from './components/auction'
 import indexLoading from './components/loading'
 import qcMixin from '@/mixins/quickIcon'
-import noticeMarquee from './components/notice-marquee'
+// import noticeMarquee from './components/notice-marquee'
 import { getCategory, getStoreIndex, getRecommend, getDistribution, addCart, addCollection, setCartNum } from '@/utils/api'
 
 export default class Index extends wepy.page {
@@ -103,8 +103,8 @@ export default class Index extends wepy.page {
     allDayHot,
     qrPatchLayer,
     auction,
-    indexLoading,
-    noticeMarquee
+    // noticeMarquee,
+    indexLoading
   }
   mixins = [qcMixin]
   data = {
@@ -226,7 +226,7 @@ export default class Index extends wepy.page {
   onHide() {
     // 离开时调用限时特卖的倒计时不再执行
     this.$invoke('flashSale', 'uninstall')
-    this.$invoke('noticeMarquee', 'uninstall')
+    // this.$invoke('noticeMarquee', 'uninstall')
   }
   onUnload() {
     console.log('index page is unload!!!')
@@ -399,7 +399,7 @@ export default class Index extends wepy.page {
           self.loadComplete = true
         })
         // 通知
-        this.$invoke('noticeMarquee', 'render', { noticeText: data.circular })
+        // this.$invoke('noticeMarquee', 'render', { noticeText: data.circular })
       } else {
         console.error(msg)
       }

@@ -1,17 +1,17 @@
 <template>
   <view class="goodsMain" wx:if="{{goodsInfo}}">
-  <!--主图轮播图-->
+    <!--主图轮播图-->
     <swiper indicator-dots="true" autoplay="{{true}}" interval="3500">
       <swiper-item wx:if="{{false}}">
-        <video style="width: 100%;" src="{{videoUrl}}"></video>
+        <video style="width: 320px;" src="{{videoUrl}}"></video>
         <view class="maskShade maskShade_left"></view>
         <view class="maskShade maskShade_right"></view>
       </swiper-item>
-      <block wx:for="{{goodsImg}}" wx:for-item="img" wx:key="{{img.goods_img}}">
+      <repeat for="{{goodsImg}}" key="img.goods_img" item="img">
         <swiper-item>
-          <image src="{{img_domain + img.goods_img}}" class="slide-image" width="355" height="150" />
+          <image src="{{img_domain + img.goods_img}}" height="240" width="240"/>
         </swiper-item>
-      </block>
+      </repeat>
     </swiper>
     <!--标题价格规格-->
     <view class="titlePrice">
@@ -446,7 +446,7 @@
 </script>
 
 <style lang="less">
-  .goodsMain {
+.goodsMain {
   background: #fff;
   font-family: '微软雅黑';
   color: #333;
