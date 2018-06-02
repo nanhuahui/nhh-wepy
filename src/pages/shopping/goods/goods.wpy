@@ -332,7 +332,6 @@ export default class Goods extends wepy.page {
         wepy.setNavigationBarTitle({ title: self.pageTitle })
         // 设置小程序码
         self.shareQR = { link: shareLinkV, param: param, size: self.qrSize[2], x: self.qrSize[0], y: self.qrSize[1] }
-        console.log(11, self.shareQR)
         /**
         * WxParse.wxParse(bindName , type, data, target,imagePadding)
         * 1.bindName绑定的数据名(必填)

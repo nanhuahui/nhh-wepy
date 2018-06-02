@@ -128,6 +128,10 @@ function HTMLParser(html, handler) {
 						arguments[4] ? arguments[4] :
 							fillAttrs[name] ? name : "";
 
+				if (name === 'src') {
+				  // 转换图片地址中的空格
+					value = value.split(' ').join('%20')
+				}
 				attrs.push({
 					name: name,
 					value: value,
