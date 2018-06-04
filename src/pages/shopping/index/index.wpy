@@ -26,10 +26,10 @@
     <flashSale :imgDomain.sync="img_domain" componentId="flashSale"></flashSale>
 
     <!-- 消费商专区 -->
-    <coustomerGoods :sevenActive.sync="sevenActive" :img_domain.sync="img_domain" :loadComplete.sync="loadComplete" componentId="coustomerGoods"></coustomerGoods>
+    <coustomerGoods wx:if="{{!isReview}}" :sevenActive.sync="sevenActive" :img_domain.sync="img_domain" :loadComplete.sync="loadComplete" componentId="coustomerGoods"></coustomerGoods>
 
     <!-- 今日特卖 -->
-    <specialSale :active.sync="active" :imgDomain.sync="img_domain" :isActivity.sync="isActivity" componentId="specialSale"></specialSale>
+    <specialSale wx:if="{{!isReview}}" :active.sync="active" :imgDomain.sync="img_domain" :isActivity.sync="isActivity" componentId="specialSale"></specialSale>
 
     <!-- 24小时热销 -->
     <allDayHot :dayHot.sync="hotInfo" :goods.sync="hotGoods" :imgUrl.sync="imgUrl" componentId="allDayHot"></allDayHot>
