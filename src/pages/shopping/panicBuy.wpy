@@ -78,7 +78,7 @@
       this.loadMore()
     }
     onShow() {
-      !this.cdObj || this.cdObj.start()
+      this.cdObj && this.cdObj.start()
     }
     onHide() {
       // 停止定时器
