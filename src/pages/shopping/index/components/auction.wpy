@@ -62,7 +62,7 @@
       activeIndex: null, // 拍卖轮播图当前展示商品的索引
       swiper: {
         slideLength: 3,
-        width: 650 * wepy.getSystemInfoSync().windowWidth / 750,
+        width: Math.floor(650 * wepy.getSystemInfoSync().windowWidth / 750),
         direction: 'horizontal',
         initialSlide: 1,
         onInit (weswiper) {
