@@ -216,6 +216,7 @@ export default class Index extends wepy.page {
   }
 
   onShow(e) {
+    this.isReview = wepy.getStorageSync('categoryFood')
     this.imgUrl = this.$parent.globalData.imgUrl
     this.$apply()
     // 加载数据
