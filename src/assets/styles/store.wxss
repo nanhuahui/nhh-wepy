@@ -180,9 +180,9 @@
   font-size: 24rpx;
   color: #333;
   overflow: hidden;
-  height: 24rpx;
-  line-height: 24rpx;
-  margin: 0 28rpx 14rpx;
+  height: 30rpx;
+  line-height: 30rpx;
+  margin: 14rpx 28rpx 14rpx;
 }
 
 .goods-lists .goods-price {
