@@ -14,7 +14,7 @@
     <!-- <noticeMarquee :imgUrl.sync="imgUrl" componentId="noticeMarquee"></noticeMarquee> -->
 
     <!-- 店主精选 -->
-    <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="shoperChosen"></shoperChosen>
+    <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" :storeCoupon.sync = 'storeCoupon' componentId="shoperChosen"></shoperChosen>
 
     <!-- 拍卖 -->
     <auction wx:if="{{!isReview}}" :imgDomain.sync="img_domain" :auctionList.sync="auctionList" :onlookerNum.sync="onlookerNum" :buyPersonNum.sync="buyPersonNum" componentId="auction"></auction>
@@ -123,6 +123,7 @@ export default class Index extends wepy.page {
     hotInfo: {}, // 24小时热销
     hotGoods: [], // 24小时热销商品
     shopperChoose: [], // 店主精选
+    storeCoupon: [], // 店铺优惠券
     avaterImg: '', // 头像
     sevenActive: {},
     turnsInfo: [],
@@ -381,6 +382,13 @@ export default class Index extends wepy.page {
           self.hotInfo['id'] = data.hot_list.id
           self.hotInfo['start_time'] = data.hot_list.start_time
         }
+        let storeCoupon = data.store_coupon
+        let moneyLength
+        for (var i = 0; i < storeCoupon.length; i++) {
+          storeCoupon[i].coupon_money = 100
+          moneyLength = storeCoupon[i].coupon_money.toString().length
+          storeCoupon[i].cellWidth = moneyLength > 2 ? (300 + 66 * moneyLength - 94) : 300
+        }
         // 设置数据
         self.$apply(() => {
           self.active = data.active
@@ -389,6 +397,7 @@ export default class Index extends wepy.page {
           self.turnsInfo = data.turns_info
           self.img_domain = data.img_domain
           self.storeInfo = data.storeinfo
+          self.storeCoupon = storeCoupon
           self.storeDetail = data.store_detail
           self.composeFloorArr = tempFloor
           self.special = data.special

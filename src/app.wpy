@@ -72,6 +72,7 @@ export default class extends wepy.app {
       'pages/user/myCompetitiveAuction',
       'pages/user/myGetedAuction',
       'pages/user/myGuaranteeDeposit',
+      'pages/user/couponInfo',
       'pages/order/orderList',
       'pages/order/orderInfo',
       'pages/order/orderSubmit',
@@ -102,7 +103,15 @@ export default class extends wepy.app {
       'pages/auction/goodsDetails',
       'pages/auction/biddingAgreement',
       'pages/auction/guaranteeDeposit',
-      'pages/auction/marginRule'
+      'pages/auction/marginRule',
+      'pages/coupon/addCoupon',
+      'pages/coupon/editCoupon',
+      'pages/coupon/sample',
+      'pages/coupon/couponList',
+      'pages/coupon/usedList',
+      'pages/coupon/promote',
+      'pages/coupon/couponCenter',
+      'pages/coupon/couponInfo'
     ],
     window: {
       navigationBarBackgroundColor: '#f7f7f8',

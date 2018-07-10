@@ -1,0 +1,538 @@
+<!-- 
+  ** 店主优惠券列表页面
+ -->
+<template>
+  <view class="tabBar">
+    <view class="{{status === 'using' ? 'active': ''}}" bindtap="switchStatus" data-type="using">使用中</view>
+    <view class="{{status === 'expired' ? 'active': ''}}" bindtap="switchStatus" data-type="expired">已过期</view>
+  </view>
+
+  <scroll-view scroll-y="true" height="100%" bindscrolltolower="loadMore" bindscroll="scroll" scroll-y="true" lower-threshold="100" class="scrollView mescroll" style="padding-bottom: 22rpx; height:100%;">
+    <view class="couponList clearfix">
+      <view class="coupon" wx:for="{{couponList}}" wx:for-item="coupon" wx:key="index">
+        <view class="couponStyle {{coupon.coupon_type === '1' ? 'common' : coupon.coupon_type === '2' ? 'store' : 'goods'}}" bindtap="toEdit" data-type="{{status}}" data-id="{{coupon.coupon_id}}" data-status="{{coupon.status}}">
+          <view class="couponHead" style="{{'background-image:url('+ imgDomain + coupon.banner +')'}}">
+            <view class="couponAmount">
+              ￥<text>{{coupon.coupon_money}}</text>
+            </view>
+            <view wx:if="{{coupon.is_no_limit ==='0'}}" class="useCondition">
+              无门槛使用
+            </view>
+            <view wx:else class="useCondition">
+              订单满{{coupon.min_amount}}元使用
+            </view>
+            <view wx:if="{{coupon.index_show === '1'}}" class="showTip">
+              首页展示中
+            </view>
+          </view>
+          <view class="couponBody">
+            <view class="couponTitle h3 c3">
+              {{coupon.coupon_name}}
+            </view>
+            <view class="useDate">
+              使用日期：{{coupon.start_time}}-{{coupon.end_time}}
+            </view>
+            <image class="couponStatus" wx:if="{{status === 'expired' || coupon.status === '0'}}" src="{{imgUrl}}/coupon/yhq_shixiao_n.png"></image>
+            <image class="couponStatus" wx:elif="{{coupon.status === '1' && coupon.index_show === '1'}}" src="{{imgUrl}}/coupon/yhq_zhanshi_n.png"></image>
+            <image class="couponStatus" wx:else src="{{imgUrl}}/coupon/yhq_shiyong_n.png"></image>
+          </view>
+        </view>
+        <view class="couponInfo">
+          <view class="infoWord">
+            <view>添加时间</view>
+            <view>领取/发放</view>
+            <view>已使用</view>
+          </view>
+          <view class="infoData">
+            <view>{{coupon.add_time}}</view>
+            <view>{{coupon.get_count}}/{{coupon.all_count}}</view>
+            <view>{{coupon.use_count}}</view>
+          </view>
+        </view>
+        <view wx:if="{{status === 'using'}}" class="couponHandle}}">
+          <view bindtap="checkUse" data-id="{{coupon.coupon_id}}">
+            查看使用
+          </view>
+          <view wx:if="{{coupon.index_show === '0' && coupon.status ==='0'}}" style="border: 1px solid #999;color:#999;">
+            首页上架
+          </view>
+          <view wx:elif="{{coupon.index_show === '0'}}" bindtap="changeShow" data-id="{{coupon.coupon_id}}" data-type="1" data-index="{{index}}">
+            首页上架
+          </view>
+          <view wx:else bindtap="changeShow" data-id="{{coupon.coupon_id}}" data-type="0" data-index="{{index}}">
+            首页下架
+          </view>
+          <view wx:if="{{coupon.status ==='1'}}" bindtap="toPromote" data-info="{{coupon}}">
+            推广
+          </view>
+          <view wx:else style="border: 1px solid #999;color:#999;">
+            推广
+          </view>
+          <view wx:if="{{coupon.status ==='1'}}" bindtap="changeStatus" data-id="{{coupon.coupon_id}}" data-index="{{index}}">
+            停止使用
+           </view>
+           <view wx:else style="border: 1px solid #999;color:#999;">
+            已失效
+          </view>
+        </view>
+        <view wx:else class="couponHandle">
+          <view bindtap="checkUse" data-id="{{coupon.coupon_id}}">
+            查看使用
+          </view>
+          <view style="border: 1px solid #999;color:#999;">
+            首页上架
+          </view>
+          <view style="border: 1px solid #999;color:#999;">
+            推广
+          </view>
+          <view style="border: 1px solid #999;color:#999;">
+            已失效
+          </view>
+        </view>
+      </view>
+      <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}" style="height:4.2em;">
+        <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 去添加优惠券按钮 -->
+  <view class="bottomBtn">
+    <navigator class="rightText" url="./addCoupon">
+      添加优惠券
+    </navigator>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class sample extends wepy.page {
+    config = {
+      navigationBarTitleText: '优惠券'
+    }
+    data = {
+      imgUrl: null,
+      status: 'using',
+      pageNum: 0,
+      couponList: [],
+      imgDomain: '',
+      scrollTop: 0,
+      mescroll: null
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.pageNum = 0
+      this.status = 'using'
+      this.couponList = []
+      this.$apply()
+      this.loadMore()
+    }
+    methods = {
+      scroll: function (event) {
+        // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+        this.scrollTop = event.detail.scrollTop
+        this.$apply()
+      }
+    }
+    switchStatus(e) {
+      this.status = e.currentTarget.dataset.type
+      this.pageNum = 0
+      this.couponList = []
+      this.loadMore()
+    }
+    /*
+     * 加载更多
+     */
+    loadMore() {
+      let self = this
+      if (self.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.pageNum + 1
+      self.pageNum = num
+      self.$apply()
+      console.log('当前加载页码:' + self.pageNum)
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/coupon/coupon.php`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: {
+          act: 'coupon_list',
+          coupon_detail: self.status,
+          page: self.pageNum
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          console.log('查询结果为:', data)
+          if (data.coupon_list.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.pageNum = -1
+            self.$apply()
+            return
+          }
+          // 数据组装
+          let list = self.couponList
+          for (var i = 0; i < data.coupon_list.length; i++) {
+            data.coupon_list[i].start_time = self.formatTime(data.coupon_list[i].start_time)
+            data.coupon_list[i].end_time = self.formatTime(data.coupon_list[i].end_time)
+            data.coupon_list[i].add_time = self.formatTime(data.coupon_list[i].add_time)
+            list.push(data.coupon_list[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.imgDomain = data.img_domain
+            self.couponList = list
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('获取分类菜单失败！', error)
+      })
+    }
+    /**
+     * 查看使用
+     */
+    checkUse(e) {
+      this.$navigate(`./usedList?couponId=${e.currentTarget.dataset.id}`)
+    }
+    /**
+     * 改变优惠券在首页上下架
+     */
+    changeShow(e) {
+      let self = this
+      let couponId = e.currentTarget.dataset.id
+      let indexShow = e.currentTarget.dataset.type
+      let index = e.currentTarget.dataset.index
+      let params = {
+        coupon_id: couponId,
+        index_show: indexShow
+      }
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/shop/coupon/coupon.php?act=index_show`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: params
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.couponList[index].index_show = data.index_show + ''
+          })
+          if (data.index_show === 1) {
+            wepy.showToast({
+              title: '已在首页上架',
+              icon: 'success',
+              duration: 2000
+            })
+          } else {
+            wepy.showToast({
+              title: '已在首页下架',
+              icon: 'success',
+              duration: 2000
+            })
+          }
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('获取数据失败', error)
+      })
+    }
+    /**
+     * 去推广优惠券
+     */
+    toPromote(e) {
+      this.$navigate(`./promote?couponId=${e.currentTarget.dataset.info.coupon_id}&userId=${e.currentTarget.dataset.info.user_id}`)
+    }
+    /**
+     * 停止使用优惠券
+     */
+    changeStatus(e) {
+      let self = this
+      let couponId = e.currentTarget.dataset.id
+      let index = e.currentTarget.dataset.index
+      wepy.showModal({
+        title: '提示',
+        content: '确定要停止使用该优惠券？',
+        cancelText: '再想想',
+        confirmText: '确定'
+      }).then((res) => {
+        if (res.confirm) {
+          wepy.request({
+            url: `${self.$parent.globalData.apiUrl}/shop/coupon/coupon.php?act=status`,
+            method: 'POST',
+            header: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            data: {
+              coupon_id: couponId
+            }
+          }).then(({data: {errcode, data, msg}}) => {
+            if (errcode === 0) {
+              self.$apply(() => {
+                self.couponList[index].status = '0'
+                self.couponList[index].index_show = '0'
+              })
+              wepy.showToast({
+                title: '该优惠券已停用',
+                icon: 'success',
+                duration: 2000
+              }).then((res) => {
+              })
+            } else {
+              wepy.showToast({
+                title: msg,
+                icon: 'none',
+                duration: 2000
+              }).then((res) => {
+                self.loadData()
+              })
+            }
+          })
+        } else if (res.cancel) {
+          console.log('用户点击取消')
+        }
+      })
+    }
+    /**
+     * 去编辑优惠券
+     */
+    toEdit(e) {
+      let status = e.currentTarget.dataset.type
+      let couponId = e.currentTarget.dataset.id
+      let couponStatus = e.currentTarget.dataset.status
+      if (status === 'using') {
+        if (couponStatus === '1') {
+          this.$navigate(`./editCoupon?couponId=${couponId}`)
+        } else {
+          wepy.showModal({
+            content: '该优惠券已停用，不能编辑',
+            showCancel: false
+          })
+        }
+      } else {
+        wepy.showModal({
+          content: '该优惠券已过期，不能编辑',
+          showCancel: false
+        })
+      }
+    }
+    /**
+     * 格式化时间
+     */
+    formatTime(time) {
+      return time.replace(/-/g, '.')
+    }
+  }
+</script>
+
+<style lang="less">
+.tabBar {
+  display: flex;
+  background-color: #fff;
+  height: 50px;
+  line-height: 50px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  z-index: 1;
+}
+.tabBar view {
+  flex: 1;
+}
+.tabBar .active {
+  color: #FF6061;
+  position:relative;
+}
+.tabBar .active::after {
+  content: '';
+  display: block;
+  border-bottom: 1px solid #FF6061;
+  width: 70px;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  margin-left: -35px;
+}
+.couponList {
+  padding-bottom: 60px;
+}
+.couponList .coupon {
+  padding: 20rpx 20rpx 0;
+  background-color: #fff;
+  margin-bottom: 20rpx;
+}
+.coupon .couponStyle {
+  width: 100%;
+  height: 200rpx;
+  display: flex;
+}
+.coupon .couponStyle.common{
+  background: url(https://wxassets.huahuishang.com/coupon/yhq_tongyong_n.png);
+  background-size: 100%;
+}
+.coupon .couponStyle.store{
+  background: url(https://wxassets.huahuishang.com/coupon/yhq_dianpu_n.png);
+  background-size: 100%;
+}
+.coupon .couponStyle.goods{
+  background: url(https://wxassets.huahuishang.com/coupon/yhq_shangping_n.png);
+  background-size: 100%;
+}
+.couponHead {
+  width: 250rpx; overflow-x: hidden;
+  color: #fff;
+  text-align: center;
+  position:relative;
+  background-size: contain;
+}
+.couponHead .couponAmount {
+  font-family: 'PingFang SC';
+  font-weight: bold;
+  font-size: 24rpx;
+}
+.couponHead .couponAmount text {
+  font-family: 'PingFang SC';
+  font-weight: bold;
+  font-size: 60rpx;
+}
+.couponHead .useCondition {
+  font-family: 'PingFang SC';
+  font-weight: 500;
+  font-size: 24rpx;
+}
+.couponHead .useCondition {
+  font-family: 'PingFang SC';
+  font-weight: 500;
+  font-size: 24rpx;
+}
+.couponHead .showTip {
+  background: rgba(0, 0, 0, 0.6);
+  font-family: 'PingFang SC';
+  font-weight: 500;
+  font-size: 24rpx;
+  position:absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40rpx;
+  line-height: 40rpx;
+}
+.couponBody {
+  flex: 1;
+  position:relative;
+}
+.couponBody .couponTitle {
+  position: absolute;
+  top: 10rpx;
+  left: 100rpx;
+  font-weight: bold;
+  height: 48rpx;
+  line-height: 48rpx;
+  overflow: hidden;
+}
+.couponBody .useDate {
+  position:absolute;
+  left: 20rpx;
+  top: 80rpx;
+  font-size: 24rpx;
+  color: #666;
+}
+.couponBody .couponStatus {
+  position:absolute;
+  right: 6rpx;
+  bottom: 0;
+  width: 150rpx;
+  height: 104rpx;
+}
+.couponInfo {
+  border-bottom: 1px solid #e8e8e8;
+  height: 120rpx;
+}
+.couponInfo .infoWord {
+  display: flex;
+  font-family: 'PingFang SC';
+  font-weight: bold;
+  color: #666;
+  height: 60rpx;
+  line-height: 60rpx;
+}
+.couponInfo .infoData {
+  display: flex;
+  font-family: 'PingFang SC';
+  font-weight: 500;
+  color: #666;
+}
+.couponInfo .infoWord view, .couponInfo .infoData view {
+  flex: 1;
+  text-align: center;
+  font-size: 24rpx;
+}
+.couponHandle {
+  display: flex;
+  padding: 20rpx 0;
+}
+.couponHandle view {
+  font-family: 'PingFang SC';
+  font-weight: bold;
+  color: #666;
+  font-size: 24rpx;
+  text-align: center;
+  flex: 1;
+  margin-right: 10rpx;
+  height: 60rpx;
+  line-height: 60rpx;
+  border: 1px solid #666;
+  border-radius: 3px;
+}
+.couponHandle view:last-child {
+  margin-right: 0;
+}
+
+.mescroll {
+  position: fixed;
+  top: 51px;
+  bottom: 0;
+  height: auto;
+  width: 100%;
+  min-height: 1031rpx;
+}
+
+/*展示上拉加载的数据列表*/
+.data-list {
+  display: none;
+}
+.bottomBtn {
+  background-color: #fff;
+  padding: 20rpx 15px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-family: 'PingFang SC';
+  font-weight: 500;
+  font-size: 30rpx;
+  display: flex;
+}
+.bottomBtn navigator {
+  flex: 1;
+  background-color: #FF6061;
+  text-align:center;
+  height: 80rpx;
+  line-height: 80rpx;
+  color: #fff;
+}
+</style>

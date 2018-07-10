@@ -1,8 +1,91 @@
 <template>
   <view>
-    <scroll-view scroll-y="true" height="100%" style="{{'height:' + scrollHeight + 'px' }}"  bindscroll="scroll"  bindscrolltolower="loadMore" class="goods-lists clearfix">
+    <scroll-view scroll-y="true" height="100%" style="{{'height:' + scrollHeight + 'px;' }} padding-bottom:50px;"  bindscroll="scroll"  bindscrolltolower="loadMore" class="goods-lists clearfix">
       <image wx:if="{{shop_banner === 'default'}}" src="{{imgUrl}}/share/banner_6.jpg" mode="widthFix" style="width:100%"></image>
       <image wx:else src="{{shop_banner ? img_domain + shop_banner : ''}}" mode="widthFix" style="width:100%"></image>
+
+      <!-- 优惠券 -->
+      <view style="padding: 0 15px;background-color:#fff;">
+        <view class="couponList clearfix">
+          <view class="coupon" wx:for="{{couponList}}" wx:for-item="coupon" wx:key="index">
+            <view class="couponBody">
+              <!-- 通用券banner -->
+              <image class="banner" wx:if="{{coupon.coupon_type === '1'}}" src="{{coupon.banner ? img_domain + coupon.banner: imgUrl + '/coupon/tyq.png'}}"></image>
+              <!-- 店铺券banner -->
+              <image class="banner" wx:elif="{{coupon.coupon_type === '2'}}" src="{{coupon.banner ? img_domain + coupon.banner: imgUrl + '/coupon/dpq.png'}}"></image>
+              <!-- 商品券banner -->
+              <image class="banner" wx:else src="{{coupon.banner ? img_domain + coupon.banner: imgUrl + '/coupon/spq.jpg'}}"></image>
+              <view class="couponInfo">
+                <view class="h2 c3 couponName">
+                  {{coupon.coupon_name}}
+                </view>
+                <view class="clearfix" style="margin-top: 4rpx;">
+                  <view class="couponMoney">
+                    ￥{{coupon.coupon_money}}
+                  </view>
+                  <view class="couponLimit" wx:if="{{coupon.is_no_limit === '1'}}">
+                    满<text>{{coupon.min_amount}}</text>可以用
+                  </view>
+                  <view class="couponLimit" wx:else>
+                    无门槛
+                  </view>
+                </view>
+              </view>
+              <!-- 已使用 -->
+              <view class="couponStatus" wx:if="{{coupon.coupon_status === '2'}}">
+                <view class="used">
+                  <image src="{{imgUrl}}/myCoupon/used.png"></image>
+                </view>
+              </view>
+              <!-- 已领取，去使用 -->
+              <view class="couponStatus" wx:elif="{{coupon.all_count !== '0' && coupon.coupon_status === '1'}}">
+                <view style="text-align: center;">
+                  <image src="{{imgUrl}}/coupon/kqzx_ylq.png" style="width: 72rpx;height: 72rpx;"></image>
+                </view>
+                <image src="{{imgUrl}}/coupon/qsy.png" bindtap="toUse" data-id="{{coupon.id}}"></image>
+              </view>
+              <!-- 未领取 -->
+              <view class="couponStatus" wx:elif="{{coupon.last !== '0' && coupon.coupon_status === 0}}">
+                <view style="margin-bottom: 26rpx;">
+                  <view class="h5 c2 progressWord">
+                    剩余{{coupon.last}}%
+                  </view>
+                  <view class="progressBar">
+                    <view style="{{'width:' + coupon.last + '%'}}"></view>
+                  </view>
+                </view>
+                <image src="{{imgUrl}}/coupon/ljlq.png" bindtap="getCoupon" data-id="{{coupon.coupon_id}}" data-index="{{index}}"></image>
+              </view>
+              <!-- 已抢光 -->
+              <view class="couponStatus" wx:elif="{{coupon.last === '0'}}">
+                <view style="margin-bottom: 26rpx;">
+                  <view class="h5 c2 progressWord">
+                    已抢光
+                  </view>
+                  <view class="progressBar"></view>
+                </view>
+                <image src="{{imgUrl}}/coupon/xckd.png"></image>
+              </view>
+            </view>
+            <view class="couponFooter">
+              <view class="h5 c3 useDate">
+                使用日期
+                <text class="h5 c1">{{coupon.start_time}}-{{coupon.end_time}}</text>
+              </view>
+              <view wx:if="{{coupon.coupon_type === '1'}}" class="h5 c3 couponType">
+                通用券
+              </view>
+              <view wx:elif="{{coupon.coupon_type === '2'}}" class="h5 c3 couponType">
+                店铺券
+              </view>
+              <view wx:else class="h5 c3 couponType">
+                商品券
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
       <view class="list-item" wx:for="{{goods_list}}" wx:for-item="g" wx:key="g.upc_id">
         <navigator url="../uploadGoods/goodsInfo/goodsInfo?upc_id={{g.upc_id}}">
           <view class="goods-img">
@@ -20,6 +103,34 @@
         </view>
         <view class="goods_brief">{{g.goods_brief}}</view>
         <view class="goods-title">{{g.goods_name}}</view>
+      </view>
+
+      <view class="bottomBox">
+        <view>
+          <view class="imgBox">
+            <image src="{{imgUrl}}/coupon/shop_n.png"></image>
+          </view>
+          <view class="c3 text">
+            店铺
+          </view>
+        </view>
+        <navigator url="../coupon/couponCenter">
+          <view class="imgBox">
+            <image src="{{imgUrl}}/coupon/coupon_h.png" style="width: 48rpx;"></image>
+          </view>
+          <view class="c2 text">
+            礼券中心
+          </view>
+        </navigator>
+        <navigator open-type="switchTab" url="../shopping/index/index">
+          <view class="imgBox">
+            <!-- <image src="{{imgUrl}}/sale.png"></image> -->
+            <image src="/assets/icon/iconfont-shop.png"></image>
+          </view>
+          <view class="c2 text">
+            首页
+          </view>
+        </navigator>
       </view>
     </scroll-view>
     <view class="body-view">
@@ -57,10 +168,14 @@
       scrollHeight: 0,
       hidden: true,
       shareTitle: '精心为你推荐',
-      sharePath: ''
+      sharePath: '',
+      couponList: [] // 优惠券列表页面
     }
     onLoad(q) {
       this.imgUrl = this.$parent.globalData.imgUrl
+      this.couponList = []
+      this.$apply()
+      this.couponData()
       if (!q.cid) {
         // 默认美妆,用于审核
         q.cid = 43
@@ -141,6 +256,74 @@
       }).catch((error) => {
         console.log('请求失败', error)
       })
+    }
+    couponData() {
+      let sid = wepy.getStorageSync('sellerId')
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/shop/coupon/coupon.php?act=coupon_show`,
+        data: {
+          seller_id: sid
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          for (var i = 0; i < data.store_coupon; i++) {
+            data.store_coupon[i].start_time = this.formatTime(data.store_coupon[i].start_time)
+            data.store_coupon[i].end_time = this.formatTime(data.store_coupon[i].end_time)
+          }
+          this.$apply(() => {
+            this.couponList = data.store_coupon
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('获取数据失败', error)
+      })
+    }
+    /**
+     * 格式化时间
+     */
+    formatTime(time) {
+      return time.replace(/-/g, '.')
+    }
+    getCoupon(e) {
+      let self = this
+      let params = {
+        coupon_id: e.currentTarget.dataset.id
+      }
+      let index = e.currentTarget.dataset.index
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/coupon/coupon.php?act=get_coupon`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: params
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.couponList[index].coupon_status = '1'
+            self.couponList[index].id = data.id
+          })
+          wepy.showModal({
+            content: '领取优惠券成功',
+            showCancel: false
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('获取数据失败', error)
+      })
+    }
+    toUse(e) {
+      this.$navigate(`../user/couponInfo?id=${e.currentTarget.dataset.id}`)
     }
   }
 </script>
@@ -274,5 +457,37 @@ page {
 .goods-lists .goods_brief{padding:0 28rpx; width: 320rpx; text-overflow:ellipsis; overflow: hidden; white-space: nowrap;}
 .goods-lists view{float:left;}
 
+.bottomBox {
+  display:flex;
+  position:fixed;
+  left: 0;
+  bottom: 0;
+  height: 96rpx;
+  background-color: #f7f7fa;
+  width: 100%;
+  text-align: center;
+  box-shadow: rgba(0, 0, 0, 0.1) 0px -5px 30px;
+  background-color: #f7f7fa;
+  padding: 0 15px;
+}
+.bottomBox view {
+  float: none;
+}
+.bottomBox>view, .bottomBox>navigator {
+  flex: 1;
+}
+.bottomBox .imgBox {
+  height: 30px;
+  padding-top: 4rpx;
+}
+.bottomBox .imgBox image {
+  width: 48rpx;
+  height: 48rpx;
+}
+.bottomBox .text {
+  margin-top: -4rpx;
+  font-size: 10px;
+  line-height: 1.5;
+}
 
 </style>

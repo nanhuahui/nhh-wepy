@@ -1,0 +1,328 @@
+<!-- 
+  ** 用户使用优惠券页面
+ -->
+<template>
+  <view class="coupon">
+    <view class="couponContent">
+      <view class="contentTop">
+        <view class="couponName">
+          {{couponInfo.coupon_name}}
+        </view>
+        <view class="h3 c7 couponType">
+          <text wx:if="{{couponInfo.coupon_type === '1'}}">通用券</text>
+          <text wx:elif="{{couponInfo.coupon_type === '2'}}">通用券</text>
+          <text wx:else>通用券</text>
+          <text class="h7" style="color: #ffccd0;padding-left: 10rpx;">{{couponInfo.start_time}} - {{couponInfo.end_time}}</text>
+        </view>
+        <view class="couponValue clearfix" style="overflow: hidden;">
+          <view class="c7 couponMoney">
+            ￥{{couponInfo.coupon_money}}
+          </view>
+          <view class="couponLimit">
+            <!-- <div class="h5 limit1">
+              满{{couponInfo.min_amount}}元立减{{couponInfo.coupon_money}}元
+            </div> -->
+            <view class="h7 limit2" wx:if="{{couponInfo.min_amount !== 0}}">
+              满{{couponInfo.min_amount}}元立减{{couponInfo.coupon_money}}元
+            </view>
+            <view class="h7 limit2" wx:else>
+              无门槛立减{{couponInfo.coupon_money}}元
+            </view>
+          </view>
+        </view>
+        <view class="yhqewm">
+          <image class="couponQrCode" src="{{imgPath}}"></image>
+            <!-- <wv-qrcode class="couponQrCode"
+              :size="size"
+              :bgColor="bgColor"
+              :fgColor="fgColor"
+              :logo="logo"
+              :value="link">
+            </wv-qrcode> -->
+        </view>
+        <view class="h5 tip">
+          进店购物后，将二维码展示给店主，可直接抵扣金额
+        </view>
+      </view>
+      <view class="couponBottom">
+        <view class="storeInfo">
+          <view class="h5 infoTitle">
+            <image src="{{imgUrl}}/coupon/dw.png"></image>
+            店铺地址
+          </view>
+          <view class="h5 infoContent">
+            {{couponInfo.store_address}}
+          </view>
+        </view>
+        <view class="storeInfo" style="padding: 0 33px;">
+          <view class="h5 infoTitle">
+            <image src="{{imgUrl}}/coupon/dh.png"></image>
+            联系电话
+          </view>
+          <view class="h5 infoContent">
+            +86
+            <text class="h5 c7" bindtap="calling" data-tel="{{couponInfo.mobile}}" style="margin-left: 3px;">{{couponInfo.mobile ? couponInfo.mobile : ''}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{goodsList.length !== 0}}" class="couponGoods">
+      <view class="title">
+        优惠商品
+      </view>
+      <view class="goodsList">
+        <view wx:for="{{goodsList}}" wx:for-item="goods" wx:key="index">
+          <navigator url="{{'../uploadGoods/goodsInfo/goodsInfo?upc_id=' + goods.upc_id}}" class="goods">
+            <image class="goodsBanner" src="{{imgDomain + goods.master_img}}"></image>
+            <view class="goodsInfo">
+              <view class="h5 c3 goodsTitle">
+                {{goods.goods_name}}
+              </view>
+              <view class="h5 goodsPrice">
+                ￥{{goods.shop_price}}
+                <text class="c1 h5">￥{{goods.market_price}}</text>
+              </view>
+            </view>
+          </navigator>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class couponInfo extends wepy.page {
+    config = {
+      navigationBarTitleText: '门店优惠券'
+    }
+    data = {
+      imgUrl: null,
+      imgDomain: '',
+      couponInfo: [], // 优惠券信息
+      goodsList: [], // 商品优惠券适用的商品列表
+      size: 49, // 二维码尺寸
+      bgColor: '#fff',
+      fgColor: '#000',
+      logo: '', // this.$parent.getShareImg(),
+      link: '', // 二维码链接
+      id: null,
+      imgPath: null
+    }
+    onLoad(q) {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.couponInfo = []
+      this.goodsList = []
+      this.link = ''
+      this.id = q.id
+      this.$apply()
+      this.loadData()
+      this.getQrCode()
+    }
+    loadData() {
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/shop/coupon/coupon.php?act=coupon_info`,
+        data: {
+          id: this.id
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          this.imgDomain = data.img_domain
+          this.couponInfo = data.coupon_info
+          if (this.couponInfo.mobile) {
+            this.couponInfo.mobile = this.formatNumber(this.couponInfo.mobile)
+          }
+          if (data.goods_list) {
+            this.goodsList = data.goods_list
+          }
+          this.$apply()
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('获取数据失败', error)
+      })
+    }
+    formatNumber(number) {
+      let formatNum = number.substring(0, 3) + '-' + number.substring(3, 7) + '-' + number.substring(7, 11)
+      return formatNum
+    }
+    /*
+     * 拨打客服电话
+     */
+    calling(e) {
+      wepy.makePhoneCall({
+        phoneNumber: e.currentTarget.dataset.tel,
+        success: function () {
+          console.log('拨打电话成功！')
+        },
+        fail: function () {
+          console.log('拨打电话失败！')
+        }
+      })
+    }
+    getQrCode() {
+      let self = this
+      // 二维码链接
+      let userId = wepy.getStorageSync('user_nhh').user_id
+      // 获取二维码图片地址
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/wx_app/get_qrcode.php?act=get_qrcode`,
+        data: {
+          scene: `?id=${this.id}&userId=${userId}`, // 长按图片识别小程序码1048
+          page: 'pages/coupon/couponInfo'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.imgPath = data
+          })
+        } else {
+          console.error('获取小程序码失败', msg)
+        }
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+  .viewStyle {
+    padding-bottom: 0;
+    font-family: 'PingFang SC';
+  }
+  .coupon {
+    background: url('https://wxassets.huahuishang.com/coupon/bg.jpg');
+    background-size: 100% auto;
+  }
+  .coupon .couponContent {
+    background: url('https://wxassets.huahuishang.com/coupon/bg2.png') no-repeat;
+    background-size: 100%;
+    padding: 46rpx 15px 4rpx;
+  }
+  .couponContent .contentTop {
+    height: 768rpx;
+    position:relative;
+  }
+  .contentTop .couponName {
+    height: 180rpx;
+    line-height: 180rpx;
+    font-size: 36rpx;
+    text-align: center;
+    color: #fff;
+    font-weight: bold;
+    overflow: hidden;
+    padding: 0 30rpx;
+  }
+  .contentTop .couponType {
+    font-weight: 500;
+    padding-left: 106rpx;
+  }
+  .contentTop .couponMoney {
+    float: left;
+    padding-left: 90rpx;
+    font-size: 100rpx;
+    font-weight: bold;
+    height: 136rpx;
+    line-height: 136rpx;
+  }
+  .contentTop .couponLimit {
+    float: right;
+    padding-right: 102rpx; padding-top: 46rpx
+  }
+  .contentTop .limit1 {
+    text-align: right;
+    color: #ffccd0;
+    height: 68rpx;
+    line-height: 88rpx;
+  }
+  .contentTop .limit2 {
+    text-align: center;
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 2rpx 12rpx;
+    border-radius: 100px;
+  }
+  .contentTop .tip {
+    text-align: center;
+    color: #ffccd0;
+    position: absolute;
+    left: 0;
+    bottom: 52rpx;
+    width: 100%;
+  }
+  .couponContent .couponBottom {
+    height: 346rpx;
+  }
+  .storeInfo {
+    margin-bottom: 56rpx;
+    padding: 52rpx 66rpx 0;
+  }
+  .storeInfo .infoTitle {
+    color: #ffccd0;
+  }
+  .storeInfo .infoTitle image {
+    width: 20rpx;
+    height: 26rpx;
+    vertical-align: middle;
+    margin-top: -4rpx;
+    margin-right: 8rpx;
+  }
+  .storeInfo .infoContent {
+    color: #fff;
+    margin-top: 6rpx;
+  }
+  .couponGoods .title{
+    height: 80rpx;
+    line-height: 80rpx;
+    text-align: center;
+    font-size: 36rpx;
+    color: #333;
+    font-weight: bold;
+  }
+  .couponGoods .goodsList {
+    background-color: #fff;
+  }
+  .goodsList .goods {
+    border-top: 1px solid #eee;
+    padding: 20rpx 15px;
+    display: flex;
+  }
+  .goodsList .goods image {
+    width: 140rpx;
+    height: 140rpx;
+  }
+  .goodsInfo {
+    flex: 1;
+    padding-left: 20rpx;
+    position: relative;
+  }
+  .goodsInfo .goodsTitle {
+    height: 76rpx;
+    line-height: 38rpx;
+  }
+  .goodsInfo .goodsPrice {
+    color: #f34747;
+    position: absolute;
+    left: 20rpx;
+    bottom: 0;
+  }
+  .goodsPrice text {
+    text-decoration: line-through;
+    padding-left: 20rpx;
+  }
+  .yhqewm {
+    text-align: center;
+    padding-top: 1.1093rem;
+  }
+  .couponQrCode {
+    width: 200rpx;
+    height: 200rpx;
+    padding: 18rpx 18rpx 6rpx;
+    background-color:#fff;
+    display:inline-block;
+  }
+</style>

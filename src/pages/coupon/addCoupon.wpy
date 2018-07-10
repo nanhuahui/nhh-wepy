@@ -1,0 +1,727 @@
+<!-- 
+  ** 添加优惠券页面
+ -->
+<template>
+  <scroll-view wx:if="{{status === 'fill'}}" class="scrollView" scroll-y="true" height="100%">
+    <view class="row parameter">
+      <!-- 选择优惠券类型 -->
+      <view class="typeWord">
+        ——选择优惠券类型——
+      </view>
+      <view class="couponType">
+        <view wx:if="{{shopType === '1'}}" class="{{couponType === '1' ? 'active': ''}}" style="margin-right: 15px;" bindtap="switchType" data-type="1">
+          通用券
+        </view>
+        <view class="{{couponType === '2' ? 'active': ''}}" style="margin-right: 15px;" bindtap="switchType" data-type="2">
+          店铺券
+        </view>
+        <view class="{{couponType === '3' ? 'active': ''}}" bindtap="switchType" data-type="3">
+          商品券
+        </view>
+      </view>
+
+      <view style="padding-left: 40rpx;">
+        <!-- 优惠券名称 -->
+        <view class="couponParam">
+          <view class="paramName">
+            名称
+          </view>
+          <input class="paramValue" maxlength="15" placeholder="如：店庆一周年优惠券，最多15字" placeholder-style="color: #ccc;" value="{{couponName}}" bindinput="couponInput" data-key="couponName"/>
+        </view>
+
+        <!-- 使用店铺 -->
+        <view wx:if="{{couponType === '2' && shopType === '1'}}" class="couponParam">
+          <view class="paramName">
+            使用店铺
+          </view>
+          <picker class="paramValue {{storeName ? 'c3': 'fontColor'}}" bindchange="picker" value="{{index}}" range="{{storeInfo}}" range-key="store_name">
+            <view class="picker">
+              {{storeName ? storeName : '请选择店铺&gt;'}}
+            </view>
+          </picker>
+        </view>
+
+        <!-- 使用商品 -->
+        <view wx:if="{{couponType === '3'}}" class="couponParam">
+          <view class="paramName">
+            可用商品
+          </view>
+          <view style="flex: 1;">
+            <view class="addBtn" bindtap="toSelectGoods">
+              添加商品
+            </view>
+            已选{{selectedGoods.length}}个商品
+          </view>
+        </view>
+
+        <!-- 使用门槛 -->
+        <view class="couponParam" style="height: 200rpx;">
+          <view class="paramName">
+            使用门槛
+          </view>
+          <radio-group style="flex: 1;" bindchange="selectDoor">
+            <label class="selectDoor">
+              <view style="flex: 1;">
+                无使用门槛
+              </view>
+              <view style="width: 100px;">
+                <radio value="0" checked="{{is_no_limit === '0' ? true : false}}" color="#C8975C" style="position: absolute;right:18rpx;top:0;"/>
+              </view>
+            </label>
+            <label class="selectDoor" style="display: flex;">
+              <view style="flex: 1;">
+                订单满
+                <input style="border: none;outline: none;width: 80rpx;border-bottom: 1px solid #e8e8e8;text-align:center;display: inline-block" value="{{minAmount}}" bindinput="couponInput" data-key="minAmount"/>
+                元
+              </view>
+              <view style="width: 100px;">
+                <radio value="1" checked="{{is_no_limit === '1' ? true : false}}" color="#C8975C" style="position: absolute;right:18rpx;top:0;"/>
+              </view>
+            </label>
+          </radio-group>
+        </view>
+
+        <!-- 优惠减免 -->
+        <view class="couponParam">
+          <view class="paramName">
+            优惠减免
+          </view>
+          <input class="paramValue" type="number" placeholder="输入减免金额" placeholder-style="color: #ccc;" value="{{couponMoney}}" bindinput="couponInput" data-key="couponMoney"/>
+        </view>
+
+        <!-- 用券时间 -->
+        <view class="couponParam" style="height: 200rpx;">
+          <view class="paramName">
+            用券时间
+          </view>
+          <view style="flex: 1;">
+            <picker class="startTime {{startTime ? 'c3': 'fontColor'}}" mode="date" value="{{startTime}}" start="{{nowYear - 5}}-1-1" end="{{nowYear + 5}}-01-01" bindchange="datePicker" data-type="startTime">
+              <view class="picker">
+                {{startTime ? startTime : '选择开始时间&gt;'}}
+              </view>
+            </picker>
+            <picker class="endTime {{endTime ? 'c3': 'fontColor'}}" mode="date" value="{{endTime}}" start="{{nowYear - 5}}-1-1" end="{{nowYear + 5}}-01-01" bindchange="datePicker" data-type="endTime">
+              <view class="picker">
+                {{endTime ? endTime : '选择结束时间&gt;'}}
+              </view>
+            </picker>
+          </view>
+        </view>
+
+        <!-- 优惠券主图 -->
+        <view style="height: 164rpx;display: block;border-bottom: 1px solid #e8e8e8;">
+          <view class="couponParam" style="border:none;">
+            <view class="paramName">
+              优惠券主图
+            </view>
+            <view style="flex: 1;text-align:right;" bindtap="uploadQr" data-type="store_coupon">
+              <text wx:if="{{isUpload}}">已上传</text>
+              <text wx:else class="fontColor">未上传</text>
+              <image class="rightArrow" src="{{imgUrl}}/coupon/tjyhq_right_n.png" style="float: right;margin-top:28rpx;"></image>
+            </view>
+          </view>
+          <view class="remark">
+            备注：未上传图标，则系统生成默认图标
+            <image class="rightArrow" src="{{imgUrl}}/coupon/tjyhq_right_n.png" style="float: right;"></image>
+            <navigator class="rightText" url="./sample">
+              示例
+            </navigator>
+          </view>
+        </view>
+
+        <!-- 优惠券数量 -->
+        <view style="height: 164rpx;display: block;border-bottom: 1px solid #e8e8e8;">
+          <view class="couponParam" style="border:none;">
+            <view class="paramName">
+              优惠券数量
+            </view>
+            <input class="paramValue" type="tel" min="1" max="9999" placeholder="请输入1-9999的整数" placeholder-style="color: #ccc;" value="{{couponNumber}}" bindinput="couponInput" data-key="couponNumber"/>
+          </view>
+          <view class="remark" style="padding-right: 0;">
+            备注：添加优惠券后，再次编辑，发放数量只能增加不能减少
+          </view>
+        </view>
+
+      </view>
+    </view>
+
+    <!-- 确认修改按钮 -->
+    <view class="bottomBtn" bindtap="setCoupon">
+      <view>     
+        确认添加
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 选择商品 -->
+  <scroll-view wx:if="{{status === 'select'}}" class="scrollView" scroll-y="true" height="100%">
+    <checkbox-group bindchange="checkGoods">
+      <label class="goods" wx:for="{{goodsInfo}}" wx:for-item="goods" wx:key="index">
+        <view class="selectBox">
+          <checkbox value="{{goods.goods_sn}}" checked="{{goods.checked === true}}" color="#ffffff"/>
+        </view>
+        <view class="goodsInfo">
+          <image class="banner" src="{{imgDomain + goods.master_img}}" mode="aspectFill"></image>
+          <view class="content">
+            <view class="h5 c3 goodsName">
+              {{goods.goods_name}}
+            </view>
+            <view class="price">
+              <text class="h5 shopPrice">￥{{goods.shop_price}}</text>
+              <text class="h5 c1 marketPrice">￥{{goods.market_price}}</text>
+            </view>
+          </view>
+        </view>
+      </label>
+    </checkbox-group>
+
+    <view class="selectBottomBox">
+      <view class="h3 c3 selectNum">
+        已选择<text>{{selectedGoods.length}}</text>个商品
+      </view>
+      <text class="h3 confirmBtn" bindtap="selectGoods">确定</text>
+    </view>
+  </scroll-view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import md5Util from 'md5'
+  import { DEFAULT_UID, API_SIGNATURE } from '@/utils/config'
+
+  export default class addCoupon extends wepy.page {
+    config = {
+      navigationBarTitleText: '添加优惠券'
+    }
+    components = {}
+    data = {
+      imgUrl: null,
+      status: 'fill', // 'fill':显示编辑优惠券内容，'select':显示选择优惠券适用的商品
+      shopType: '2', // 优惠券类型：'1':通用券，'2':店铺券，'3':商品券（分店不可设置通用券）
+      couponType: '2', // 通用券：'1'，店铺券：'2'，商品券：'3'
+      couponName: '', // 优惠券名称
+      storeId: '', // 优惠券适用店铺id
+      storeName: '', // 优惠券适用店铺名称
+      selectedGoods: [], // 选择的商品系统货号数组
+      is_no_limit: '0', // 优惠券是否有使用门槛（无：'0'，有：'1'）
+      minAmount: '', // 优惠券使用最低限额
+      couponMoney: '', // 优惠券金额
+      startTime: '', // 优惠券使用开始时间
+      endTime: '', // 优惠券使用结束时间
+      isUpload: false, // 是否上传优惠券主图
+      couponNumber: '', // 优惠券数量
+      couponImg: '', // 优惠券主图地址
+      storeInfo: [], // 总分店店铺信息
+      goodsInfo: [], // 优惠券适用商品列表
+      imgDomain: null,
+      selectedNum: 0, // 被选择的商品数
+      nowYear: null
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.status = 'fill'
+      this.shopType = '2'
+      this.couponType = '2'
+      this.couponName = ''
+      this.storeName = ''
+      this.storeId = ''
+      this.selectedGoods = []
+      this.is_no_limit = '0'
+      this.minAmount = ''
+      this.couponMoney = ''
+      this.startTime = ''
+      this.endTime = ''
+      this.isUpload = false
+      this.couponNumber = ''
+      this.goodsSn = ''
+      this.couponImg = ''
+      this.selectedNum = 0
+      this.nowYear = new Date().getFullYear()
+      this.$apply()
+      this.loadData()
+    }
+    onShow() {}
+    loadData() {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/coupon/coupon.php`,
+        data: {
+          act: 'add'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.shopType = data.shop_type
+            self.storeInfo = data.store_info
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('获取数据失败', error)
+      })
+    }
+    couponInput(e) {
+      let val = e.detail.value
+      let key = e.currentTarget.dataset.key
+      this.$apply(() => {
+        this[key] = val
+      })
+    }
+    selectDoor(e) {
+      this.$apply(() => {
+        this.is_no_limit = e.detail.value
+      })
+    }
+    checkGoods(e) {
+      this.$apply(() => {
+        this.selectedGoods = e.detail.value
+      })
+    }
+    selectGoods() {
+      this.$apply(() => {
+        this.status = 'fill'
+      })
+    }
+    /**
+     * 设置优惠券
+     */
+    setCoupon() {
+      if (this.couponType !== '2') {
+        this.storeId = ''
+      }
+      if (this.couponType !== '3') {
+        this.selectedGoods = ''
+      }
+      let validResult = this.dataValid(this.couponType, this.couponName, this.storeId, this.is_no_limit, this.minAmount, this.couponMoney, this.startTime, this.endTime, this.couponNumber, this.selectedGoods)
+      if (validResult === false) {
+        return
+      }
+      let param = {
+        'coupon_type': this.couponType,
+        'coupon_name': this.couponName,
+        'store_id': this.storeId,
+        'is_no_limit': this.is_no_limit,
+        'min_amount': this.minAmount,
+        'coupon_money': this.couponMoney,
+        'start_time': this.startTime,
+        'end_time': this.endTime,
+        'coupon_img': this.couponImg,
+        'number': this.couponNumber,
+        'goods_sn': this.selectedGoods.toString()
+      }
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/shop/coupon/coupon.php?act=insert`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: param
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          this.$navigate('./couponList')
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('获取数据失败', error)
+      })
+    }
+    switchType(e) {
+      this.$apply(() => {
+        this.couponType = e.currentTarget.dataset.type
+      })
+    }
+    /**
+     * 去选择商品
+     */
+    toSelectGoods() {
+      this.$apply(() => {
+        this.status = 'select'
+      })
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/shop/coupon/coupon.php`,
+        data: {
+          act: 'add_goods'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          let goodsInfo = data.goods_info
+          for (let i = 0; i < goodsInfo.length; i++) {
+            for (let l = 0; l < this.selectedGoods.length; l++) {
+              if (goodsInfo[i].goods_sn === this.selectedGoods[l]) {
+                goodsInfo[i].checked = true
+              }
+            }
+          }
+          this.goodsInfo = goodsInfo
+          this.imgDomain = data.img_domain
+          this.$apply()
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('获取数据失败', error)
+      })
+    }
+    uploadQr(e) {
+      let _this = this
+      wepy.chooseImage({
+        count: 1, // 一次只能上传一张 默认9
+        sizeType: ['original', 'compressed'], // 可以指定是原图还是压缩图，默认二者都有
+        sourceType: ['album', 'camera'] // 可以指定来源是相册还是相机，默认二者都有
+      }).then((res) => {
+        _this.imgMediaUpload(e.currentTarget.dataset.type, res.tempFilePaths[0])
+      })
+    }
+    /* 上传图片至服务器 */
+    imgMediaUpload (type, mediaId) {
+      // 发送请求
+      let u = wepy.getStorageSync('user_nhh')
+      let uid = u.user_id || DEFAULT_UID
+      let timestamp = Date.parse(new Date()) / 1000
+      let md5Str = md5Util(uid + '' + timestamp + API_SIGNATURE)
+      let uploadParam = {
+        uid: uid,
+        timestamp: timestamp,
+        sign: md5Str,
+        sess_id: wepy.getStorageSync('sessId'),
+        act: 'upload',
+        type: type,
+        filePath: mediaId,
+        name: 'file'
+      }
+      let self = this
+      // 上传图片资源至服务器
+      wepy.uploadFile({
+        url: `${self.$parent.globalData.apiUrl}/wx_app/upload_img.php`,
+        filePath: mediaId,
+        name: 'file',
+        formData: uploadParam
+      }).then((res) => {
+        var resData = JSON.parse(res.data)
+        if (resData.errcode === 0) {
+          self.$apply(() => {
+            self.couponImg = resData.data.file
+            self.isUpload = true
+          })
+        } else {
+          wepy.showModal({
+            content: resData.msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    /**
+     * 选择时间
+     */
+    datePicker (e) {
+      if (e.currentTarget.dataset.type === 'startTime') {
+        this.startTime = e.detail.value.replace(/-0/g, '-')
+      } else {
+        this.endTime = e.detail.value.replace(/-0/g, '-')
+      }
+      this.$apply()
+    }
+    /**
+     * 选择店铺
+     */
+    picker(e) {
+      this.$apply(() => {
+        this.storeId = this.storeInfo[e.detail.value].store_id
+        this.storeName = this.storeInfo[e.detail.value].store_name
+      })
+    }
+    /*
+    * 优惠券填写验证
+    */
+    dataValid(couponType, couponName, storeId, isNoLimit, minAmount, couponMoney, startTime, endTime, couponNumber, goodsSn) {
+      if (couponName === '' || couponMoney === '' || startTime === '' || endTime === '' || couponNumber === '') {
+        wepy.showModal({content: '请填写完整优惠券参数', showCancel: false})
+        return false
+      }
+      if (new Date(startTime).getTime() >= new Date(endTime).getTime()) {
+        wepy.showModal({content: '开始时间不能大于结束时间！', showCancel: false})
+        return false
+      }
+      if (isNoLimit === '1' && minAmount === '') {
+        wepy.showModal({content: '有使用门槛时，须填写订单最低金额', showCancel: false})
+        return false
+      }
+      if (this.shopType === '1' && couponType === '2') {
+        if (storeId === '') {
+          wepy.showModal({content: '设置店铺券时，必须选择店铺', showCancel: false})
+          return false
+        }
+      } else if (couponType === '3') {
+        if (goodsSn.length === 0) {
+          wepy.showModal({content: '设置商品券时，必须选择商品', showCancel: false})
+          return false
+        }
+      }
+      return true
+    }
+  }
+</script>
+
+<style lang="less">
+.scrollView {
+  padding-bottom: 100rpx;
+}
+.fontColor {
+  color: #ccc;
+}
+.parameter {
+  background-color: #fff;
+  padding: 0 15px;
+  margin-bottom: 30rpx;
+}
+.typeWord {
+  font-family: 'PingFang SC';
+  font-weight: 500;
+  font-size: 26rpx;
+  color: #101010;
+  height: 74rpx;
+  line-height: 74rpx;
+  text-align:center;
+}
+.couponType {
+  display: flex;
+  padding: 10rpx 15px;
+  border-bottom: 1px solid #e8e8e8;
+}
+.couponType view {
+  font-family: 'PingFang SC';
+  font-weight: 500;
+  font-size: 26rpx;
+  flex: 1;
+  text-align: center;
+  height: 90rpx;
+  line-height: 90rpx;
+  color: #666;
+  background-color: #e8e8e8;
+}
+.couponType view.active {
+  color: #fff;
+  background-color: #ff6061;
+}
+
+.couponParam {
+  padding-right: 40rpx;
+  border-bottom: 1px solid #e8e8e8;
+  height: 100rpx;
+  line-height: 100rpx;
+  display: flex;
+}
+.couponParam .paramName {
+  width: 200rpx;
+}
+.couponParam .paramValue {
+  flex: 1;
+  height: 100rpx;
+  line-height: 100rpx;
+  border: none;
+  outline: none;
+  text-align:right;
+}
+.couponParam .addBtn {
+  display: inline;
+  margin-right: 20rpx;
+  display: inline;
+  padding: 6rpx 12rpx;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  background-color: #eee;
+}
+
+.bottomBtn {
+  background-color: #fff;
+  padding: 20rpx 15px;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  font-family: 'PingFang SC';
+  font-weight: 500;
+  font-size: 30rpx;
+  color: #fff;
+  z-index:10;
+}
+.bottomBtn view {
+  background-color: #FF6061;
+  text-align:center;
+  height: 80rpx;
+  line-height: 80rpx;
+}
+.selectDoor {
+  display: block;
+  height: 100rpx;
+  line-height: 100rpx;
+  position:relative;
+}
+.selectBtn {
+  position: absolute;
+  right: 9999em;
+}
+.checkedImg {
+  display: none;
+  position:absolute;
+  right: 10rpx;
+  top: 20rpx;
+  width: 60rpx;
+  height: 60rpx;
+  z-index: 1;
+}
+.unCheckedImg {
+  position:absolute;
+  right: 18rpx;
+  top: 28rpx;
+  width: 42rpx;
+  height: 42rpx;
+}
+.selectBtn:checked+.unCheckedImg {
+  display: none;
+}
+.selectBtn:checked+.checkedImg {
+  display: block;
+}
+.parameter .remark {
+  font-family: 'PingFang SC';
+  font-weight: 500;
+  font-size: 24rpx;
+  color: #c8975c;
+  line-height: normal;
+  padding-right: 40rpx;
+}
+.remark .rightText{
+  display: inline-block;
+  color: #333;
+  font-size: 24rpx;
+  padding-left: 10rpx;
+  float: right;
+  color: #c8975c;
+}
+.startTime, .endTime {
+  border: none;
+  outline: none;
+  height: 98rpx;
+  line-height: 98rpx;
+  width:100%;
+  text-align:right;
+  box-sizing: border-box;
+}
+.goods {
+  display: flex;
+  background-color: #fff;
+  height: 140rpx;
+  padding: 20rpx 15px;
+  margin-bottom: 1px;
+  position:relative;
+}
+.goods .selectBox {
+  width: 30px;
+  position: relative;
+}
+.selectBox checkbox {
+  position: absolute;
+  top: 70rpx;
+  left: 15px;
+  margin-top: -50%;
+  margin-left: -50%;
+}
+.selectBox .selectBtn {
+  left: -9999em;
+}
+.selectBox .checkedImg {
+  left: 5px;
+  top:33px;
+}
+.selectBox .unCheckedImg {
+  left: 10px;
+  top: 37px;
+}
+.goods .goodsInfo {
+  flex: 1;
+  display: flex;
+}
+.goods .goodsInfo .banner {
+  width: 140rpx;
+  height: 140rpx;
+}
+.goods .goodsInfo .content {
+  flex: 1;
+  padding-left: 20rpx;
+  position: relative;
+}
+.goodsInfo .content .goodsName {
+  height: 76rpx;
+  line-height: 38rpx;
+  overflow: hidden;
+}
+.goodsInfo .content .price {
+  position:absolute;
+  left: 20rpx;
+  bottom: 0;
+}
+.goodsInfo .content .shopPrice {
+  color: #f34747;
+}
+.goodsInfo .content .marketPrice {
+  text-decoration: line-through;
+}
+.selectBottomBox {
+  display:flex;
+  position:fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 98rpx;
+  line-height: 98rpx;
+  background-color: #fff; z-index: 2
+}
+.selectBottomBox .selectNum {
+  flex: 1;
+  padding-left: 15px;
+}
+.selectBottomBox .selectNum text {
+  font-size: 38rpx;
+  color: #353533;
+  padding: 0 10rpx;
+}
+.confirmBtn {
+  width: 284rpx;
+  background-color: #F34747;
+  color: #fff;
+  text-align: center;
+}
+.rightArrow {
+  width: 42rpx;
+  height: 42rpx;
+  vertical-align: middle;
+  margin-top: -2px;
+}
+checkbox .wx-checkbox-input{  
+  border-radius: 50%;
+  height: 36rpx;
+  width: 36rpx;
+}
+checkbox .wx-checkbox-input.wx-checkbox-input-checked::before{
+  background-color: #C8975C;
+  border: 1rpx solid #C8975C;
+  border-radius: 50%;
+  height: 60rpx;
+  width: 60rpx;
+  padding-left: 8rpx;
+  padding-top: 8rpx;
+}
+</style>
