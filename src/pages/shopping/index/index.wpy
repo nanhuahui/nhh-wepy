@@ -37,6 +37,9 @@
     <!-- 今日精选 -->
     <todaySpecial :special.sync="special" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="tadaySpecial"></todaySpecial>
 
+    <!-- 专场活动 -->
+    <expertSession :expertSession.sync="expertSession" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="expertSession"></expertSession>
+
     <!-- 楼层 -->
     <floorGoods :composeFloorArr.sync="composeFloorArr" :imgUrl.sync="imgUrl" componentId="floorGoods"></floorGoods>
 
@@ -71,6 +74,7 @@ import swiper from './components/index-swiper'
 import category from './components/index-category'
 import shoperChosen from './components/shoper-chosen'
 import todaySpecial from './components/today-special'
+import expertSession from './components/expert-session'
 import recommendSale from './components/recommend-sale'
 import specialSale from './components/special-sale'
 import coustomerGoods from './components/coustomer-goods'
@@ -94,6 +98,7 @@ export default class Index extends wepy.page {
     category,
     shoperChosen,
     todaySpecial,
+    expertSession,
     recommendSale,
     specialSale,
     coustomerGoods,
@@ -150,7 +155,8 @@ export default class Index extends wepy.page {
     auctionList: [], // 推荐的拍卖活动
     onlookerNum: null, // 拍卖围观人数
     buyPersonNum: null, // 拍卖出价次数
-    isReview: wepy.getStorageSync('categoryFood')
+    isReview: wepy.getStorageSync('categoryFood'),
+    expertSession: [] // 专场
   }
 
   computed = {}
@@ -206,6 +212,12 @@ export default class Index extends wepy.page {
     },
     'addToCollection': (...args) => {
       this.addToCollection(args[0], args[1])
+    },
+    'seeMoreExpert': (...args) => {
+      this.seeMoreExpert(args[0], args[1], args[2])
+    },
+    'redirectToGoods': (...args) => {
+      this.redirectToGoods(args[0])
     }
   }
 
@@ -381,6 +393,18 @@ export default class Index extends wepy.page {
           self.hotGoods = data.hot_list.hot_goods_list
           self.hotInfo['id'] = data.hot_list.id
           self.hotInfo['start_time'] = data.hot_list.start_time
+        }
+        // 专场活动
+        if (self.expertSession.length === 0) {
+          let nowExpertSession = self.expertSession
+          for (let m of data.expert) {
+            m.page = 1 // 初始化页码为0
+            m.goods.length < 4 ? m.msg = '已为您加载全部商品' : m.msg = '点击加载更多 ⬇️'
+            nowExpertSession.push(m)
+          }
+          self.$apply(() => {
+            self.expertSession = nowExpertSession
+          })
         }
         let storeCoupon = data.store_coupon
         let moneyLength
@@ -605,6 +629,39 @@ export default class Index extends wepy.page {
         }
       })
     }
+  }
+  /**
+   *   专场：点击加载更多
+   */
+  seeMoreExpert(expertId, index, page) {
+      wepy.request({
+        url: `${this.$parent.globalData.apiUrl}/expert_goods.php?act=vartical`,
+        data: {
+          expert_id: expertId,
+          page: page
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          if (data.expert_goods.length < 6) {
+            this.expertSession[index].msg = '已为您加载全部商品'
+          }
+          this.expertSession[index].page = page  // 当前已经查到的页码数
+          for (let item of data.expert_goods) {
+            this.expertSession[index].goods.push(item)
+          }
+          this.$apply()
+        } else {
+          console.error(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+  }
+  /**
+   *   专场：查看商品
+   */
+  redirectToGoods(upcId) {
+    this.$navigate(`../goods/goods?gid=${upcId}`)
   }
 }
 </script>

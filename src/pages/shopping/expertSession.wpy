@@ -5,7 +5,7 @@
     <view class="scrollView">
       <scroll-view class="goods-lists" style="height: 100%;" scroll-y="true" bindscrolltolower="loadMore" bindscroll="scroll">
         <navigator class="goods-banner_pic" url="javascript:void(0)">
-          <image src="{{expert ? (imgDomain + expert.banner) : (imgUrl + '/no_picture.jpg')}}" mode="widthFix" style="width: 100%;"></image>
+          <image wx:if="{{expert.banner}}" src="{{expert ? (imgDomain + expert.banner) : (imgUrl + '/no_picture.jpg')}}" mode="widthFix" style="width: 100%;"></image>
         </navigator>
         <view style="overflow: hidden;">
           <navigator class="sub-goods_list" wx:for="{{goodsList}}" wx:for-item="g" wx:key="{{g.upc_id}}" url="./goods/goods?gid={{g.upc_id}}">
@@ -22,6 +22,9 @@
               <text class="goods-price_origin">¥{{g.market_price}}</text>
             </view>
           </navigator>
+        </view>
+        <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}" style="height:4.2em;">
+          <text class="weui-loadmore__tips weui-loadmore__tips_in-line">哎呀 别再往下翻了</text>
         </view>
       </scroll-view>
     </view>
@@ -58,23 +61,23 @@
     // 查看更多
     loadMore() {
       let self = this
-      if (self.data.pageNum === -1) {
+      if (self.pageNum === -1) {
         // 分页条码为负均不加载
         return
       }
-      let num = self.data.pageNum + 1
-      self.setData({
-        pageNum: num,
-        hidden: false
+      let num = self.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
       })
-      console.log('当前加载页码:' + self.data.pageNum)
+      console.log('当前加载页码:' + self.pageNum)
       wepy.request({
         url: `${self.$parent.globalData.apiUrl}/expert_goods.php?act=horizontal`,
         data: {
-          expert_id: self.data.expertId,
-          page: self.data.pageNum
+          expert_id: self.expertId,
+          page: self.pageNum
         }
       }).then(({ data: { errcode, data, msg } }) => {
+        errcode = 0
         if (errcode === 0) {
           console.log('查询结果为:', data)
           if (data.expert_goods.length === 0) {
@@ -86,7 +89,7 @@
             return
           }
           // 数据组装
-          let list = self.data.goodsList
+          let list = self.goodsList
           for (var i = 0; i < data.expert_goods.length; i++) {
             list.push(data.expert_goods[i])
           }
