@@ -634,28 +634,28 @@ export default class Index extends wepy.page {
    *   专场：点击加载更多
    */
   seeMoreExpert(expertId, index, page) {
-      wepy.request({
-        url: `${this.$parent.globalData.apiUrl}/expert_goods.php?act=vartical`,
-        data: {
-          expert_id: expertId,
-          page: page
+    wepy.request({
+      url: `${this.$parent.globalData.apiUrl}/expert_goods.php?act=vartical`,
+      data: {
+        expert_id: expertId,
+        page: page
+      }
+    }).then(({data: {errcode, data, msg}}) => {
+      if (errcode === 0) {
+        if (data.expert_goods.length < 6) {
+          this.expertSession[index].msg = '已为您加载全部商品'
         }
-      }).then(({data: {errcode, data, msg}}) => {
-        if (errcode === 0) {
-          if (data.expert_goods.length < 6) {
-            this.expertSession[index].msg = '已为您加载全部商品'
-          }
-          this.expertSession[index].page = page  // 当前已经查到的页码数
-          for (let item of data.expert_goods) {
-            this.expertSession[index].goods.push(item)
-          }
-          this.$apply()
-        } else {
-          console.error(msg)
+        this.expertSession[index].page = page  // 当前已经查到的页码数
+        for (let item of data.expert_goods) {
+          this.expertSession[index].goods.push(item)
         }
-      }).catch((error) => {
-        console.log('请求失败', error)
-      })
+        this.$apply()
+      } else {
+        console.error(msg)
+      }
+    }).catch((error) => {
+      console.log('请求失败', error)
+    })
   }
   /**
    *   专场：查看商品
