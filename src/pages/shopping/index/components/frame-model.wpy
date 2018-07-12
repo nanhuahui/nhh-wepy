@@ -1,0 +1,59 @@
+<template>
+  <view class="frameModel" style="{{ frameModel.banner ? ('background-image: url(' + imgDomain + frameModel.banner + ')') : ('background-color:' + (frameModel.banner_color ? frameModel.banner_color : '#fff')) }}">
+    <view class="frameBlock" wx:for="{{frameModel.list}}" wx:for-item="frame" wx:key="{{index}}">
+      <view class="{{'img_list frame_list clearfix img_list_' + frame.value}}">
+        <view class="list-item" wx:for="{{frame.info}}" wx:for-item="img" wx:key="{{index}}" bindtap="toFrameInfo" data-link="{{img.link}}" style="{{frame.value === '5' ? ('width:' + (deviceWidth - 14 - 6 * 3) / 3 + 'px') : frame.value === '6' ? ('width:' + (deviceWidth - 14) / 2 + 'px') : ''}}">
+          <image mode="widthFix" src="{{img ? imgDomain + img.file : imgUrl + '/no_picture.jpg'}}"></image>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class frameModel extends wepy.component {
+    components = {}
+    props = {
+      frameModel: Object,
+      imgUrl: Object,
+      imgDomain: Object
+    }
+    data = {
+      deviceWidth: null // 设备宽度
+    }
+    computed = {}
+    onLoad() {
+      this.deviceWidth = wepy.getSystemInfoSync().windowWidth
+    }
+    methods = {
+      toFrameInfo(e) {
+        const link = e.currentTarget.dataset.link
+        this.$emit('toFrameInfo', link)
+      }
+    }
+  }
+</script>
+
+<style lang="less">
+.frameModel{padding: 0 0 24rpx; background-size: 100%; background-repeat: no-repeat;}
+.frame_list image{width: 100%; display: block;}
+  /*定制不同图片位置*/
+.frame_list{position: relative;}
+.frame_list{ display: -webkit-flex; /* Safari */  display: flex; padding: 0 14rpx;}
+.frame_list .list-item{ flex: 1; -webkit-box-flex: 1; -webkit-flex: 1; padding: 3px;}
+.frame_list .list-item:first-child{padding-left: 0}
+.frame_list .list-item:last-child{padding-right: 0}
+/*一张定制*/
+.frameBlock .img_list_1, .img_list_1 .list-item{padding: 0}
+/* 九张定制 */
+.frameBlock .img_list_5{display: block;overflow: hidden;}
+.frameBlock .img_list_5 .list-item{float: left;}
+.frameBlock .img_list_5 .list-item:first-child, .img_list_5 .list-item:last-child{padding: 3px}
+/* 三张定制 */
+.frameBlock .img_list_6{display: block; position: relative;overflow: hidden; }
+.frameBlock .img_list_6 .list-item{float: left; padding: 0}
+.frameBlock .img_list_6 .list-item:first-child{padding-right: 0;}
+.frameBlock .img_list_6 .list-item:last-child{position: absolute; bottom: 0; right: 7px;}
+</style>

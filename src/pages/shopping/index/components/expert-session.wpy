@@ -49,7 +49,7 @@
         <view class="goods-lists clearfix" wx:else>
           <view class="sub-goods_list" wx:for="{{item.goods}}" wx:for-item = "g" wx:key="item.goods_id" bindtap = "redirectToGoods" data-upcid = "{{g.upc_id}}">
             <view class="goods-img" style="text-align:center;">
-              <image src="{{g.master_img ? imgDomain + g.master_img:'/static/images/no_picture.jpg'}}" style="height:auto"></image>
+              <image src="{{g.master_img ? imgDomain + g.master_img: imgUrl + '/no_picture.jpg'}}" style="height:auto"></image>
               <!-- <text class="vedio_icon" wx:if="g.video_url">
                 <image src="/static/images/vedio_icon.png"></image>
               </text> -->

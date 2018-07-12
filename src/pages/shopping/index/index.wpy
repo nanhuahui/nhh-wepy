@@ -13,6 +13,9 @@
     <!-- 通知 -->
     <!-- <noticeMarquee :imgUrl.sync="imgUrl" componentId="noticeMarquee"></noticeMarquee> -->
 
+    <!-- 框架 -->
+    <frameModel wx:if="{{frameModel && frameModel.list && frameModel.list.length > 0}}" :frameModel.sync="frameModel" :imgDomain.sync="img_domain" :imgUrl.sync="imgUrl" componentId="frameModel"></frameModel>
+
     <!-- 店主精选 -->
     <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" :storeCoupon.sync = 'storeCoupon' componentId="shoperChosen"></shoperChosen>
 
@@ -72,6 +75,7 @@ import qrPatchLayer from '@/components/qrPatch-layer'
 import header from './components/index-header'
 import swiper from './components/index-swiper'
 import category from './components/index-category'
+import frameModel from './components/frame-model'
 import shoperChosen from './components/shoper-chosen'
 import todaySpecial from './components/today-special'
 import expertSession from './components/expert-session'
@@ -96,6 +100,7 @@ export default class Index extends wepy.page {
     header,
     swiper,
     category,
+    frameModel,
     shoperChosen,
     todaySpecial,
     expertSession,
@@ -156,7 +161,8 @@ export default class Index extends wepy.page {
     onlookerNum: null, // 拍卖围观人数
     buyPersonNum: null, // 拍卖出价次数
     isReview: wepy.getStorageSync('categoryFood'),
-    expertSession: [] // 专场
+    expertSession: [], // 专场
+    frameModel: []   // 框架
   }
 
   computed = {}
@@ -218,6 +224,9 @@ export default class Index extends wepy.page {
     },
     'redirectToGoods': (...args) => {
       this.redirectToGoods(args[0])
+    },
+    'toFrameInfo': (...args) => {
+      this.toFrameInfo(args[0])
     }
   }
 
@@ -413,6 +422,26 @@ export default class Index extends wepy.page {
           moneyLength = storeCoupon[i].coupon_money.toString().length
           storeCoupon[i].cellWidth = moneyLength > 2 ? (300 + 66 * moneyLength - 94) : 300
         }
+        // 转换框架链接地址
+        if (data.frame_info.list) {
+          let link = null
+          for (var m = 0; m < data.frame_info.list.length; m++) {
+            for (var n = 0; n < data.frame_info.list[m].info.length; n++) {
+              link = data.frame_info.list[m].info[n].link
+              if (link.indexOf('allConsumerGoods') > -1) { // 消费商专区
+                data.frame_info.list[m].info[n].link = `../coustomGoods`
+              } else if (link.indexOf('flashSale') > -1) { // 限时特卖
+                data.frame_info.list[m].info[n].link = `../flashSale${link.split('flashSale')[1]}`
+              } else if (link.indexOf('category') > -1) { // 楼层
+                data.frame_info.list[m].info[n].link = `../category`
+              } else if (link.indexOf('index/panicBuy') > -1) { // 今日特卖
+                data.frame_info.list[m].info[n].link = `../panicBuy${link.split('panicBuy')[1]}`
+              } else if (link.indexOf('goods') > -1) { // 商品详情
+                data.frame_info.list[m].info[n].link = `../goods/goods${link.split('goods')[1]}`
+              }
+            }
+          }
+        }
         // 设置数据
         self.$apply(() => {
           self.active = data.active
@@ -423,6 +452,7 @@ export default class Index extends wepy.page {
           self.storeInfo = data.storeinfo
           self.storeCoupon = storeCoupon
           self.storeDetail = data.store_detail
+          self.frameModel = data.frame_info ? data.frame_info : []
           self.composeFloorArr = tempFloor
           self.special = data.special
           self.shopperChoose = data.shop_best_goods
@@ -662,6 +692,15 @@ export default class Index extends wepy.page {
    */
   redirectToGoods(upcId) {
     this.$navigate(`../goods/goods?gid=${upcId}`)
+  }
+  // 框架点击事件
+  toFrameInfo(url) {
+    if (url.indexOf('aiwall') !== -1) {
+      // 第三方链接
+      this.$navigate(`../../thirdWebView/thirdWebView?url=${url}`)
+    } else {
+      this.$navigate(`${url}`)
+    }
   }
 }
 </script>
