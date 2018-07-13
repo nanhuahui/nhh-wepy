@@ -16,7 +16,7 @@
                       </view>
 
                       <!-- flex-direction:column：主轴为垂直方向，起点在上沿|column-reverse：主轴为垂直方向，起点在下沿 -->
-                      <view style="display:flex;display:-webkit-flex;flex-direction:column;">
+                      <view style="display:flex;display:-webkit-flex;flex-direction:column-reverse;">
                         <view>
                           <text class="shop-price" wx:if="{{goods.shop_price}}">{{goods.shop_price}}</text>
                           <text class="market-price" wx:if="{{goods.market_price}}">{{goods.market_price}}</text>

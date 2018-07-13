@@ -50,6 +50,7 @@ export default class extends wepy.app {
       'pages/shopping/promotion',
       'pages/shopping/classify',
       'pages/shopping/placard',
+      'pages/shopping/tagFavourable',
       'pages/user/userCenter',
       'pages/user/myCollect',
       'pages/user/sellerIncome',

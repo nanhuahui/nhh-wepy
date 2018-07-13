@@ -77,7 +77,6 @@
           page: self.pageNum
         }
       }).then(({ data: { errcode, data, msg } }) => {
-        errcode = 0
         if (errcode === 0) {
           console.log('查询结果为:', data)
           if (data.expert_goods.length === 0) {

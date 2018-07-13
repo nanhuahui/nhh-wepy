@@ -34,6 +34,9 @@
     <!-- 今日特卖 -->
     <specialSale wx:if="{{!isReview}}" :active.sync="active" :imgDomain.sync="img_domain" :isActivity.sync="isActivity" componentId="specialSale"></specialSale>
 
+    <!-- 标签活动 -->
+    <tagFavorable wx:if="{{tagFavorable && tagFavorable.length > 0}}" :tagFavorable.sync="tagFavorable" :imgDomain.sync="img_domain" :imgUrl.sync="imgUrl"></tagFavorable>
+
     <!-- 24小时热销 -->
     <allDayHot :dayHot.sync="hotInfo" :goods.sync="hotGoods" :imgUrl.sync="imgUrl" componentId="allDayHot"></allDayHot>
 
@@ -88,6 +91,7 @@ import flashSale from './components/flash-sale'
 import allDayHot from './components/all-day-hot'
 import auction from './components/auction'
 import indexLoading from './components/loading'
+import tagFavorable from './components/tag-favorable'
 import qcMixin from '@/mixins/quickIcon'
 // import noticeMarquee from './components/notice-marquee'
 import { getCategory, getStoreIndex, getRecommend, getDistribution, addCart, addCollection, setCartNum } from '@/utils/api'
@@ -114,7 +118,8 @@ export default class Index extends wepy.page {
     qrPatchLayer,
     auction,
     // noticeMarquee,
-    indexLoading
+    indexLoading,
+    tagFavorable
   }
   mixins = [qcMixin]
   data = {
@@ -162,7 +167,8 @@ export default class Index extends wepy.page {
     buyPersonNum: null, // 拍卖出价次数
     isReview: wepy.getStorageSync('categoryFood'),
     expertSession: [], // 专场
-    frameModel: []   // 框架
+    tagFavorable: [], // 标签活动
+    frameModel: [] // 框架
   }
 
   computed = {}
@@ -452,6 +458,7 @@ export default class Index extends wepy.page {
           self.storeInfo = data.storeinfo
           self.storeCoupon = storeCoupon
           self.storeDetail = data.store_detail
+          self.tagFavorable = data.tag_favourable ? data.tag_favourable : []
           self.frameModel = data.frame_info ? data.frame_info : []
           self.composeFloorArr = tempFloor
           self.special = data.special
