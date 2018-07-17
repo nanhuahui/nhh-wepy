@@ -6,7 +6,6 @@ page {
   font-family: '微软雅黑';
 }
 
-
 /**
  * 字号 颜色
  * @type {[type]}

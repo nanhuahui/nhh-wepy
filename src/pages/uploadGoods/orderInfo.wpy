@@ -1,13 +1,40 @@
 <template>
   <scroll-view scroll-y="true" height="100%" wx:if="{{orderDet.order}}">
-    <!-- <view class="deliveryState">
-      <view class="h1 c11">{{orderDet.order.shipping_time ? '卖家已发货' : orderDet.order.pay_time ? '等待卖家发货' : '未付款'}}</view>
-    </view> -->
-    <view class="deliveryState" wx:if = "{{orderDet.order.shipping_time}}">
-      <view class="h1 c11">{{order_state}}</view>
+    <view class="returnAndExchangeBg">
+      <view class="iconBox">
+        <image src="https://chazishop.com/static/images/storeGoods/modify.png" />
+      </view>
+      <view class="c7 order_status_top">{{orderDet.order.order_status}}</view>
+      <view class="rightInfo h7" wx:if="{{orderDet.order.order_status === '已退货，待退款'}}">三个工作日
+        <text>系统自动退款</text>
+      </view>
+      <view class="rightInfo h7" wx:if="{{orderDet.order_rest_time}}">{{orderDet.order_rest_time}}
+        <text>系统自动退款</text>
+      </view>
     </view>
-    <view class="deliveryState Unprocessed" wx:else>
-      <view class="h1 c11">{{orderDet.order.pay_time ? '待发货' : '未付款'}}</view>
+    <view class="returnProcess" wx:if="{{order_action}}">
+      <view class="processStage" wx:for="{{order_action}}" wx:key="{{item}}">
+        <view class="result">
+          <view class="handleTimeBox">
+            <view class="centerBox">
+              <view class="c2 specificTime">
+                {{item.action_time}}
+              </view>
+              <!-- <view class="c1 h7">
+                {{item.action_time.slice(0, 10)}}
+              </view> -->
+            </view>
+          </view>
+          <view class="h3 c4 resultText">
+            {{item.action_title}}
+          </view>
+        </view>
+        <view class="c2 h5 reason">
+          <view>退款金额：￥{{item.action_money}}</view>
+          <view wx:if="{{item.reason_desc}}">退款原因：{{item.reason_desc}}</view>
+          <view wx:if="{{item.action_note}}">{{item.action_place === '3' ? '拒绝原因：' : '备注：'}}{{item.action_note}}</view>
+        </view>
+      </view>
     </view>
     <!-- 快递名称 -->
     <view class="logisticsName h3 c3" wx:if="{{shipping_name}}">
@@ -37,7 +64,8 @@
     <!-- 订单地址 -->
     <view class="mainDet">
       <view class="shopDet">
-        <view class="h3 c3 list">
+        <view class="h3 c3 list" style="position: relative; padding-left: 80rpx">
+          <image src="https://chazishop.com/static/images/orderAddress.png" mode="widthFix" style="position: absolute; width: 28rpx; height: 28rpx; top: 0; bottom: 0; margin: auto; left: 10rpx"></image>
           <view class="list-item o_consigneeName">
             收货人姓名：{{orderDet.order.consignee}}
             <text>{{orderDet.order.mobile}}</text>
@@ -126,14 +154,20 @@
       </view>
       <!-- 操作发货 -->
       <view class="bottomCon" wx:if="{{orderDet.order.is_show_shipping === 1 || (orderDet.order.pay_time && orderDet.order.order_status !== 4)}}">
-        <a class="fahuo h3 c11" bindtap="returnMoney" style="float: left">
+        <!-- <a class="fahuo h3 c11" bindtap="returnMoney" style="float: left">
           退款
-        </a>
-        <navigator class="fahuo h3 c11" wx:if="{{orderDet.order.is_show_shipping === 1}}" url = "./delivery?order_id={{id}}">
+        </a> -->
+        <navigator class="grayTone h3 c11 floatLeft" wx:if="{{orderDet.order.is_show_shipping === 1}}" url = "./delivery?order_id={{id}}">
           发货
         </navigator>
-        <a class="fahuo h3 c11" bindtap="userTake" wx:if="{{orderDet.order.is_show_shipping === 1}}">
+        <a class="grayTone h3 c11 floatLeft" bindtap="userTake" wx:if="{{orderDet.order.is_show_shipping === 1}}">
           自提
+        </a>
+        <a wx:if="{{orderDet.order.is_show_check}}" bindtap="refuseReturn" class="fahuo h3 c11">
+          {{order_info.shipping_time ? '拒绝退货' : '拒绝退款'}}
+        </a>
+        <a class="fahuo h3 c11" bindtap="refundControl" wx:if="{{orderDet.order.is_show_check}}">
+          {{order_info.shipping_time ? '同意退货' : '同意退款'}}
         </a>
       </view>
     </view>
@@ -168,7 +202,8 @@
       objectShipping: [],
       index: 0,
       orderDet: {},
-      mailName: DEFAULT_NAME
+      mailName: DEFAULT_NAME,
+      order_action: []
     }
     onLoad(q) {
       console.log(q.scene) // 场景值：用于二维码携带参数
@@ -177,6 +212,8 @@
         this.id = q.id || decodeURIComponent(q.scene)
         this.orderType = parseFloat(q.type) || 0
       })
+    }
+    onShow(e) {
       this.loadOrder()
     }
     /**
@@ -210,6 +247,7 @@
             self.order_state = data.logistics_track.message ? data.logistics_track.message : '订单已发货'
             self.objectShipping = data.shipping_list
             self.shippingArray = shippingArray
+            self.order_action = data.action_list
           })
         } else {
           wepy.showModal({
@@ -400,6 +438,10 @@
           return false
         }
       })
+    }
+    refuseReturn(e) {
+      let actType = this.orderDet.order.shipping_time ? 'order_returned' : 'order_refund'
+      wepy.navigateTo({url: `./refuseRefund?orderId=${this.orderDet.order.order_id}&actType=${actType}`})
     }
   }
 </script>
@@ -596,6 +638,77 @@
     to{left: 100%; transform: rotate(360deg)}
 }
 /*底部发货和自提*/
-.bottomCon{background: #fff; line-height: 90rpx; position: fixed; width: 100%; bottom: 0; box-shadow: 1px -10px 50px #fff}
-.fahuo{float: right; width:120rpx; margin: 14rpx; margin-right:5px; text-align: center; border: 1px solid #ccc; height: 56rpx; line-height: 56rpx; background: #333;}
+.bottomCon{background: #fff; line-height: 90rpx; position: fixed; width: 100%; bottom: 0; box-shadow: 1px -10px 50px #fff; padding: 0 30rpx}
+.bottomCon a{float: right; width:140rpx; margin: 15rpx 5px 15rpx 0; text-align: center; height: 40rpx; line-height: 40rpx; border-radius: 28rpx; border: 1px solid #f55b29; color: #f55b29}
+.bottomCon .grayTone{border: 1px solid #eee; color: #333}
+.bottomCon .floatLeft{float: left;}
+.returnProcess {
+  background-color: #fff;
+  margin: 0 -15px;
+  padding: 0 15px;
+}
+.returnProcess .processStage {
+  padding: 0.85533rem 0;
+  border-bottom: 1px solid #ccc;
+}
+.returnProcess .processStage:last-child {
+  border-bottom: none;
+}
+.processStage .result {
+  display: flex;
+}
+.result .handleTimeBox {
+  width: 88px;
+}
+.result .centerBox {
+  display: inline-block;
+  text-align: center;
+}
+.result .specificTime {
+  font-size: 24rpx;
+}
+.result .resultText {
+  flex: 1;
+  line-height: 72rpx;
+}
+.result .stopTime {
+  color: #f55b29;
+  text-align: center;
+}
+.processStage .reason {
+  margin-left: 88px; margin-top: -0.4rem
+}
+.orderAddress{position: relative;}
+.orderAddress img{position: absolute; left: 0.6rem; top: 0; bottom: 0; margin: auto; width: 0.6rem}
+.orderAddress ul{padding-left: 1.3rem}
+.processStage .reason div {
+  font-size: 0.4693rem;
+}
+.orderAddress ul li{font-size: 0.55rem}
+.returnAndExchangeBg {
+  background: url(https://chazishop.com/static/images/storeGoods/tuihuanhuo.png) no-repeat;
+  background-size: 100%;
+  display: flex;
+  position: relative; 
+  padding: 0 30rpx;
+}
+.iconBox {
+  width: 50rpx;
+  height: 120rpx;
+  position: relative;
+}
+.iconBox image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -0.4267rem;
+  margin-top: -0.512rem;
+  width: 0.8533rem;
+  height: 0.981rem;
+}
+.returnAndExchangeBg .order_status_top {
+  line-height: 120rpx;
+}
+.returnAndExchangeBg .rightInfo{position: absolute; top: 0; bottom: 0; margin: auto; right: 0.8rem; color: #fff; text-align: right; padding-top: 0.8rem}
+.rightInfo text{display: block;}
 </style>
