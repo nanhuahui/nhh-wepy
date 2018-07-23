@@ -114,7 +114,10 @@ export default class extends wepy.app {
       'pages/coupon/usedList',
       'pages/coupon/promote',
       'pages/coupon/couponCenter',
-      'pages/coupon/couponInfo'
+      'pages/coupon/couponInfo',
+      'pages/unionStore/branchInfo',
+      'pages/unionStore/orderInfoList',
+      'pages/unionStore/storeManage'
     ],
     window: {
       navigationBarBackgroundColor: '#f7f7f8',

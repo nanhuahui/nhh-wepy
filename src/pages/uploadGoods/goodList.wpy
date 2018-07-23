@@ -2,6 +2,10 @@
   <view height="100%">
   <!-- 排序 -->
   <view class="goodsSortMenu">
+    <view bindtap = "sortGoods" data-type="top_time">
+      <text>默认排序</text>
+      <image src="{{imgUrl}}/storeGoods/sortDefault.png" mode="widthFix"></image>
+    </view>
     <view bindtap = "sortGoods" data-type="add_time">
       <text>添加时间</text>
       <image wx:if="{{sortType === 'add_time DESC'}}" src="{{imgUrl}}/storeGoods/sortUp.png" mode="widthFix"></image>
@@ -33,7 +37,10 @@
             <navigator url="../uploadGoods/uploadGood?g_id={{g.g_id}}">
               <view class="list_content">
                 <view class="content_up">
-                  <image src="{{img_domain}}/{{g.master_img}}"></image>
+                  <view class="img_content">
+                    <image src="{{img_domain}}/{{g.master_img}}"></image>
+                    <view wx:if="{{g.is_on_sale_upc === '1'}}" class="h5 c7">售卖中</view>
+                  </view>
                   <view class="state">
                     <view class="title h6 c3">{{g.goods_name}}</view>
                     <view class="describe h6 c2">{{g.goods_brief}}</view>
@@ -55,20 +62,20 @@
                   <view class="h8 c3">预览</view>
                 </navigator>
               </view>
-              <view class="list-item" wx:if = "{{g.is_on_sale_upc === '1'}}" bindtap = "operateGoods" data-gid = "{{g.upc_id}}" data-isOn = "0" data-index = "{{index}}" data-act_type = "on_sale">
+              <view class="list-item" wx:if = "{{g.is_on_sale_power && g.is_on_sale_upc === '1'}}" bindtap = "operateGoods" data-gid = "{{g.upc_id}}" data-isOn = "0" data-index = "{{index}}" data-act_type = "on_sale">
                 <image src="{{imgUrl}}/storeGoods/putaway.png"></image>
-                <view class="h8 c3">上架</view>
-              </view>
-              <view class="list-item" wx:else bindtap = "operateGoods" data-gid = "{{g.upc_id}}" data-isOn = "1" data-index = "{{index}}" data-act_type = "on_sale">
-                <image src="{{imgUrl}}/storeGoods/putDown.png"></image>
                 <view class="h8 c3">下架</view>
               </view>
+              <view class="list-item" wx:elif = "g.is_on_sale_power && g.is_on_sale_upc !== '1'" bindtap = "operateGoods" data-gid = "{{g.upc_id}}" data-isOn = "1" data-index = "{{index}}" data-act_type = "on_sale">
+                <image src="{{imgUrl}}/storeGoods/putDown.png"></image>
+                <view class="h8 c3">上架</view>
+              </view>
               <!-- 商品为精选商品时 设置取消精选按钮 -->
-              <view class="list-item" wx:if = "{{g.is_best === '1'}}" bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-isOn = "0" data-index = "{{index}}" data-act_type = "set_best">
+              <view class="list-item" wx:if = "{{g.is_set_best_power && g.is_best === '1'}}" bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-isOn = "0" data-index = "{{index}}" data-act_type = "set_best">
                 <image src="{{imgUrl}}/storeGoods/shoperChoice.png"></image>
                 <view class="h8 c3">取消精选</view>
               </view>
-              <view class="list-item" wx:else bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-isOn = "1" data-index = "{{index}}" data-act_type = "set_best">
+              <view class="list-item" wx:elif = "{{g.is_set_best_power && g.is_best !== '1'}}" bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-isOn = "1" data-index = "{{index}}" data-act_type = "set_best">
                 <image src="{{imgUrl}}/storeGoods/noChoice.png"></image>
                 <view class="h8 c3">设为精选</view>
               </view>
@@ -76,6 +83,12 @@
               <view class="list-item" bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-index = "{{index}}" data-act_type = "del">
                 <image src="{{imgUrl}}/storeGoods/delete.png"></image>
                 <view class="h8 c3">删除</view>
+              </view>
+              <!-- 操作置顶 -->
+              <view class="list-item" bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-index = "{{index}}" data-act_type = "set_top" data-chosen = "{{g.is_set_top}}">
+                <image wx:if = "{{g.is_set_top === '1'}}" src="{{imgUrl}}/storeGoods/set_top_cancel.png"></image>
+                <image wx:else src="{{imgUrl}}/storeGoods/set_top.png"></image>
+                <view class="h8 c3">{{g.is_set_top === '1' ? '取消置顶' : '置顶'}}</view>
               </view>
             </view>
           </view>
@@ -116,7 +129,7 @@
       hidden: true,
       scrollTop: 0,
       upc_id: 0,
-      sortType: 'add_time DESC', // 查看时间商品排序 默认查看顺序为时间倒叙
+      sortType: 'top_time DESC', // 查看时间商品排序 默认查看顺序为时间倒叙
       add_time: 'DESC', // 添加时间排序，默认倒叙
       sale_count: 'ASC',  // 销量排序
       number: 'ASC'  // 库存排序
@@ -137,11 +150,13 @@
         this.sale_count = saleSort
         this.$apply()
         sortType = currentTarget.type + ' ' + this.data.sale_count
-      } else {
+      } else if (currentTarget.type === 'number') {
         var numberSort = this.data.number === 'DESC' ? 'ASC' : 'DESC'
         this.number = numberSort
         this.$apply()
         sortType = currentTarget.type + ' ' + this.data.number
+      } else {
+        sortType = 'top_time DESC'
       }
       this.$apply(() => {
         this.sortType = sortType
@@ -203,7 +218,7 @@
       })
     }
     /**
-   * [operateGoods 自主商品操作（上下架 设为精选 删除）]
+   * [operateGoods 自主商品操作（上下架 设为精选 删除 置顶）]
    */
     operateGoods(e) {
       console.log(e)
@@ -214,6 +229,12 @@
         questParam = {
           act_type: currentTarget.act_type,
           upc_id: currentTarget.gid
+        }
+      } else if (currentTarget.act_type === 'set_top') {
+        questParam = {
+          act_type: currentTarget.act_type,
+          goods_id: currentTarget.gid,
+          is_best: currentTarget.chosen
         }
       } else {
         questParam = {
@@ -259,8 +280,15 @@
             })
           } else if (currentTarget.act_type === 'del') {
             goodsList.splice(currentTarget.index, 1)
-          } else {
+          } else if (currentTarget.act_type === 'set_best') {
             goodsList[currentTarget.index]['is_best'] = currentTarget.ison
+          } else {
+            goodsList[currentTarget.index]['is_set_top'] = currentTarget.chosen === '1' ? '0' : '1'
+            wepy.showToast({
+              title: currentTarget.chosen === '1' ? '已取消置顶' : '已置顶显示',
+              icon: 'success',
+              duration: 2000
+            })
           }
           this.goods_list = goodsList
           this.$apply()
@@ -299,6 +327,17 @@
   width: 150rpx;
   height: 150rpx;
   background-size: cover;
+}
+.content_up .img_content{position: relative;}
+.content_up .img_content view{
+  position: absolute; 
+  width: 100%; 
+  height: 42rpx; 
+  line-height: 42rpx; 
+  text-align: center; 
+  bottom: -10rpx; 
+  left: 0; 
+  background: rgba(0,0,0,.7);
 }
 
 .content_up .state {

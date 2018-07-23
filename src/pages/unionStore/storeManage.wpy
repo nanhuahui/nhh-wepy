@@ -1,0 +1,287 @@
+<template>
+  <view>
+    <view class="branchManage">
+      <view class="manageLi">
+        <view class="manageList">
+          <view class="totleIncome">
+            总店收入
+          </view>
+          <view class="incomeTitle">
+            <view class="h5">累计总收入</view>
+            <view class="h5">上月总收入</view>
+            <view class="h5">本月总收入</view>
+            <view class="h5">今日收入</view>
+          </view>
+          <view class="incomeTitle">
+            <view class="h5">¥{{total_all_z ? total_all_z : '0.00'}}</view>
+            <view class="h5">¥{{total_lastmonth_z ? total_lastmonth_z : '0.00'}}</view>
+            <view class="h5">¥{{total_month_z ? total_month_z : '0.00'}}</view>
+            <view class="h5">¥{{total_today_z ? total_today_z : '0.00'}}</view>
+          </view>
+        </view>
+      </view>
+      <view class="manageLi">
+        <view class="manageTab">
+          <view style="flex:1;text-align:left;">分店总数：{{shop_number_total}}</view> 
+          <view style="flex:1;text-align:right;">已激活分店：{{shop_number_use}}</view>
+        </view>
+      </view>
+      <repeat wx:for="{{branceList}}" wx:for-item="branch" wx:for-index="index" wx:key="*this">
+        <view class="manageLi">
+          <navigator url="./branchInfo?store_id={{branch.store_id}}">
+            <view class="manageList">
+              <view class="branchIncome">
+                <view>
+                  {{branch.store_name}}
+                  <text class="iconfont-yzg icon-yzg-arrow"></text>
+                </view>
+              </view>
+              <view class="incomeTitle">
+                <view class="h5">累计总收入</view>
+                <view class="h5">本店自营</view>
+                <view class="h5">联盟代销</view>
+                <view class="h5">平台返佣</view>
+              </view>
+              <view class="incomeTitle">
+                <view class="h5">¥{{branch.total ? branch.total : '0.00'}}</view>
+                <view class="h5">¥{{branch.support ? branch.support : '0.00'}}</view>
+                <view class="h5">¥{{branch.union_shop_commission_total ? branch.union_shop_commission_total : '0.00'}}</view>
+                <view class="h5">¥{{branch.shop_commission_total ? branch.shop_commission_total : '0.00'}}</view>
+              </view>
+            </view>
+          </navigator>
+        </view>
+      </repeat>
+    </view>
+    <text class="addShop" bindtap="addBrance">开设分店
+      <text wx:if = "{{unused_qrcode_count !== 0}}" class="h5" style="display:block; color:#888">(您还有 <text style="color: #c8975c;font-style: normal;font-size: 14px;">{{unused_qrcode_count}}</text> 家分店未开设)</text></text>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class storeManage extends wepy.page {
+    config = {
+      navigationBarTitleText: '店铺管理'
+    }
+    data = {
+      branceList: [],
+      total_income: null,  // 合计收入
+      total_all_z: 0,   // 累计总收入
+      total_lastmonth_z: 0, // 上月总收入
+      total_month_z: 0, // 本月总收入
+      total_today_z: 0, // 今日收入
+      core_id: '',
+      unused_qrcode_count: 0,
+      shop_number_total: 0, // 分店总数
+      shop_number_use: 0 // 已激活分店数
+    }
+    onLoad() {
+      this.getBrance()
+    }
+    /**
+     * [getBrance 获取分店信息]
+     * @return {[type]} [description]
+     */
+    getBrance() {
+      let self = this
+      wepy.showLoading({ title: '加载中' })
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/union_shop/union_shop.php`,
+        data: {
+          act: 'union_shop'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        wepy.hideLoading()
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.branceList = data.union_list
+            // this.total_income = data.total_income_z
+            self.unused_qrcode_count = data.unused_qrcode_count
+            self.shop_number_total = data.shop_number_total
+            self.shop_number_use = data.shop_number_use
+            self.total_all_z = data.total_all_z
+            self.total_lastmonth_z = data.total_lastmonth_z
+            self.total_month_z = data.total_month_z
+            self.total_today_z = data.total_today_z
+          })
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * [addBrance 添加分店]
+     */
+    addBrance() {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/chain_shop/chain_shop.php`,
+        data: {
+          act: 'add_shop'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          if (data.is_qrcode === 0) {
+            // 无可用分店二维码信息 直接支付
+            self.submitOrder()
+          } else {
+            // 有未开店的二维码信息，跳转页面去分享
+            wepy.navigateTo({
+              url: '../branchOffice/shareBranchQr?code_id={{data.chain_info.code_id}}'
+            })
+          }
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * [submitOrder 支付之前请求接口获得order_sn]
+     * @return {[type]} [description]
+     */
+    submitOrder() {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/flow.php?step=chain_order`
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          console.log(456, data)
+          if (data.order_sn) {
+            self.payNow(data.order_sn)
+          } else {
+            wepy.showModal({
+              title: '提示',
+              content: msg,
+              showCancel: false
+            })
+          }
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * [payNow 支付]
+     * @param  {[type]} order_sn [description]
+     * @return {[type]}          [description]
+     */
+    payNow(orderSn) {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/flow.php?step=chain_wx_pay`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: {
+          order_sn: orderSn
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          console.log(123, data)
+          if (data.jsApiParameters) {
+            let payJson = JSON.parse(data.jsApiParameters)
+            wepy.requestPayment({
+              timeStamp: payJson.timeStamp,
+              nonceStr: payJson.nonceStr,
+              package: payJson.package,
+              signType: payJson.signType,
+              paySign: payJson.paySign
+            }).then((res) => {
+              if (res.err_msg === 'get_brand_wcpay_request:ok') {
+                wepy.showModal({
+                  title: '提示',
+                  content: '支付成功',
+                  showCancel: false
+                })
+                self.getCodeId(orderSn)
+              } else if (res.err_msg === 'get_brand_wcpay_request:cancel') {
+                // 取消
+                wepy.showModal({
+                  title: '提示',
+                  content: '用户取消支付',
+                  showCancel: false
+                })
+              } else if (res.err_msg === 'get_brand_wcpay_request:fail') {
+                // 支付失败
+                wepy.showModal({
+                  title: '提示',
+                  content: res.err_desc,
+                  showCancel: false
+                })
+              } else {
+                wepy.showModal({
+                  title: '提示',
+                  content: '支付回调错误,请刷新重试!',
+                  showCancel: false
+                })
+              }
+            })
+          } else {
+            console.warn(654123, errcode, msg, data)
+          }
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * [getCodeId 获取二维码的code_id]
+     * @return {[type]} [description]
+     */
+    getCodeId(didSn) {
+      let self = this
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/flow.php?step=chain_success_wx_pay`,
+        data: {
+          did_sn: didSn
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          wepy.navigateTo({
+            url: '../branchOffice/shareBranchQr?code_id={{data.code_id}}'
+          })
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+  .branchManage{padding: 0 30rpx;}
+  .branchManage .manageLi{background: #fff; box-shadow: 6rpx 6rpx 66rpx #999; border-radius: 8rpx; padding: 40rpx 20rpx; margin-top: 24rpx}
+  .branchManage .manageLi .manageTab{display:flex;}
+  .incomeTitle{display:flex;height:65rpx;line-height: 65rpx;padding-top:10rpx;}
+  .totleIncome,.branchIncome{font-weight:bold;text-align: center;border-bottom:2rpx dashed #333;padding-bottom:10rpx;}
+  .incomeTitle .h5{flex:1;text-align: center}
+  .branchManage .manageLi .manageTab{width: 100%}
+  .addShop{ display: block; width: 80%; color: #c8975c; background: #333; line-height: 48rpx; text-align: center; margin: 0 auto; margin-top: 48rpx; border-radius: 8rpx; padding:18rpx 0 9rpx;}
+  .titleMoney{background: #999; color: #fff; padding:2rpx 10rpx; border-radius: 8rpx }
+</style>

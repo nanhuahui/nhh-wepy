@@ -1,0 +1,179 @@
+<template>
+  <view>
+    <view class="row unionOrderList">
+      <scroll-view scroll-y="true" scroll-top="0"
+      bindscrolltolower="loadMore" bindscroll="scroll"
+      class="goods-lists data-list clearfix"
+      style="height: 100%;display: block;overflow: hidden;">
+        <view class="head"><!--  wx:if="{{orderType === 'shop_union_detail_order'}}" -->
+          <view style="text-align: left">{{selectOrder}}</view>
+          <view style="text-align: right">
+            <picker bindchange="bindPickerChange" value="{{storeList[index].value}}" range="{{storeList}}" range-key="{{'label'}}" style="display:inline-block;">
+              <view class="picker">
+                <image src="{{imgUrl}}/unionStore/mx_sx.png" style="width: 32rpx;height:26rpx"></image>筛选
+              </view>
+            </picker>
+          </view>
+        </view>
+        <repeat wx:for="{{orderList}}" wx:for-index="index" wx:key="*this">
+          <view class="orderList">
+            <view class="storeInfo">
+              <text class="h5 c3" wx:if="{{item.seller_store_name}}">{{item.seller_store_name}}</text>
+              <text class="h7 c1">订单号：{{item.order_sn}}</text>
+              <text class="h7 c1">订单日期：{{item.add_time}}</text>
+            </view>
+            <view class="storeIncome" style="text-align: right">
+              <text class="h5">订单金额：{{item.order_amount}}</text> 
+              <text class="h5 c5">收益：{{item.income}}</text> 
+            </view>
+          </view>
+        </repeat>
+      </scroll-view>
+    </view>
+    <view class="row fixed_bottom h3">
+      <view style="text-align: left;padding-left:30rpx;">
+        <text>订单数 <text style="font-size:32rpx">{{order_total}}</text></text>
+      </view>
+      <view style="text-align: right;padding-right:30rpx;">
+        <text class="h3" style="padding-right: 8px">合计收益 </text>
+        <text class="h6">¥</text>
+        <text style="font-size:32rpx">{{income_total}}</text>
+      </view>
+    </view>
+    <view class="weui-loadmore weui-loadmore_line" wx:if="{{pagenum === -1}}" style="height:4.2em;">
+      <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class orderInfoList extends wepy.page {
+    config = {
+      navigationBarTitleText: '明细'
+    }
+    data = {
+      // array: [
+      //   {'store_name': '美国', 'store_id': 10},
+      //   {'store_name': '中国', 'store_id': 20},
+      //   {'store_name': '巴西', 'store_id': 30},
+      //   {'store_name': '日本', 'store_id': 40}
+      // ],
+      imgUrl: '',
+      index: 0,
+      selectOrder: '所有订单',
+      orderType: '', // 订单类型： 自营商品收入 联盟代销收入 平台分佣收入
+      pagenum: 0,
+      son_store_id: '', // 分店ID 默认为空
+      orderList: [],
+      showLoading: false,
+      busy: true,
+      storeList: [],
+      storeId: '',
+      order_total: '',
+      income_total: '',
+      store_id: ''
+    }
+    onLoad(options) {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.orderList = []
+      this.pagenum = 0
+      this.showLoading = false
+      this.busy = true
+      let orderType = options.actType
+      this.orderType = `${orderType}_order`
+      this.store_id = options.store_id
+      this.loadMore()
+      // this.storeList = [{label: '所有订单', value: ''}]
+      // for (let m in this.array) {
+      //   this.index = m
+      //   this.$apply()
+      //   this.storeList.push({label: this.array[m].store_name, value: this.array[m].store_id})
+      // }
+    }
+    loadMore() {
+      let self = this
+      if (self.pagenum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.pagenum + 1
+      self.$apply(() => {
+        self.pagenum = num
+        self.hidden = false
+      })
+      console.log('当前加载页码:' + self.pagenum)
+      // 请求参数列表
+      let orderParam = {
+        act: self.orderType,
+        page: self.pagenum,
+        son_store_id: self.son_store_id,
+        store_id: self.store_id
+      }
+      console.log(987, orderParam)
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/union_shop/union_shop.php`,
+        data: orderParam
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          console.log(123, data)
+          if (data.son_shop) {
+            self.storeList = [{label: '所有订单', value: ''}]
+            for (let m in data.son_shop) {
+              self.storeList.push({label: data.son_shop[m].store_name, value: data.son_shop[m].store_id})
+            }
+          }
+          self.$apply(() => {
+            self.order_total = data.order_total
+            self.income_total = data.income_total
+          })
+          wepy.setNavigationBarTitle({ title: data.store_name })
+          // this.orderList = data.orders //不能赋值
+          if (data.order.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pagenum = -1
+              self.hidden = true
+            })
+            return
+          }
+          for (let m of data.order) {
+            self.orderList.push(m)
+          }
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    methods = {
+      bindPickerChange: function(e) {
+        console.log('picker发送选择改变，携带值为', e.detail.value)
+        this.index = e.detail.value
+        this.son_store_id = this.storeList[this.index].value
+        this.selectOrder = this.storeList[this.index].label
+        this.$apply()
+        this.pagenum = 0
+        this.loadMore()
+      }
+    }
+  }
+</script>
+
+<style lang="less">
+.row{margin:0;}
+.head{height:80rpx;line-height:80rpx;padding:0 30rpx;display:flex;background: #fff;font-size:28rpx;}
+.head view{flex:1;}
+.orderList{padding:0 30rpx;display: flex;}
+.orderList text{display:block;}
+.orderList .storeInfo{flex:3;padding:20rpx 0;}
+.orderList .storeIncome{flex:2;padding-top:25rpx;line-height:50rpx;}
+.orderList:nth-child(even){background: #eaeef1}
+.orderList:nth-child(odd){background: #fff}
+.fixedBottom{position: fixed; height: 1.8rem; line-height: 1.8rem; bottom: 0; left: 0; width: 100%; padding: 0 0.6rem; background: #fff; box-shadow: 0 -2px 20px #aaa}
+.fixedBottom span{ position: absolute; top: 0; bottom: 0; margin: auto; right: 0.5rem;}
+.fixed_bottom{position: fixed; background: #ccb997; height: 2.1rem; line-height: 2.1rem; bottom: 0; width: 100%; display:flex;}
+.fixed_bottom view{flex:1;}
+</style>

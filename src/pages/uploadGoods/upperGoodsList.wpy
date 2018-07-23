@@ -167,13 +167,17 @@
       hidden: true,
       shareTitle: '精心为你推荐',
       sharePath: '',
-      couponList: [] // 优惠券列表页面
+      couponList: [], // 优惠券列表页面
+      shop_page: 0,
+      pre_shop_page_size: 0
     }
     onLoad(q) {
       this.imgUrl = this.$parent.globalData.imgUrl
       this.couponList = []
       this.$apply()
       this.couponData()
+      this.shop_page = 0
+      this.pre_shop_page_size = 0
       if (!q.cid) {
         // 默认美妆,用于审核
         q.cid = 43
@@ -224,7 +228,9 @@
       wepy.request({
         url: `${self.$parent.globalData.apiUrl}/shop/goods/goods.php?act=get_shop_goods`,
         data: {
-          page: self.data.pageNum
+          page: self.data.pageNum,
+          shop_page: self.shop_page,
+          pre_shop_page_size: self.pre_shop_page_size
         }
       }).then(({data: {errcode, data, msg}}) => {
         if (errcode === 0) {
@@ -246,7 +252,11 @@
             self.goods_list = list
             self.img_domain = data.img_domain
             self.title_name = data.title_name ? data.title_name : self.data.title_name
+            self.pre_shop_page_size = data.pre_shop_page_size
             self.hidden = true
+            if (data.is_shop_page) {
+              self.shop_page = self.shop_page - (-1)
+            }
           })
         } else {
           console.error(msg)

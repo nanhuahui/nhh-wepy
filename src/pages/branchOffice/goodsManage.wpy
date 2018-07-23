@@ -1,115 +1,142 @@
 <template>
   <view height="100%">
   <!-- 排序 -->
-    <view class="goodsSortMenu">
-      <view bindtap = "sortGoods" data-type="add_time">
-        <text>添加时间</text>
-        <image wx:if="{{sortType === 'add_time DESC'}}" src="{{imgUrl}}/storeGoods/sortUp.png" mode="widthFix"></image>
-        <image wx:elif="{{sortType === 'add_time ASC'}}" src="{{imgUrl}}/storeGoods/sortDown.png" mode="widthFix"></image>
-        <image wx:else src="{{imgUrl}}/storeGoods/sortDefault.png" mode="widthFix"></image>
-      </view>
-      <view bindtap = "sortGoods" data-type="sale_count">
-        <text>销量</text>
-        <image wx:if="{{sortType === 'sale_count DESC'}}" src="{{imgUrl}}/storeGoods/sortUp.png" mode="widthFix"></image>
-        <image wx:elif="{{sortType === 'sale_count ASC'}}" src="{{imgUrl}}/storeGoods/sortDown.png" mode="widthFix"></image>
-        <image wx:else src="{{imgUrl}}/storeGoods/sortDefault.png" mode="widthFix"></image>
-      </view>
-      <view bindtap = "sortGoods" data-type="number">
-        <text>库存</text>
-        <image wx:if="{{sortType === 'number DESC'}}" src="{{imgUrl}}/storeGoods/sortUp.png" mode="widthFix"></image>
-        <image wx:elif="{{sortType === 'number ASC'}}" src="{{imgUrl}}/storeGoods/sortDown.png" mode="widthFix"></image>
-        <image wx:else src="{{imgUrl}}/storeGoods/sortDefault.png" mode="widthFix"></image>
-      </view>
+  <view class="goodsSortMenu">
+    <view bindtap = "sortGoods" data-type="top_time">
+      <text>默认排序</text>
+      <image src="{{imgUrl}}/storeGoods/sortDefault.png" mode="widthFix"></image>
     </view>
-    <!-- 订单列表 -->
-    <view class="orderDisplay" style="position:fixed; top:44px; bottom:0; width:100%;">
-      <view class="list" style="height:100%">
-        <scroll-view  scroll-y="true"  scroll-top="{{scrollTop}}"
-        bindscrolltolower="loadGoodsList" bindscroll="scroll"
-        class="goods-lists data-list"
-        style="height: 100%;display: block;overflow: hidden;">
-          <view class="list-item" wx:for = "{{goods_list}}" wx:for-item = "g" wx:for-index = "index" wx:key = "g.upc_id">
-            <view>
-              <navigator url="../uploadGood?g_id={{g.g_id}}">
-                <view class="list_content">
-                  <view class="content_up">
+    <view bindtap = "sortGoods" data-type="add_time">
+      <text>添加时间</text>
+      <image wx:if="{{sortType === 'add_time DESC'}}" src="{{imgUrl}}/storeGoods/sortUp.png" mode="widthFix"></image>
+      <image wx:elif="{{sortType === 'add_time ASC'}}" src="{{imgUrl}}/storeGoods/sortDown.png" mode="widthFix"></image>
+      <image wx:else src="{{imgUrl}}/storeGoods/sortDefault.png" mode="widthFix"></image>
+    </view>
+    <view bindtap = "sortGoods" data-type="sale_count">
+      <text>销量</text>
+      <image wx:if="{{sortType === 'sale_count DESC'}}" src="{{imgUrl}}/storeGoods/sortUp.png" mode="widthFix"></image>
+      <image wx:elif="{{sortType === 'sale_count ASC'}}" src="{{imgUrl}}/storeGoods/sortDown.png" mode="widthFix"></image>
+      <image wx:else src="{{imgUrl}}/storeGoods/sortDefault.png" mode="widthFix"></image>
+    </view>
+    <view bindtap = "sortGoods" data-type="number">
+      <text>库存</text>
+      <image wx:if="{{sortType === 'number DESC'}}" src="{{imgUrl}}/storeGoods/sortUp.png" mode="widthFix"></image>
+      <image wx:elif="{{sortType === 'number ASC'}}" src="{{imgUrl}}/storeGoods/sortDown.png" mode="widthFix"></image>
+      <image wx:else src="{{imgUrl}}/storeGoods/sortDefault.png" mode="widthFix"></image>
+    </view>
+  </view>
+  <!-- 订单列表 -->
+  <view class="orderDisplay" style="position:fixed; top:44px; bottom:44px; width:100%;">
+    <view class="list" style="height:100%">
+      <scroll-view  scroll-y="true"  scroll-top="{{scrollTop}}"
+      bindscrolltolower="loadGoodsList" bindscroll="scroll"
+      class="goods-lists data-list"
+      style="height: 100%;display: block;overflow: hidden;">
+        <view class="list-item" wx:for = "{{goods_list}}" wx:for-item = "g" wx:for-index = "index" wx:key = "g.upc_id">
+          <view>
+            <navigator url="../uploadGoods/uploadGood?g_id={{g.g_id}}">
+              <view class="list_content">
+                <view class="content_up">
+                  <view class="img_content">
                     <image src="{{img_domain}}/{{g.master_img}}"></image>
-                    <view class="state">
-                      <view class="title h6 c3">{{g.goods_name}}</view>
-                      <view class="describe h6 c2">{{g.goods_brief}}</view>
-                    </view>
-                    <view class="h6 c3" style="flex:1;text-align:right;">{{g.shop_price}}</view>
+                    <view wx:if="{{g.is_on_sale_upc === '1'}}" class="h5 c7">售卖中</view>
                   </view>
-                  <view class="content_down h6 c3">
-                    <view class="h6" style="flex:2;">库存{{g.number}}</view>
-                    <view class="h6" style="flex:2;">销量{{g.sale_count}}</view>
-                    <view class="h6" style="flex:6;text-align:right;">发布时间 {{g.add_time}}</view>
+                  <view class="state">
+                    <view class="title h6 c3">{{g.goods_name}}</view>
+                    <view class="describe h6 c2">{{g.goods_brief}}</view>
                   </view>
+                  <view class="h6 c3" style="flex:1;text-align:right;">{{g.shop_price}}</view>
                 </view>
-              </navigator>
-              <!-- 上下架操作 -->
-              <view class="list operate">
-                <view class="list-item">
-                  <navigator url="../../uploadGoods/goodsInfo?upc_id={{g.upc_id}}">
-                    <image src="{{imgUrl}}/storeGoods/preview.png"></image>
-                    <view class="h8 c3">预览</view>
-                  </navigator>
+                <view class="content_down h6 c3">
+                  <view class="h6" style="flex:2;">库存{{g.number}}</view>
+                  <view class="h6" style="flex:2;">销量{{g.sale_count}}</view>
+                  <view class="h6" style="flex:6;text-align:right;">发布时间 {{g.add_time}}</view>
                 </view>
-                <view class="list-item" wx:if = "{{g.is_on_sale_upc === '1'}}" bindtap = "operateGoods" data-gid = "{{g.upc_id}}" data-isOn = "0" data-index = "{{index}}" data-act_type = "on_sale">
-                  <image src="{{imgUrl}}/storeGoods/putaway.png"></image>
-                  <view class="h8 c3">上架</view>
-                </view>
-                <view class="list-item" wx:else bindtap = "operateGoods" data-gid = "{{g.upc_id}}" data-isOn = "1" data-index = "{{index}}" data-act_type = "on_sale">
-                  <image src="{{imgUrl}}/storeGoods/putDown.png"></image>
-                  <view class="h8 c3">下架</view>
-                </view>
-                <!-- 商品为精选商品时 设置取消精选按钮 -->
-                <view class="list-item" wx:if = "{{g.is_best === '1'}}" bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-isOn = "0" data-index = "{{index}}" data-act_type = "set_best">
-                  <image src="{{imgUrl}}/storeGoods/shoperChoice.png"></image>
-                  <view class="h8 c3">取消精选</view>
-                </view>
-                <view class="list-item" wx:else bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-isOn = "1" data-index = "{{index}}" data-act_type = "set_best">
-                  <image src="{{imgUrl}}/storeGoods/noChoice.png"></image>
-                  <view class="h8 c3">设为精选</view>
-                </view>
+              </view>
+            </navigator>
+            <!-- 上下架操作 -->
+            <view class="list operate">
+              <view class="list-item">
+                <navigator url="../uploadGoods/goodsInfo/goodsInfo?upc_id={{g.upc_id}}">
+                  <image src="{{imgUrl}}/storeGoods/preview.png"></image>
+                  <view class="h8 c3">预览</view>
+                </navigator>
+              </view>
+              <view class="list-item" wx:if = "{{g.is_on_sale_power && g.is_on_sale_upc === '1'}}" bindtap = "operateGoods" data-gid = "{{g.upc_id}}" data-isOn = "0" data-index = "{{index}}" data-act_type = "on_sale">
+                <image src="{{imgUrl}}/storeGoods/putaway.png"></image>
+                <view class="h8 c3">下架</view>
+              </view>
+              <view class="list-item" wx:elif = "g.is_on_sale_power && g.is_on_sale_upc !== '1'" bindtap = "operateGoods" data-gid = "{{g.upc_id}}" data-isOn = "1" data-index = "{{index}}" data-act_type = "on_sale">
+                <image src="{{imgUrl}}/storeGoods/putDown.png"></image>
+                <view class="h8 c3">上架</view>
+              </view>
+              <!-- 商品为精选商品时 设置取消精选按钮 -->
+              <view class="list-item" wx:if = "{{g.is_set_best_power && g.is_best === '1'}}" bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-isOn = "0" data-index = "{{index}}" data-act_type = "set_best">
+                <image src="{{imgUrl}}/storeGoods/shoperChoice.png"></image>
+                <view class="h8 c3">取消精选</view>
+              </view>
+              <view class="list-item" wx:elif = "{{g.is_set_best_power && g.is_best !== '1'}}" bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-isOn = "1" data-index = "{{index}}" data-act_type = "set_best">
+                <image src="{{imgUrl}}/storeGoods/noChoice.png"></image>
+                <view class="h8 c3">设为精选</view>
+              </view>
+              <!-- 操作删除 -->
+              <view class="list-item" bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-index = "{{index}}" data-act_type = "del">
+                <image src="{{imgUrl}}/storeGoods/delete.png"></image>
+                <view class="h8 c3">删除</view>
+              </view>
+              <!-- 操作置顶 -->
+              <view class="list-item" bindtap = "operateGoods" data-gid = "{{g.g_id}}" data-index = "{{index}}" data-act_type = "set_top" data-chosen = "{{g.is_set_top}}">
+                <image wx:if = "{{g.is_set_top === '1'}}" src="{{imgUrl}}/storeGoods/set_top_cancel.png"></image>
+                <image wx:else src="{{imgUrl}}/storeGoods/set_top.png"></image>
+                <view class="h8 c3">{{g.is_set_top === '1' ? '取消置顶' : '置顶'}}</view>
               </view>
             </view>
           </view>
-        </scroll-view>
-      </view>
-      <view class="body-view">
-          <loading hidden="{{hidden}}" bindchange="loadingChange">
-            加载中...
-          </loading>
         </view>
+      </scroll-view>
+    </view>
+    <navigator url="../uploadGoods/uploadGood">
+      <view class="c11 toAddGoods">
+        + 添加商品
+      </view>
+    </navigator>
+    <!-- 加载中。。。 -->
+    <view class="body-view">
+        <loading hidden="{{hidden}}" bindchange="loadingChange">
+          加载中...
+        </loading>
+      </view>
     </view>
   </view>
+  <!-- 快捷导航 -->
+  <import src="../templates/quick-icon" />
+  <template is="quickIcon" data="{{imgUrl, showQuickIcon}}"/>
 </template>
 
 <script>
   import wepy from 'wepy'
-  export default class goodsManage extends wepy.page {
+  import qcMixin from '@/mixins/quickIcon'
+  export default class goodList extends wepy.page {
     config = {
       navigationBarTitleText: '商品管理'
     }
+    mixins = [qcMixin]
     data = {
       imgUrl: '',
       img_domain: '',
       goods_list: [],
       page: 0,
+      hidden: true,
       scrollTop: 0,
       upc_id: 0,
-      sortType: 'add_time DESC', // 查看时间商品排序 默认查看顺序为时间倒叙
+      sortType: 'top_time DESC', // 查看时间商品排序 默认查看顺序为时间倒叙
       add_time: 'DESC', // 添加时间排序，默认倒叙
       sale_count: 'ASC',  // 销量排序
-      number: 'ASC'   // 库存排序
+      number: 'ASC'  // 库存排序
     }
-    onLoad() {
-      this.imgUrl = this.$parent.globalData.imgUrl
-      this.$apply()
+    onLoad(option) {
       this.loadGoodsList()
     }
-    // 商品排序
     sortGoods(e) {
       let currentTarget = e.currentTarget.dataset
       let sortType
@@ -123,11 +150,13 @@
         this.sale_count = saleSort
         this.$apply()
         sortType = currentTarget.type + ' ' + this.data.sale_count
-      } else {
+      } else if (currentTarget.type === 'number') {
         var numberSort = this.data.number === 'DESC' ? 'ASC' : 'DESC'
         this.number = numberSort
         this.$apply()
         sortType = currentTarget.type + ' ' + this.data.number
+      } else {
+        sortType = 'top_time DESC'
       }
       this.$apply(() => {
         this.sortType = sortType
@@ -138,54 +167,59 @@
       this.loadGoodsList()
     }
     loadGoodsList() {
-      // 发送请求
+    // 发送请求
+      let self = this
       if (this.data.page === -1) {
         return false
       }
       let nowPage = this.data.page + 1
       this.$apply(() => {
-        this.hidden = false
         this.page = nowPage
+        this.hidden = false
       })
       let questParam = {
         page: this.data.page,
         sort: this.data.sortType
       }
       wepy.request({
-        url: `${this.$parent.globalData.apiUrl}/shop/chain_shop/goods.php?act=get_goods_list`,
+        url: `${self.$parent.globalData.apiUrl}/shop/goods/goods.php?act=get_goods_list`,
         method: 'POST',
         header: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },
         data: questParam
-      }).then(({ data: { errcode, data, msg } }) => {
+      }).then(({data: {errcode, data, msg}}) => {
         if (errcode === 0) {
           if (data.goods_list.length === 0) {
-            this.$apply(() => {
-              this.hidden = true
-              this.page = -1
+            self.$apply(() => {
+              self.page = -1
+              self.hidden = true
             })
           }
-          let nowGoodsList = this.data.goods_list
+          let nowGoodsList = self.data.goods_list
           for (let g of data.goods_list) {
             nowGoodsList.push(g)
           }
           this.$apply(() => {
+            this.imgUrl = this.$parent.globalData.imgUrl
             this.goods_list = nowGoodsList
             this.img_domain = data.img_domain
             this.hidden = true
           })
+          // $wuxDialog.alert({title: '提示', content: '发布成功', onConfirm(e) {}});
         } else {
           wepy.showModal({
-            content: msg,
+            content: '发布成功',
             showCancel: false
           })
         }
+      }).catch((error) => {
+        console.log('请求失败', error)
       })
     }
     /**
-     * [operateGoods 自主商品操作（上下架 设为精选 删除）]
-     */
+   * [operateGoods 自主商品操作（上下架 设为精选 删除 置顶）]
+   */
     operateGoods(e) {
       console.log(e)
       let currentTarget = e.currentTarget.dataset
@@ -196,12 +230,19 @@
           act_type: currentTarget.act_type,
           upc_id: currentTarget.gid
         }
+      } else if (currentTarget.act_type === 'set_top') {
+        questParam = {
+          act_type: currentTarget.act_type,
+          goods_id: currentTarget.gid,
+          is_best: currentTarget.chosen
+        }
       } else {
         questParam = {
           act_type: currentTarget.act_type,
           goods_id: currentTarget.gid
         }
       }
+      console.log(222, questParam)
       let self = this
       if (currentTarget.act_type === 'del') {
         wepy.showModal({
@@ -219,8 +260,9 @@
       }
     }
     operateFun(questParam, currentTarget) {
+      let self = this
       wepy.request({
-        url: `${this.$parent.globalData.apiUrl}/shop/goods/goods.php?act=goods_act`,
+        url: `${self.$parent.globalData.apiUrl}/shop/goods/goods.php?act=goods_act`,
         method: 'POST',
         header: {
           'Content-Type': 'application/x-www-form-urlencoded'
@@ -238,8 +280,15 @@
             })
           } else if (currentTarget.act_type === 'del') {
             goodsList.splice(currentTarget.index, 1)
-          } else {
+          } else if (currentTarget.act_type === 'set_best') {
             goodsList[currentTarget.index]['is_best'] = currentTarget.ison
+          } else {
+            goodsList[currentTarget.index]['is_set_top'] = currentTarget.chosen === '1' ? '0' : '1'
+            wepy.showToast({
+              title: currentTarget.chosen === '1' ? '已取消置顶' : '已置顶显示',
+              icon: 'success',
+              duration: 2000
+            })
           }
           this.goods_list = goodsList
           this.$apply()
@@ -278,6 +327,17 @@
   width: 150rpx;
   height: 150rpx;
   background-size: cover;
+}
+.content_up .img_content{position: relative;}
+.content_up .img_content view{
+  position: absolute; 
+  width: 100%; 
+  height: 42rpx; 
+  line-height: 42rpx; 
+  text-align: center; 
+  bottom: -10rpx; 
+  left: 0; 
+  background: rgba(0,0,0,.7);
 }
 
 .content_up .state {
@@ -388,6 +448,4 @@
   height: 22px;
   line-height: 22px;
 }
-
-
 </style>
