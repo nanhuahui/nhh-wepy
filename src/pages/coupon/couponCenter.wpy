@@ -14,7 +14,7 @@
     </view>
   </view>
 
-  <scroll-view scroll-y="true" height="100%" bindscrolltolower="loadMore" scroll-y="true" lower-threshold="100" class="scrollView couponList" style="background-color: #fff;height:100%;">
+  <scroll-view scroll-y="true" height="100%" bindscrolltolower="loadMore" scroll-y="true" lower-threshold="100" class="scrollView couponList" style="height:100%;">
     <view class="coupon" wx:for="{{couponList}}" wx:for-item="coupon" wx:key="index">
       <view class="couponBody">
         <!-- 通用券banner -->
@@ -305,8 +305,8 @@
 }
 .couponList .coupon {
   background-color: #fff;
-  margin-top: 20rpx;
-  box-shadow: 0px 0px 20rpx 20rpx rgba(239, 239, 243, 0.38);
+  margin: 20rpx 15px 0;
+  box-shadow: 0px 0px 20rpx 20rpx rgba(255, 255, 255, 0.38);
 }
 .couponList .coupon:last-child {
   margin-bottom: 20rpx;

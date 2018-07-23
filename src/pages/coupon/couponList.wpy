@@ -21,7 +21,7 @@
             <view wx:else class="useCondition">
               订单满{{coupon.min_amount}}元使用
             </view>
-            <view wx:if="{{coupon.index_show === '1'}}" class="showTip">
+            <view wx:if="{{coupon.index_show === '1' && coupon.status ==='1'}}" class="showTip">
               首页展示中
             </view>
           </view>
@@ -53,14 +53,14 @@
           <view bindtap="checkUse" data-id="{{coupon.coupon_id}}">
             查看使用
           </view>
-          <view wx:if="{{coupon.index_show === '0' && coupon.status ==='0'}}" style="border: 1px solid #999;color:#999;">
+          <view wx:if="{{coupon.status ==='1' && coupon.index_show === '0'}}" bindtap="changeShow" data-id="{{coupon.coupon_id}}" data-type="1" data-index="{{index}}">
             首页上架
           </view>
-          <view wx:elif="{{coupon.index_show === '0'}}" bindtap="changeShow" data-id="{{coupon.coupon_id}}" data-type="1" data-index="{{index}}">
-            首页上架
-          </view>
-          <view wx:else bindtap="changeShow" data-id="{{coupon.coupon_id}}" data-type="0" data-index="{{index}}">
+          <view wx:elif="{{coupon.status ==='1' && coupon.index_show === '1'}}" bindtap="changeShow" data-id="{{coupon.coupon_id}}" data-type="0" data-index="{{index}}">
             首页下架
+          </view>
+          <view wx:elif="{{coupon.status ==='0'}}" style="border: 1px solid #999;color:#999;">
+            首页上架
           </view>
           <view wx:if="{{coupon.status ==='1'}}" bindtap="toPromote" data-info="{{coupon}}">
             推广
