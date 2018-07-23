@@ -1,0 +1,170 @@
+<!-- 
+  ** 优惠券推广页面
+ -->
+<template>
+  <view class="contentBg">
+    <!-- 推广二维码 -->
+    <image class="promoteQrCode" src="{{imgPath}}"></image>
+    <view class="promptText h3">
+      <view>识别二维码</view>
+      <view>快速领取优惠券</view>
+    </view>
+    <view class="shareBtn" bindtap="shareShow"></view>
+  </view>
+
+  <!--分享二维码-->
+  <view class="shopShare" wx:if="{{qrShareShow}}">
+    <view class="shopShareBg" bindtap="shareShow"></view>
+    <view class="shopShareCont">
+      <composeImage bgColor="#ffffff" :width.sync="canvasWidth" :height.sync="canvasHeight" :canvasWidth="canvasWidth" :canvasHeight.sync="canvasHeight"></composeImage>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import composeImage from '@/components/compose-image'
+
+  export default class promote extends wepy.page {
+    config = {
+      navigationBarTitleText: '推广'
+    }
+    components = {
+      composeImage
+    }
+    data = {
+      imgUrl: null,
+      imgPath: null,
+      qrShareShow: false,
+      shopImgs: [{
+        src: 'https://huahuishang.com/static/images/coupon/bg.jpg',
+        w: 260 / 0.694,
+        h: 312 / 0.694,
+        x: 0,
+        y: 0,
+        c: false
+      }, {
+        src: 'https://huahuishang.com/static/images/coupon/bg_qrcode_share.png',
+        w: 260 / 0.7,
+        h: 312 / 0.694,
+        x: 0,
+        y: 0,
+        c: false
+      }],
+      shopText: [{
+        size: 14,
+        style: '#000000',
+        align: 'left',
+        text: '识别二维码',
+        x: 148,
+        y: 312 / 0.694 - 100
+      }, {
+        size: 14,
+        style: '#000000',
+        align: 'left',
+        text: '快速领取优惠券',
+        x: 140,
+        y: 312 / 0.694 - 74
+      }, {
+        size: 14,
+        style: '#000000',
+        align: 'left',
+        text: '优惠券二维码',
+        x: 140,
+        y: 100
+      }],
+      couponId: null,
+      sellerId: null,
+      shareQR: null,
+      canvasWidth: null,
+      canvasHeight: null
+    }
+    onLoad(q) {
+      this.shareLinkParam = `?couponId=${q.couponId}&sellerId=${q.userId}`
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.couponId = q.couponId
+      this.sellerId = q.userId
+      this.imgPath = null
+      this.canvasWidth = 260
+      this.canvasHeight = 312 / 0.694
+      // 设置小程序码
+      this.shareQR = { link: 'pages/coupon/couponCenter', param: `?couponId=${this.couponId}&type=get&seller_id=${this.sellerId}`, size: 180, x: 260 / 0.694 / 2 - 90, y: 312 / 0.694 / 2 - 94 }
+      this.$apply()
+      this.getQrCode()
+    }
+    getQrCode() {
+      let self = this
+      // 获取二维码图片地址
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/wx_app/get_qrcode.php?act=get_qrcode`,
+        data: {
+          scene: `?couponId=${this.couponId}&type=get&seller_id=${this.sellerId}`, // 长按图片识别小程序码1048
+          page: 'pages/coupon/couponCenter'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.imgPath = data
+          })
+        } else {
+          console.error('获取小程序码失败', msg)
+        }
+      })
+    }
+    shareShow() {
+      this.$apply(() => {
+        this.qrShareShow = !this.qrShareShow
+      })
+      if (this.qrShareShow === true) {
+        this.$invoke('composeImage', 'drawFn', this.shopImgs, this.shopText, this.shareQR)
+      }
+    }
+  }
+</script>
+
+<style lang="less">
+  page {
+    position: fixed;
+    top:0;
+    bottom: 0;
+    padding-bottom: 0;
+    font-family: 'PingFang SC';
+    background: url('https://wxassets.huahuishang.com/coupon/bg.jpg') no-repeat;
+    background-size: 100%;
+    width: 100%;
+    height: 100%;
+  }
+  .contentBg {
+    position: fixed;
+    top:0;
+    bottom: 0;
+    z-index: -1;
+    font-family: 'PingFang SC';
+    background: url('https://wxassets.huahuishang.com/coupon/bg_ewm.png') no-repeat center;
+    background-size: 100%;
+    width: 100%;
+    height: 100%;
+  }
+  .promoteQrCode {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    margin-left: -80px;
+    margin-top: -138px;
+    width: 160px;
+    height: 160px;
+  }
+  .shareBtn {
+    position: absolute;
+    width: 100%;
+    height: 100rpx;
+    top: 75.5%;
+  }
+  .promptText{
+    position: absolute;
+    width: 100%; text-align: center; top: 60%; line-height: 1.8
+  }
+  .shopShare{position: fixed; top: 0; left: 0; z-index: 501; text-align: center; height: 100%;}
+  .shopShare .shopShareBg { position: absolute; width: 100%; background: rgba(0,0,0,.5); height: 100%; z-index: 501}
+  .shopShare .shopShareCont { position:relative; width: 70%; left: 0; top: 0; margin: 0 auto; margin-top: 35%; z-index: 502}
+</style>

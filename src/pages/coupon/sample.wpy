@@ -1,0 +1,36 @@
+<!-- 
+  ** 优惠券示例页面
+ -->
+<template>
+  <view class="sample">
+    <image src="{{imgUrl}}/coupon/sample_01.jpg" mode="widthFix" style="margin-top: 0;"></image>
+    <image src="{{imgUrl}}/coupon/sample_02.jpg" mode="widthFix"></image>
+    <image src="{{imgUrl}}/coupon/sample_03.jpg" mode="widthFix"></image>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class sample extends wepy.page {
+    config = {
+      navigationBarTitleText: '示例'
+    }
+    data = {
+      imgUrl: null
+    }
+    onLoad() {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.$apply()
+    }
+  }
+</script>
+
+<style lang="less">
+  .sample {
+    background-color:#fff;
+  }
+  .sample image {
+    width: 100%;
+    margin-top: -6px;
+  }
+</style>

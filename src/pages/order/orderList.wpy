@@ -17,6 +17,9 @@
             <view wx:for="{{orderList}}" wx:for-item="o" wx:key="o.order_id" class="order_list">
               <view class="order_status" style="color: #999;">
                 订单状态：{{o.order_status}}
+                <view wx:if="{{orderAct === 'order_cancel'}}" style="float: right;color:#f55b29;">
+                  {{o.order_status_desc}}
+                </view>
               </view>
               <navigator class="order_info" url="./orderInfo?id={{o.order_id}}&type=0">
                 <image src="{{o.img_url}}" mode="widthFix"></image>
@@ -61,7 +64,7 @@
     }
     components = {}
     data = {
-      tabs: ['全部', '待付款', '待发货', '待收货', '已取消'],
+      tabs: ['全部', '待付款', '待发货', '待收货', '退货／退款'],
       activeTab: 0,
       orderList: [],
       orderAct: null,  // 购物订单类型
@@ -123,6 +126,7 @@
           this.pageNum = 0
           this.scrollTop = 0
         })
+        console.log(453, this.orderAct)
         // 去加载数据
         this.loadMore()
       } catch (e) {
@@ -329,7 +333,7 @@
 }
 
 .tab-bar .tab-active {
-  color: #04be02;
+  color: #f55b29;
 }
 
 .tab-bar .tab {
@@ -338,14 +342,14 @@
   justify-content: center;
   padding-top: 16rpx;
   padding-bottom: 20rpx;
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .tab-bar .under-line {
   position: absolute;
   bottom: 0;
   height: 6rpx;
-  background-color: #04be02;
+  background-color: #f55b29;
 }
 
 /*订单列表*/

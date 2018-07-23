@@ -7,7 +7,7 @@
       </view>
     </navigator>
     <!-- 引用自定义组件 -->
-    <scrollArea :moreUrl.sync="moreUrl" :goodsCount.sync="goodsCount" baseWidth="160" baseHeight="244">
+    <scrollArea :moreLink.sync="moreUrl" :goodsCount.sync="goodsCount" baseWidth="160" baseHeight="244">
       <view slot="goodsList">
         <repeat for="{{goods}}" key="index" index="index" item="item">
           <view class="cell">

@@ -8,20 +8,20 @@
       </view>
       <!-- 订单导航 -->
       <view class="list orderMenu">
-        <view class="list-item h13 {{act_type == 'unship' ? 'c3' : 'c2'}}" data-type = "unship" bindtap = "changeOrder">
+        <view class="list-item h3 {{act_type == 'unship' ? 'c3' : 'c1'}}" data-type = "unship" bindtap = "changeOrder">
           待发货
         </view>
-        <view class="list-item h13 {{act_type == 'unpay' ? 'c3' : 'c2'}}" data-type = "unpay" bindtap = "changeOrder">
+        <view class="list-item h3 {{act_type == 'unpay' ? 'c3' : 'c1'}}" data-type = "unpay" bindtap = "changeOrder">
           待付款
         </view>
-        <view class="list-item h13 {{act_type == 'ship' ? 'c3' : 'c2'}}" data-type = "ship" bindtap = "changeOrder">
+        <view class="list-item h3 {{act_type == 'ship' ? 'c3' : 'c1'}}" data-type = "ship" bindtap = "changeOrder">
           已发货
         </view>
-        <view class="list-item h13 {{act_type == 'cancel' ? 'c3' : 'c2'}}" data-type = "cancel" bindtap = "changeOrder">
+        <view class="list-item h3 {{act_type == 'cancel' ? 'c3' : 'c1'}}" data-type = "cancel" bindtap = "changeOrder">
           已取消
         </view>
-        <view class="list-item h13 {{act_type == 'return' ? 'c3' : 'c2'}}" data-type = "return" bindtap = "changeOrder">
-          退款
+        <view class="list-item h3 {{act_type == 'return' ? 'c3' : 'c1'}}" data-type = "return" bindtap = "changeOrder">
+          退货／退款
         </view>
       </view>
       <!-- 订单列表 -->
@@ -45,6 +45,7 @@
                   <navigator url = "./delivery?order_id={{order.order_id}}" class="h5 c11 delivery">发货</navigator>
                   <span class="h5 c11 delivery" bindtap="userTake" style="right:140rpx" data-orderId = "{{order.order_id}}" data-index = "{{index}}">自提</span>
                 </block>
+                <text wx:if = "{{act_type === 'return'}}" class="{{order.order_status_desc === '待商家处理' ? 'h5 delivery' : 'h5 delivery controled'}}" style="width: 3.2rem;">{{order.order_status_desc}}</text>
               </view>
             </view>
           </view>
@@ -267,14 +268,18 @@
   position: absolute;
   right: 30rpx;
   bottom: 24rpx;
-  height: 56rpx;
+  height: 42rpx;
   width: 100rpx;
   text-align: center;
-  line-height: 56rpx;
-  background: #333;
-  border-radius: 4px;
+  line-height: 42rpx;
+  color: #f55b29;
+  border-radius: 24px;
+  border:1px solid #f55b29
 }
-
+.shopOrderList .controled{
+  border: 1px solid #eee;
+  color: #999
+}
 .weui-loadmore {
   width: 65%;
   margin: 70rpx auto;

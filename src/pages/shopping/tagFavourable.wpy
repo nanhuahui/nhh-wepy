@@ -1,0 +1,140 @@
+<template>
+<!--  标签活动 -->
+  <view class="panic-buying_activity" style="diplay: flex;height: 100%;position: relative;">
+    <scroll-view class="scrollView goods-lists" style="height: 100%;" scroll-y="true" bindscrolltolower="loadMore" bindscroll="scroll">
+      <image src="{{imgDomain + tagBanner}}" style="width: 100%;" mode="widthFix"></image>
+      <view style="overflow: hidden;">
+        <navigator class="sub-goods_list tagList" wx:for="{{goodsList}}" wx:for-item="g" wx:key="{{g.upc_id}}" url="./goods/goods?gid={{g.upc_id}}">
+          <view class="goods-img">
+            <image src="{{g.master_img}}" mode="widthFix"></image>
+            <!-- <span class="vedio_icon" v-if="g.video">
+              <img src="/static/images/vedio_icon.png">
+            </span> -->
+            <text class="sale_done h5" wx:if="{{g.number === '0'}}">抢光了</text>
+          </view>
+          <view class="goods-brief" style="margin-top:8px">{{g.goods_brief}}</view>
+          <view class="goods-title">{{g.goods_name}}</view>
+          <view class="goods-price">
+            ¥{{g.shop_price}}
+            <text class="goods-price_origin">¥{{g.market_price}}</text>
+          </view>
+        </navigator>
+      </view>
+      <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}" style="height:4.2em;">
+        <text class="weui-loadmore__tips weui-loadmore__tips_in-line">哎呀 别再往下翻了</text>
+      </view>
+    </scroll-view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class expertSession extends wepy.page {
+    config = {
+      navigationBarTitleText: ''
+    }
+    components = {}
+    data = {
+      imgUrl: '',
+      goodsList: [],
+      imgDomain: '',
+      pageNum: 0,
+      actId: null,
+      tagBanner: '',
+      titleName: ''
+    }
+    onLoad(q) {
+      this.$apply(() => {
+        this.imgUrl = this.$parent.globalData.imgUrl
+        this.actId = q.id
+        this.goodsList = []
+      })
+      this.loadMore()
+    }
+    onShow() {}
+    // 查看更多
+    loadMore() {
+      let self = this
+      if (self.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
+      })
+      console.log('当前加载页码:' + self.pageNum)
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/tag_favourable_goods.php`,
+        data: {
+          act_id: self.actId,
+          page: self.pageNum
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          console.log('查询结果为:', data)
+          if (!data.goods_list || data.goods_list.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+            })
+            return
+          }
+          // 数据组装
+          let list = self.goodsList
+          for (var i = 0; i < data.goods_list.length; i++) {
+            list.push(data.goods_list[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.goodsList = list
+            self.imgDomain = data.img_domain
+            self.tagBanner = data.ac_res.banner
+            self.titleName = data.ac_res.act_name
+            self.expert = data.expert
+          })
+          wepy.setNavigationBarTitle({ title: self.titleName })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    scroll(event) {
+      // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+      this.$apply(() => {
+        this.scrollTop = event.detail.scrollTop
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+@import '../../assets/styles/store.wxss';
+
+.scrollView {
+  position: absolute;
+  top:2px;
+  bottom: 2px;
+  width:100%;
+  height: 100%;
+}
+.recommend-goods{
+  padding-top: 0;
+}
+.panic-buying_activity{
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+.goods-lists .tagList .goods-title{
+  white-space: nowrap;
+  height: 46rpx;
+  margin: 0 28rpx 0;
+}
+.goods-lists .tagList .goods-price{
+  padding: 5rpx 28rpx 18rpx;
+}
+</style>

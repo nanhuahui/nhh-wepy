@@ -1,0 +1,190 @@
+<!-- 
+  ** 优惠券推广页面
+ -->
+<template>
+  <view class="tabBar">
+    <view class="h5 c3" style="flex: 3;">
+      微信昵称
+    </view>
+    <view class="h5 c3" style="flex: 5;" bindtap="sortFn" data-filed="get_time">
+      领取时间
+      <image src="{{imgUrl + '/coupon/' + (sortFiled!=='get_time'?'cksy_mr.png':(sortType?'cksy_px.png':'cksy_px_h.png'))}}"></image>
+    </view>
+    <view class="h5 c3" style="flex: 5;" bindtap="sortFn" data-filed="use_time">
+      使用时间
+      <image src="{{imgUrl + '/coupon/' + (sortFiled!=='use_time'?'cksy_mr.png':(sortType?'cksy_px.png':'cksy_px_h.png'))}}"></image>
+    </view>
+  </view>
+  <view class="useList">
+    <scroll-view scroll-y="true" height="100%" bindscrolltolower="loadMore" bindscroll="scroll" scroll-y="true" lower-threshold="100" style="height:100%;">
+      <view class="c1 useInfo" wx:for="{{useList}}" wx:for-item="use" wx:key="index">
+        <view>
+          {{use.nickname ? use.nickname : use.user_name}}
+        </view>
+        <view>
+          {{use.get_time}}
+        </view>
+        <view>
+          {{use.use_time}}
+        </view>
+      </view>
+
+      <view class="weui-loadmore weui-loadmore_line" wx:if="{{pageNum === -1}}" style="height:4.2em;">
+        <text class="weui-loadmore__tips weui-loadmore__tips_in-line">暂无数据</text>
+      </view>
+    </scroll-view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class usedList extends wepy.page {
+    config = {
+      navigationBarTitleText: '查看使用'
+    }
+    data = {
+      imgUrl: null,
+      pageNum: 0,
+      useList: [], // 使用优惠券的列表
+      showLoading: false,
+      busy: true,
+      sortFiled: null, // 列表排序根据（获取时间：get_time，使用时间：use_time）
+      sortType: null, // 升序（false）降序（true）
+      couponId: null
+    }
+    onLoad(q) {
+      this.imgUrl = this.$parent.globalData.imgUrl
+      this.couponId = q.couponId
+      this.pageNum = 0
+      this.useList = []
+      this.sortFiled = null
+      this.sortType = null
+      this.$apply()
+      this.loadMore()
+    }
+    methods = {
+      scroll: function (event) {
+        // 该方法绑定了页面滚动时的事件，记录了当前的position.y的值,为了请求数据之后把页面定位到这里来。
+        this.scrollTop = event.detail.scrollTop
+        this.$apply()
+      }
+    }
+    loadMore() {
+      let self = this
+      if (self.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      // 页码加1，默认为0
+      let num = self.pageNum + 1
+      self.pageNum = num
+      self.$apply()
+      let params
+      if (self.sortFiled) {
+        params = {
+          coupon_id: this.couponId,
+          page: this.pageNum,
+          sort_by: this.sortFiled,
+          sort_order: this.sortType ? 'DESC' : 'ASC'
+        }
+      } else {
+        params = {
+          coupon_id: this.couponId,
+          page: this.pageNum
+        }
+      }
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/coupon/coupon.php?act=view_use`,
+        data: params
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          if (data.coupon_use_list.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.pageNum = -1
+            self.$apply()
+            return
+          }
+          // 数据组装
+          let list = self.useList
+          for (var i = 0; i < data.coupon_use_list.length; i++) {
+            list.push(data.coupon_use_list[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.useList = list
+          })
+        } else {
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('获取分类菜单失败！', error)
+      })
+    }
+    /*
+     * 排序
+     */
+    sortFn(e) {
+      let self = this
+      let sortFiled = e.currentTarget.dataset.filed
+      this.sortType = (sortFiled !== self.sortFiled) ? false : !self.sortType
+      this.sortFiled = sortFiled
+      this.useList = []
+      this.pageNum = 0
+      this.$apply()
+      this.loadMore()
+    }
+  }
+</script>
+
+<style lang="less">
+  .viewStyle {
+    background-color: #fff;
+    padding-bottom: 10px;
+  }
+  .tabBar {
+    display: flex;
+    background-color: #fff;
+    text-align: center;
+    height: 96rpx;
+    line-height: 96rpx;
+  }
+  .tabBar view {
+    font-weight: 500;
+  }
+  .tabBar view image {
+    width: 12rpx;
+    height: 18rpx;
+  }
+  .useList {
+    background-color: #fff;
+    padding:0 15px;
+    text-align: center;
+  }
+  .useList .useInfo {
+    display: flex;
+    height: 70rpx;
+    line-height: 70rpx;
+  }
+  .useList .useInfo:nth-child(even){
+    background-color: #fff;
+  }
+  .useList .useInfo:nth-child(odd){
+    background-color: #EAEEF1;
+  }
+  .useList .useInfo view {
+    font-size: 20rpx;
+    font-weight: 400;
+  }
+  .useInfo view:nth-child(1) {
+    flex: 3;
+  }
+  .useInfo view:nth-child(2) {
+    flex: 5;
+  }
+  .useInfo view:nth-child(3) {
+    flex: 5;
+  }
+</style>

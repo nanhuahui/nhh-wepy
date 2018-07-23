@@ -1,0 +1,101 @@
+<template>
+  <view>
+    <view class="refuseRefund">
+      <view class="reasonInfo">
+        <textarea class="h5" value="{{refuseReason}}" cols="30" rows="10" maxlength="200" placeholder="请填写拒绝理由（限200字内）" bindinput="refuseReasonInput"></textarea>
+        <text class="c1 h5">{{refuseReason.length}}/200</text>
+      </view>
+      <a bindtap="submitRefuse">提交信息</a>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class refuseRefund extends wepy.page {
+    config = {
+      navigationBarTitleText: '填写拒绝理由'
+    }
+    data = {
+      refuseReason: null,
+      orderId: null,
+      actType: null
+    }
+    onLoad(q) {
+      this.$apply(() => {
+        this.actType = q.actType
+        this.orderId = q.orderId
+      })
+    }
+    submitRefuse() {
+      let self = this
+      if (!self.refuseReason) {
+        wepy.showModal({
+          title: '提示',
+          content: '请填写拒绝理由',
+          showCancel: false
+        })
+        return false
+      }
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/order/order.php`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        data: {
+          act: self.actType,
+          refund_status: 'refuse',
+          order_id: self.orderId,
+          refund_note: self.refuseReason
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          wepy.showModal({
+            title: '提示',
+            content: '操作成功',
+            showCancel: false
+          })
+          self.$navigate.replace(`./orderList?act_type=return`)
+          // self.$router.replace({path: '/shopGoods/orderInfo', query: {order_id: self.$route.query.orderId}})
+        } else {
+          wepy.showModal({
+            title: '提示',
+            content: msg,
+            showCancel: false
+          })
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    refuseReasonInput(e) {
+      this.$apply(() => {
+        this.refuseReason = e.detail.value
+      })
+    }
+  }
+</script>
+
+<style lang="less">
+  .refuseRefund{ position: absolute; width: 100%; height: 100%; left: 0; top: 0; background: #fff; padding: 0.4rem 0.6rem}
+  .refuseRefund textarea{ background: #eaeef1; border: none; resize: none; outline: none; width: 670rpx; display: block; padding: 24rpx 20rpx; line-height: 1.5; border-radius: 8rpx}
+  .refuseRefund a{display: block; text-decoration: none; color: #fff; background: #333; height: 80rpx; line-height: 80rpx; text-align: center; width: 710rpx; margin-top: 80rpx; border-radius: 4px}
+  .reasonInfo{position: relative;}
+  .reasonInfo text{position: absolute; right: 60rpx; bottom: 20rpx}
+  .refuseRefund textarea:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+      color: #333;
+  }
+
+  .refuseRefund textarea::-moz-placeholder { /* Mozilla Firefox 19+ */
+      color: #333;
+  }
+
+  .refuseRefund textarea:-ms-input-placeholder{
+      color: #333;
+  }
+
+  .refuseRefund textarea::-webkit-input-placeholder{
+      color: #333;
+  }
+</style>

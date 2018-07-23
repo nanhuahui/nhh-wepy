@@ -20,6 +20,69 @@
     font-size: 28rpx;
     color: #ef0021;
   }
+.couponList {
+  width: 100%;
+  background-color: #fff;
+  overflow-x: scroll;
+  -webkit-overflow-x: scroll;
+  -webkit-overflow-scrolling: touch;
+  margin-top:10rpx;
+}
+.couponList::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  background-color: #fff; display: none
+}
+
+.couponList>view {
+  display: flex;
+  justify-content: flex-start;
+  padding: 16rpx 15px;
+  background-color: #fff;
+}
+
+.couponList .cell {
+  display: inline-block;
+  font-size: 14px;
+  text-align: left;
+  position: relative;
+  text-overflow: ellipsis; width: 40%;
+  /*word-break: keep-all;*/
+  width: 300rpx;
+  margin-right: 10rpx;
+}
+.cell .couponBg{
+  background: url(https://wxassets.huahuishang.com/coupon/yhq.png);
+  width: 300rpx;
+  height: 148rpx;
+  background-size: 100%;
+  position: relative;
+}
+.couponBg .couponInfo {
+  padding: 24rpx 12rpx 0;
+  color: #fff;
+  display: flex;
+  height: 124rpx;
+}
+.couponBg .couponInfo .priceWord {
+  height: 28rpx;
+  line-height: 28rpx;
+}
+.couponBg .couponInfo .couponMoney {
+  font-size: 110rpx;
+  flex: 1;
+  line-height: 100rpx;
+  text-align: right;
+}
+.couponBg .couponInfo .getCoupon {
+  width: 30rpx;
+  height: 100rpx; line-height: 25rpx; border: 1px solid #fff; padding: 1px; text-align: center
+}
+.couponBg .rmbImg {
+  position: absolute;
+  left: 12rpx;
+  bottom: 24rpx;
+}
 </style>
 
 <template>
@@ -36,6 +99,29 @@
         <image wx:else src="{{storeInfo.shop_banner ? imgDomain + storeInfo.shop_banner : ''}}" mode="widthFix"></image>
       </view>
     </navigator>
+
+    <navigator url="../../uploadGoods/upperGoodsList" wx:if="{{storeCoupon.length !== 0}}" class="couponList clearfix">
+      <view style="min-width: {{storeCoupon.length * 300}}rpx;">
+        <view wx:for="{{storeCoupon}}" wx:for-item="coupon" wx:key="index" class="cell" style="width: {{coupon.cellWidth}}rpx;">
+          <view class="couponBg" style="width:{{coupon.cellWidth}}rpx;">
+            <view class="couponInfo">
+              <view wx:if="{{coupon.is_no_limit === '1'}}" class="h7">
+                <view class="priceWord">满{{coupon.min_amount}}元</view>
+                <view class="priceWord">可使用</view>
+              </view>
+              <view wx:else>
+                <view class="priceWord">无门槛</view>
+              </view>
+              <view class="couponMoney">{{coupon.coupon_money}}</view>
+              <!-- <img class="getCoupon" src="/static/images/coupon/yhq_lq.png" /> -->
+              <view class="getCoupon h7">立即领取</view>
+            </view>
+            <!-- <img class="rmbImg" src="/static/images/coupon/yhq_RMB.png" /> -->
+          </view>
+        </view>
+      </view>
+    </navigator>
+    
     <!-- 楼层 -->
     <view class="goods-lists clearfix" style="margin-top:10rpx;">
       <repeat for="{{shoperGoods}}" item="g" key="g.goods_id" index="g.goods_id">
@@ -71,7 +157,8 @@ export default class shoperChosen extends wepy.component {
     storeInfo: Object,
     shoperGoods: [],
     imgDomain: Object,
-    imgUrl: Object
+    imgUrl: Object,
+    storeCoupon: Object
   }
   data = {}
   methods = {

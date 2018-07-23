@@ -182,7 +182,7 @@
     </view>
   </view>
   <view id="contact_pic_mask"></view>
-  <view class="offerMask" wx:if="{{maskShow === true}}"></view>
+  <view class="offerMask" wx:if="{{maskShow === true}}" bindtap="closeOffer"></view>
 </template>
 
 <script>
@@ -671,6 +671,17 @@
             scrollTop: scrollToTop
           })
         }
+      })
+    }
+    /*
+     * 退出出价状态
+     */
+    closeOffer() {
+      let self = this
+      self.$apply(() => {
+        self.toOfferShow = false
+        self.phraseShow = false
+        self.maskShow = false
       })
     }
     methods = {}

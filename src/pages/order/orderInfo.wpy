@@ -1,11 +1,45 @@
 <template>
   <scroll-view scroll-y="true" height="100%" wx:if="{{orderDet.order}}">
-    <view class="deliveryState">
-      <view class="h1 c11">{{orderDet.order.shipping_time ? '卖家已发货' : orderDet.order.pay_time ? '等待卖家发货' : '未付款'}}</view>
+    <view class="returnAndExchangeBg">
+      <view class="iconBox">
+        <image src="https://chazishop.com/static/images/storeGoods/modify.png" />
+      </view>
+      <view class="c7 order_status_top">{{orderDet.order.order_status}}</view>
+      <view class="rightInfo h7" wx:if="{{orderDet.order.order_status === '已退货，待退款'}}">三个工作日
+        <text>系统自动退款</text>
+      </view>
+      <view class="rightInfo h7" wx:if="{{orderDet.order_rest_time}}">{{orderDet.order_rest_time}}
+        <text>系统自动退款</text>
+      </view>
+    </view>
+    <view class="returnProcess" wx:if="{{order_action}}">
+      <view class="processStage" wx:for="{{order_action}}" wx:key="{{item}}">
+        <view class="result">
+          <view class="handleTimeBox">
+            <view class="centerBox">
+              <view class="c2 specificTime">
+                {{item.action_time}}
+              </view>
+              <!-- <view class="c1 h7">
+                {{item.action_time.slice(0, 10)}}
+              </view> -->
+            </view>
+          </view>
+          <view class="h3 c4 resultText">
+            {{item.action_title}}
+          </view>
+        </view>
+        <view class="c2 h5 reason">
+          <view>退款金额：￥{{item.action_money}}</view>
+          <view wx:if="{{item.reason_desc}}">退款原因：{{item.reason_desc}}</view>
+          <view wx:if="{{item.action_note}}">{{item.action_place === '3' ? '拒绝原因：' : '备注：'}}{{item.action_note}}</view>
+        </view>
+      </view>
     </view>
     <view class="mainDet">
       <view class="shopDet">
-        <view class="h3 c3 list">
+        <view class="h3 c3 list" style="position: relative; padding-left: 80rpx">
+          <image src="https://chazishop.com/static/images/orderAddress.png" mode="widthFix" style="position: absolute; width: 28rpx; height: 28rpx; top: 0; bottom: 0; margin: auto; left: 10rpx"></image>
           <view class="list-item o_consigneeName">
             收货人姓名：{{orderDet.order.consignee}}
             <text>{{orderDet.order.mobile}}</text>
@@ -30,10 +64,10 @@
               <text class="g_number">数量:{{item.goods_number}}</text>
               <text class="g_price">{{item.goods_price}}</text>
             </view>
-            <view class="table-td eval" wx:if="{{orderType === 0 && orderDet.order.shipping_status === '已发货'}}"
+            <!-- <view class="table-td eval" wx:if="{{orderType === 0 && orderDet.order.shipping_status === '已发货'}}"
               bindtap="evaluate" data-upc-id="{{item.upc_id}}" data-gid="{{item.goods_id}}">
               <text>评价</text>
-            </view>
+            </view> -->
           </view>
         </view>
       </view>
@@ -99,21 +133,38 @@
     </view>
     <!-- 订单操作 -->
     <view class="bottomCon">
-      <a class="h3 c11" bindtap="doWechatPay" wx:if="{{orderDet.order.pay_status === '未付款' && orderDet.order.order_status !== '已取消'}}">
+      <a class="h5 c3 floatLeft" bindtap="doWechatPay" wx:if="{{orderDet.order.pay_status === '未付款' && orderDet.order.order_status !== '已取消'}}">
         立即支付
       </a>
-      <a class="h3 c11" bindtap="promptDelivery" wx:if="{{orderDet.is_show_shipping_prompt === 1}}">
+      <a class="h5 c3 floatLeft" bindtap="promptDelivery" wx:if="{{orderDet.is_show_shipping_prompt === 1}}">
         提醒发货
       </a>
-      <a class="h3 c11" bindtap="switchWxCode" wx:if="{{orderDet.is_show_refund === 1}}">
-        申请退款
+      <a class="h5 c3 floatLeft" bindtap="switchWxCode">
+        联系店主
       </a>
-      <a class="h3 c11" bindtap="switchWxCode" wx:elif="{{orderDet.is_show_return === 1}}">
-        申请退货
-      </a>
-      <a class="h3 c11" bindtap="cancelOrder" wx:elif="{{orderDet.order.pay_status === '已付款' && orderDet.order.shipping_time === 0 && orderDet.order.order_status !== '已取消，待返款'}}">
+      <!-- <a class="h3 c11" bindtap="cancelOrder" wx:elif="{{orderDet.order.pay_status === '已付款' && orderDet.order.shipping_time === 0 && orderDet.order.order_status !== '已取消，待返款'}}">
         取消订单
-      </a>
+      </a> -->
+      <!-- 退款 -->
+      <block>
+        <a class="h5 c3" wx:if="{{orderDet.is_show_cancel_refund}}" data-editType="order_edit_refund" bindtap="toApplyRefund">修改退款</a>
+        <a wx:if="{{orderDet.is_show_refund}}" class="h5 c3 grayTone" data-editType="order_refund" bindtap="toApplyRefund">
+          申请退款
+        </a>
+        <a wx:if="{{orderDet.is_show_cancel_refund}}" class="h5 c3 grayTone" data-editType="order_cancel_refund" bindtap="cancelRefund">
+          取消退款
+        </a>
+      </block>
+      <!-- 退货 -->
+      <block>
+        <a class="h5 c3" wx:if="{{orderDet.is_show_cancel_return}}" data-editType="order_edit_returned" bindtap="toApplyRefund">修改退货</a>
+        <a  wx:if="{{orderDet.is_show_return}}" class="h5 c3" data-editType="order_returned" bindtap="toApplyRefund">
+          申请退货
+        </a>
+        <a wx:if="{{orderDet.is_show_cancel_return}}" class="h5 c3 grayTone" data-editType="order_cancel_returned" bindtap="cancelRefund">
+          取消退货
+        </a>
+      </block>
     </view>
     <!-- 显示联系店主微信二维码 -->
     <view class="contactShop" wx:if="{{showWxCode}}">
@@ -135,7 +186,8 @@
       imgUrl: null,
       id: null, // 订单id
       orderType: 0, // 订单类型:0->普通订单;1->销售订单
-      showWxCode: false // 是否展示店主微信二维码
+      showWxCode: false, // 是否展示店主微信二维码
+      order_action: []
     }
     onLoad(q) {
       this.imgUrl = this.$parent.globalData.imgUrl
@@ -143,6 +195,9 @@
         this.id = q.id || decodeURIComponent(q.scene)
         this.orderType = parseFloat(q.type) || 0
       })
+      // this.loadOrder()
+    }
+    onShow(e) {
       this.loadOrder()
     }
     /**
@@ -164,7 +219,9 @@
           self.$apply(() => {
             self.orderDet = data
             self.order_status = data.order.order_status
+            self.order_action = data.order_action
           })
+          console.log(2345, self.order_action)
           wepy.hideLoading()
         } else {
           wepy.showModal({
@@ -361,6 +418,45 @@
         urls: imgSrc.split(',') // 需要预览的图片http链接列表,必须是数组
       })
     }
+    toApplyRefund(e) {
+      console.log(e)
+      let actObj = e.target.dataset.edittype
+      wepy.navigateTo({url: `./applyDrawBack?orderId=${this.orderDet.order.order_id}&act=${actObj}&actId=${this.orderDet.order_action_id}`})
+    }
+    /**
+     * [cancelRefund 取消退款]
+     * @param  {[type]} act_obj [description]
+     * @return {[type]}         [description]
+     */
+    cancelRefund(e) {
+      let self = this
+      wepy.showModal({
+        title: '提示',
+        content: '确定取消申请吗？'
+      }).then((res) => {
+        if (res.confirm) {
+          // 用户点击了确定 可以调用删除方法了
+          wepy.request({
+            url: `${self.$parent.globalData.apiUrl}/user.php`,
+            data: {
+              act: e.target.dataset.edittype,
+              order_id: self.orderDet.order.order_id
+            }
+          }).then(({data: {errcode, data, msg}}) => {
+            if (errcode === 0) {
+              self.alertDialog('提示', '取消申请成功')
+              self.loadOrder()
+            } else {
+              self.alertDialog('提示', msg)
+            }
+          }).catch((error) => {
+            console.log('请求失败', error)
+          })
+        } else if (res.cancel) {
+          console.log('用户点击取消')
+        }
+      })
+    }
   }
 </script>
 
@@ -459,8 +555,10 @@
 .button-sp-area {
   margin-top: 20px; padding:20px;
 }
-.bottomCon{background: #fff; line-height: 90rpx; position: fixed; width: 100%; bottom: 0;}
-.bottomCon a{float: right; width:140rpx; margin: 15rpx 5px 15rpx 0; text-align: center; background: #333; height: 60rpx; line-height: 60rpx;}
+.bottomCon{background: #fff; line-height: 90rpx; position: fixed; width: 100%; bottom: 0; padding: 0 30rpx}
+.bottomCon a{float: right; width:140rpx; margin: 15rpx 5px 15rpx 0; text-align: center; height: 48rpx; line-height: 48rpx; border-radius: 28rpx; border: 1px solid #f55b29; color: #f55b29}
+.bottomCon .grayTone{border: 1px solid #eee; color: #333}
+.bottomCon .floatLeft{float: left;}
 .contactBg{ background: rgba(0,0,0,.6); width: 100%; height: 100%;}
 .contactShop{position: fixed; width: 100%; height: 100%; left: 0; top: 0; z-index: 100}
 .contactShop image{position: absolute; left: 0; right: 0; top: 0; bottom: 0; margin: auto; width: 70%}
@@ -471,4 +569,73 @@
 .o_consigneeName{position: relative;}
 .o_consigneeName text{position: absolute; top: 0; right: 0}
 
+.returnProcess {
+  background-color: #fff;
+  margin: 0 -15px;
+  padding: 0 15px;
+}
+.returnProcess .processStage {
+  padding: 0.85533rem 0;
+  border-bottom: 1px solid #ccc;
+}
+.returnProcess .processStage:last-child {
+  border-bottom: none;
+}
+.processStage .result {
+  display: flex;
+}
+.result .handleTimeBox {
+  width: 88px;
+}
+.result .centerBox {
+  display: inline-block;
+  text-align: center;
+}
+.result .specificTime {
+  font-size: 24rpx;
+}
+.result .resultText {
+  flex: 1;
+  line-height: 72rpx;
+}
+.result .stopTime {
+  color: #f55b29;
+  text-align: center;
+}
+.processStage .reason {
+  margin-left: 88px; margin-top: -0.4rem
+}
+.orderAddress{position: relative;}
+.orderAddress img{position: absolute; left: 0.6rem; top: 0; bottom: 0; margin: auto; width: 0.6rem}
+.orderAddress ul{padding-left: 1.3rem}
+.processStage .reason div {
+  font-size: 0.4693rem;
+}
+.orderAddress ul li{font-size: 0.55rem}
+.returnAndExchangeBg {
+  background: url(https://chazishop.com/static/images/storeGoods/tuihuanhuo.png) no-repeat;
+  background-size: 100%;
+  display: flex;
+  position: relative; 
+  padding: 0 30rpx;
+}
+.iconBox {
+  width: 50rpx;
+  height: 120rpx;
+  position: relative;
+}
+.iconBox image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -0.4267rem;
+  margin-top: -0.512rem;
+  width: 0.8533rem;
+  height: 0.981rem;
+}
+.returnAndExchangeBg .order_status_top {
+  line-height: 120rpx;
+}
+.returnAndExchangeBg .rightInfo{position: absolute; top: 0; bottom: 0; margin: auto; right: 0.8rem; color: #fff; text-align: right; padding-top: 0.8rem}
+.rightInfo text{display: block;}
 </style>

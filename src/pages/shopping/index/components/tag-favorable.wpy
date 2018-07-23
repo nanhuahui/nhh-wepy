@@ -1,0 +1,97 @@
+<template>
+  <view style="margin-bottom: 10rpx;">
+    <view class="expertSession" wx:for="{{tagFavorable}}" wx:for-item="item" wx:key="index">
+      <navigator url="../tagFavourable?id={{item.act_id}}" style="margin-bottom:-28rpx;">
+        <image mode="widthFix" src="{{imgDomain + item.banner}}"></image>
+      </navigator>
+      <view wx:if="{{item.goods}}">
+        <!-- 横排展示 -->
+          <view class="sortImg">
+            <view class="sortImg-ul" style="min-width: {{ ( (item.goods ? item.goods.length : 0) + 1) * baseWidth + 'px'}};height: {{baseHeight + 'px'}}">
+              <repeat for="{{item.goods}}" key="index" index="index" item="goods">
+                <view class="cell">
+                  <view style="width: {{width}}px;height: {{height}}px;">
+                    <view class="goods-main" bindtap="redirectToGoods" data-upcid = "{{goods.upc_id}}">
+                      <view class="goods-img">
+                        <image src="{{imgDomain}}{{goods.master_img}}" mode="widthFix" />
+                      </view>
+
+                      <!-- flex-direction:column：主轴为垂直方向，起点在上沿|column-reverse：主轴为垂直方向，起点在下沿 -->
+                      <view style="display:flex;display:-webkit-flex;flex-direction:column-reverse;">
+                        <view>
+                          <text class="shop-price" wx:if="{{goods.shop_price}}">{{goods.shop_price}}</text>
+                          <text class="market-price" wx:if="{{goods.market_price}}">{{goods.market_price}}</text>
+                        </view>
+
+                        <view>
+                          <view class="goods-brief ellipsis" wx:if="{{goods.goods_brief}}">{{goods.goods_brief}}</view>
+                          <view class="goods-title ellipsis" style="margin-bottom:10rpx;">
+                            {{goods.goods_name}}
+                          </view>
+                        </view>
+                      </view>
+                    </view>
+                  </view>
+                </view>
+              </repeat>
+              <!-- 查看更多 -->
+              <navigator url="../tagFavourable?id={{item.act_id}}" class="cell" style="position:relative;border-right: 0;">
+                <view style="width: {{baseWidth + 'px'}};"></view>
+                <view class="see_more">
+                  <image src="{{imgUrl}}/more.jpg" mode="widthFix"></image>
+                  <text>查看</text>
+                  <text class="eng_more">See More</text>
+                </view>
+              </navigator>
+            </view>
+          </view>
+        <!-- 竖排展示 -->
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+
+  export default class frameModel extends wepy.component {
+    components = {}
+    props = {
+      tagFavorable: Object,
+      imgUrl: Object,
+      imgDomain: Object,
+      baseWidth: {
+        type: String,
+        default: 116
+      },
+      baseHeight: {
+        type: String,
+        default: 174
+      },
+      width: {
+        type: String,
+        default: 116
+      },
+      height: {
+        type: String,
+        default: 186
+      }
+    }
+    data = {}
+    computed = {}
+    onLoad() {}
+    methods = {
+      redirectToGoods(e) {
+        const upcId = e.currentTarget.dataset.upcid
+        this.$emit('redirectToGoods', upcId)
+      }
+    }
+  }
+</script>
+
+<style lang="less">
+  .expertSession{padding-top: 10rpx;}
+  .expertSession>image{display: block;}
+  .expertSession image{width: 100%}
+  .expertSession .chosenGoodsInfo{padding-bottom: 18rpx;}
+</style>

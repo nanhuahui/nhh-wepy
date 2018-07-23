@@ -13,8 +13,11 @@
     <!-- 通知 -->
     <!-- <noticeMarquee :imgUrl.sync="imgUrl" componentId="noticeMarquee"></noticeMarquee> -->
 
+    <!-- 框架 -->
+    <frameModel wx:if="{{frameModel && frameModel.list && frameModel.list.length > 0}}" :frameModel.sync="frameModel" :imgDomain.sync="img_domain" :imgUrl.sync="imgUrl" componentId="frameModel"></frameModel>
+
     <!-- 店主精选 -->
-    <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="shoperChosen"></shoperChosen>
+    <shoperChosen wx:if="{{storeInfo}}" :storeInfo.sync="storeInfo" :shoperGoods.sync="shopperChoose" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" :storeCoupon.sync = 'storeCoupon' componentId="shoperChosen"></shoperChosen>
 
     <!-- 拍卖 -->
     <auction wx:if="{{!isReview}}" :imgDomain.sync="img_domain" :auctionList.sync="auctionList" :onlookerNum.sync="onlookerNum" :buyPersonNum.sync="buyPersonNum" componentId="auction"></auction>
@@ -31,11 +34,17 @@
     <!-- 今日特卖 -->
     <specialSale wx:if="{{!isReview}}" :active.sync="active" :imgDomain.sync="img_domain" :isActivity.sync="isActivity" componentId="specialSale"></specialSale>
 
+    <!-- 标签活动 -->
+    <tagFavorable wx:if="{{tagFavorable && tagFavorable.length > 0}}" :tagFavorable.sync="tagFavorable" :imgDomain.sync="img_domain" :imgUrl.sync="imgUrl"></tagFavorable>
+
     <!-- 24小时热销 -->
     <allDayHot :dayHot.sync="hotInfo" :goods.sync="hotGoods" :imgUrl.sync="imgUrl" componentId="allDayHot"></allDayHot>
 
     <!-- 今日精选 -->
     <todaySpecial :special.sync="special" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="tadaySpecial"></todaySpecial>
+
+    <!-- 专场活动 -->
+    <expertSession :expertSession.sync="expertSession" :imgUrl.sync="imgUrl" :imgDomain.sync="img_domain" componentId="expertSession"></expertSession>
 
     <!-- 楼层 -->
     <floorGoods :composeFloorArr.sync="composeFloorArr" :imgUrl.sync="imgUrl" componentId="floorGoods"></floorGoods>
@@ -69,8 +78,10 @@ import qrPatchLayer from '@/components/qrPatch-layer'
 import header from './components/index-header'
 import swiper from './components/index-swiper'
 import category from './components/index-category'
+import frameModel from './components/frame-model'
 import shoperChosen from './components/shoper-chosen'
 import todaySpecial from './components/today-special'
+import expertSession from './components/expert-session'
 import recommendSale from './components/recommend-sale'
 import specialSale from './components/special-sale'
 import coustomerGoods from './components/coustomer-goods'
@@ -80,6 +91,7 @@ import flashSale from './components/flash-sale'
 import allDayHot from './components/all-day-hot'
 import auction from './components/auction'
 import indexLoading from './components/loading'
+import tagFavorable from './components/tag-favorable'
 import qcMixin from '@/mixins/quickIcon'
 // import noticeMarquee from './components/notice-marquee'
 import { getCategory, getStoreIndex, getRecommend, getDistribution, addCart, addCollection, setCartNum } from '@/utils/api'
@@ -92,8 +104,10 @@ export default class Index extends wepy.page {
     header,
     swiper,
     category,
+    frameModel,
     shoperChosen,
     todaySpecial,
+    expertSession,
     recommendSale,
     specialSale,
     coustomerGoods,
@@ -104,7 +118,8 @@ export default class Index extends wepy.page {
     qrPatchLayer,
     auction,
     // noticeMarquee,
-    indexLoading
+    indexLoading,
+    tagFavorable
   }
   mixins = [qcMixin]
   data = {
@@ -123,6 +138,7 @@ export default class Index extends wepy.page {
     hotInfo: {}, // 24小时热销
     hotGoods: [], // 24小时热销商品
     shopperChoose: [], // 店主精选
+    storeCoupon: [], // 店铺优惠券
     avaterImg: '', // 头像
     sevenActive: {},
     turnsInfo: [],
@@ -149,7 +165,10 @@ export default class Index extends wepy.page {
     auctionList: [], // 推荐的拍卖活动
     onlookerNum: null, // 拍卖围观人数
     buyPersonNum: null, // 拍卖出价次数
-    isReview: wepy.getStorageSync('categoryFood')
+    isReview: wepy.getStorageSync('categoryFood'),
+    expertSession: [], // 专场
+    tagFavorable: [], // 标签活动
+    frameModel: [] // 框架
   }
 
   computed = {}
@@ -205,6 +224,15 @@ export default class Index extends wepy.page {
     },
     'addToCollection': (...args) => {
       this.addToCollection(args[0], args[1])
+    },
+    'seeMoreExpert': (...args) => {
+      this.seeMoreExpert(args[0], args[1], args[2])
+    },
+    'redirectToGoods': (...args) => {
+      this.redirectToGoods(args[0])
+    },
+    'toFrameInfo': (...args) => {
+      this.toFrameInfo(args[0])
     }
   }
 
@@ -381,6 +409,45 @@ export default class Index extends wepy.page {
           self.hotInfo['id'] = data.hot_list.id
           self.hotInfo['start_time'] = data.hot_list.start_time
         }
+        // 专场活动
+        if (self.expertSession.length === 0) {
+          let nowExpertSession = self.expertSession
+          for (let m of data.expert) {
+            m.page = 1 // 初始化页码为0
+            m.goods.length < 4 ? m.msg = '已为您加载全部商品' : m.msg = '点击加载更多 ⬇️'
+            nowExpertSession.push(m)
+          }
+          self.$apply(() => {
+            self.expertSession = nowExpertSession
+          })
+        }
+        let storeCoupon = data.store_coupon
+        let moneyLength
+        for (var i = 0; i < storeCoupon.length; i++) {
+          storeCoupon[i].coupon_money = 100
+          moneyLength = storeCoupon[i].coupon_money.toString().length
+          storeCoupon[i].cellWidth = moneyLength > 2 ? (300 + 66 * moneyLength - 94) : 300
+        }
+        // 转换框架链接地址
+        if (data.frame_info.list) {
+          let link = null
+          for (var m = 0; m < data.frame_info.list.length; m++) {
+            for (var n = 0; n < data.frame_info.list[m].info.length; n++) {
+              link = data.frame_info.list[m].info[n].link
+              if (link.indexOf('allConsumerGoods') > -1) { // 消费商专区
+                data.frame_info.list[m].info[n].link = `../coustomGoods`
+              } else if (link.indexOf('flashSale') > -1) { // 限时特卖
+                data.frame_info.list[m].info[n].link = `../flashSale${link.split('flashSale')[1]}`
+              } else if (link.indexOf('category') > -1) { // 楼层
+                data.frame_info.list[m].info[n].link = `../category`
+              } else if (link.indexOf('index/panicBuy') > -1) { // 今日特卖
+                data.frame_info.list[m].info[n].link = `../panicBuy${link.split('panicBuy')[1]}`
+              } else if (link.indexOf('goods') > -1) { // 商品详情
+                data.frame_info.list[m].info[n].link = `../goods/goods${link.split('goods')[1]}`
+              }
+            }
+          }
+        }
         // 设置数据
         self.$apply(() => {
           self.active = data.active
@@ -389,7 +456,10 @@ export default class Index extends wepy.page {
           self.turnsInfo = data.turns_info
           self.img_domain = data.img_domain
           self.storeInfo = data.storeinfo
+          self.storeCoupon = storeCoupon
           self.storeDetail = data.store_detail
+          self.tagFavorable = data.tag_favourable ? data.tag_favourable : []
+          self.frameModel = data.frame_info ? data.frame_info : []
           self.composeFloorArr = tempFloor
           self.special = data.special
           self.shopperChoose = data.shop_best_goods
@@ -595,6 +665,48 @@ export default class Index extends wepy.page {
           return false
         }
       })
+    }
+  }
+  /**
+   *   专场：点击加载更多
+   */
+  seeMoreExpert(expertId, index, page) {
+    wepy.request({
+      url: `${this.$parent.globalData.apiUrl}/expert_goods.php?act=vartical`,
+      data: {
+        expert_id: expertId,
+        page: page
+      }
+    }).then(({data: {errcode, data, msg}}) => {
+      if (errcode === 0) {
+        if (data.expert_goods.length < 6) {
+          this.expertSession[index].msg = '已为您加载全部商品'
+        }
+        this.expertSession[index].page = page  // 当前已经查到的页码数
+        for (let item of data.expert_goods) {
+          this.expertSession[index].goods.push(item)
+        }
+        this.$apply()
+      } else {
+        console.error(msg)
+      }
+    }).catch((error) => {
+      console.log('请求失败', error)
+    })
+  }
+  /**
+   *   专场：查看商品
+   */
+  redirectToGoods(upcId) {
+    this.$navigate(`../goods/goods?gid=${upcId}`)
+  }
+  // 框架点击事件
+  toFrameInfo(url) {
+    if (url.indexOf('aiwall') !== -1) {
+      // 第三方链接
+      this.$navigate(`../../thirdWebView/thirdWebView?url=${url}`)
+    } else {
+      this.$navigate(`${url}`)
     }
   }
 }

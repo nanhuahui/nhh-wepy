@@ -1,0 +1,254 @@
+<template>
+	<view>
+		<view class="refundInfo">
+			<text class="h3 c3">订单详情</text>
+			<view class="orderTable table">
+				<tr wx:for="{{goodsInfo}}" wx:key="{{item}}">
+					<td style="width:140rpx">
+						<image src="{{item.img_url}}" alt="" mode="widthFix" style="width: 140rpx; height: 140rpx"></image>
+					</td>
+					<td style="width: 540rpx">
+						<p class="h5 c3">{{item.goods_name}}</p>
+						<span class="goodsPrice h5 c3">共{{item.goods_number}}件商品</span>	
+						<span class="goodsPrice realPrice h5 c3">实付款：<i class="h1">{{item.goods_price}}</i></span>
+					</td>
+				</tr>
+			</view>
+		</view>
+		<view class="refundFill">
+			<ul>
+				<li @tap="toggleModel">
+					<span class="c3 h3">{{pageTitle}}原因</span>
+					<p class="h5 c3" catchtap="toggleModel">{{refundReason ? refundReason : '请选择' + pageTitle + '原因'}}
+						<image src="{{imgUrl + '/arre.png'}}" alt=""></image>
+					</p>
+				</li>
+				<li>
+					<span class="c3 h3">{{pageTitle}}金额
+						<b class="h5">最高可退 ¥{{refundMoney}}</b>
+					</span>
+					<p class="h5 c3">¥{{refundMoney}}</p>
+				</li>
+				<li>
+					<span class="c3 h3">{{pageTitle}}备注</span>
+					<input wx:if="{{!showReasonModel}}" class="h5 c3" value="{{remarkRefund}}" bindinput="remarkRefundInput" placeholder="给商家留言"/>
+				</li>
+			</ul>
+			<a class="applyRefund h5" bindtap="submitRefund">提交信息</a>
+		</view>
+		<!-- // 退货弹窗 -->
+		<view class="refundReason" wx:if="{{showReasonModel}}">
+			<view class="reasonBg" bindtap="toggleModel"></view>
+			<view class="mainReason">
+				<text>请选择{{pageTitle}}原因</text>
+				<radio-group class="radioGroup" bindchange="radioChange">
+		          <label class="radio" wx:for="{{radioArr}}" wx:key="{{item[1]}}">
+		            <radio value="{{item[1]}}" checked="{{item[1] === refundReason}}" color="#f00"/>{{item[1]}}
+		          </label>
+		        </radio-group>
+				<a class="submitReason" bindtap="toggleModel">确认</a>
+				<!-- <span class="closeReason" bindtap="toggleModel">&times;</span> -->
+			</view>
+		</view>
+	</view>
+</template>
+
+<style lang="less">
+	.refundInfo, .refundFill{background: #fff; padding-left: 0.57rem; font-family: 'PingFangSC Semibold'; color: #333}
+	.refundFill ul{background: #fff}
+	.refundInfo text{height: 1.88rem; line-height: 1.88rem; font-weight: bold; border-bottom: 1px solid #eee; display: block}
+	.orderTable{width: 97%; margin-bottom: 10rpx}
+	.orderTable p{}
+	.orderTable image{width: 3.2rem; height: 3.2rem; background-size: cover}
+	.orderTable td{vertical-align: top; padding: 0.3rem 0.3rem 0.1rem 0; position: relative; border-top: 1px solid #eee; display: table-cell}
+  	.orderTable tr:first-child td{border-top: none}
+	.orderTable td i{color: #f34747; font-style: normal;}
+	.goodsPrice{position: absolute; bottom: 0.2rem; left: 0;}
+	.realPrice {right: 0.3rem; left: auto}
+	.goodsPrice i{right: 0; bottom: 0}
+	.refundFill{background-color: #fff; margin-top: 14rpx; padding: 0 30rpx 30rpx; margin-bottom: -100rpx}
+	.refundFill span{height: 1.7rem; line-height: 1.7rem; font-weight: bold; position: relative; display: block;}
+	.refundFill span b{position: absolute; right: 0; font-weight: normal;}
+	.refundFill p, .refundFill input{height: 1.7rem; line-height: 1.7rem; padding: 0 0.3rem; background-color: #eaeef1; border-radius: 4px; position: relative; display: block;}
+	.refundFill image{position: absolute; right: 0.37rem; width: 0.43rem; top: 0; bottom: 0; margin: auto; height: 30rpx}
+	.refundFill input{display: block; border: none; width: 100%; outline: none}
+	.refundFill input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+	    color: #333;
+	}
+
+	.refundFill input::-moz-placeholder { /* Mozilla Firefox 19+ */
+	    color: #333;
+	}
+
+	.refundFill input:-ms-input-placeholder{
+	    color: #333;
+	}
+
+	.refundFill input::-webkit-input-placeholder{
+	    color: #333;
+	}
+	.refundFill li{padding-top: 30rpx; display: block}
+	.refundFill li:first-child{padding-top: 0}
+	.applyRefund{display: block; width: 100%; background-color: #333; color: #fff; height: 80rpx; line-height: 80rpx; text-align: center; text-decoration: none; border-radius: 4px; margin-top: 2rem; margin-bottom: 0.8rem}
+	.refundReason{position: fixed; top: 0; left: 0; width: 100%; height: 100%}
+	.refundReason .reasonBg{width: 100%; height: 100%; background: rgba(0,0,0,.5); position: absolute; left: 0; top: 0}
+	.mainReason{width: 70%; left: 0; right: 0; bottom: 0; top: 0; margin: auto; background-color: #fff; position: absolute; height: 740rpx; padding: 0 0.7rem; border-radius: 4px}
+	.mainReason text{text-align: center; height: 2.47rem; line-height: 2.47rem; color: #333; display: block; font-weight: bold}
+	.submitReason{width: 100%; background-color: #f84e4e; color: #fff; text-decoration: none; text-align: center; height: 80rpx; line-height: 80rpx; display: block; border-radius: 4px; margin-top: 1rem}
+	.mainReason label{height: 80rpx; line-height: 80rpx; color: #666; display: block;}
+	.mainReason label{display: block}
+	.mainReason input{position: relative;/* left: -999rem;*/ display: inline-block; width: 30rpx}
+	.reasonRadio{background-image: url(https://huahuishang.com/static/images/noSelect.png); background-position:center left; background-size: 0.6rem; background-repeat: no-repeat;}
+	.selectedReason{background-image: url(https://huahuishang.com/static/images/selected.png);}
+	.closeReason{position: absolute; right: 0.7rem; top: 0; font-size: 1rem; color: #333}
+	.radioGroup radio{transform:scale(0.65);}
+</style>
+
+<script>
+  import wepy from 'wepy'
+  import { STATIC_IMG_PATH } from '@/utils/config'
+  export default class applyDrawBack extends wepy.page {
+    config = {
+      navigationBarTitleText: '申请'
+    }
+    data = {
+      imgBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVQIW2NkAAIAAAoAAggA9GkAAAAASUVORK5CYII=',
+      goodsInfo: [],
+      imgUrl: STATIC_IMG_PATH,
+      showReasonModel: false,
+      orderId: null,
+      actId: null,
+      actType: null,
+      remarkRefund: '',
+      radioArr: [],
+      refundReason: '',
+      pageTitle: '',
+      refundMoney: ''
+    }
+    onLoad(q) {
+      this.$apply(() => {
+        this.imgUrl = STATIC_IMG_PATH
+        this.orderId = q.orderId
+        this.actId = q.actId
+        this.actType = q.act
+        this.pageTitle = q.act.indexOf('return') !== -1 ? '退货' : '退款'
+      })
+      wepy.setNavigationBarTitle({
+        title: '申请' + this.data.pageTitle
+      })
+      this.loadOrder()
+    }
+    /**
+     * 获取订单信息
+     */
+    loadOrder() {
+      wepy.showLoading({title: '加载中'})
+      let self = this
+      // 请求数据
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/user.php`,
+        data: {
+          act: 'order_apply',
+          order_id: self.data.orderId,
+          action_id: self.data.actId,
+          control_type: self.data.actType.indexOf('return') !== -1 ? 'order_returned' : 'order_refund'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.goodsInfo = data.order_goods
+            self.radioArr = data.order_apply
+            self.refundMoney = data.order_info.money_paid
+            if (data.order_action) {
+              self.searchReason(data.order_action.action_reason)
+              self.remarkRefund = data.order_action.action_note
+            }
+          })
+          wepy.hideLoading()
+        } else {
+          self.showErrorModel(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    /**
+     * 提交
+     */
+    submitRefund() {
+      let self = this
+      if (!self.refundReason) {
+        self.showErrorModel(`请选择${self.pageTitle}原因`)
+        return false
+      }
+      let refundReasonIndex = ''
+      for (let m of self.radioArr) {
+        console.log(m)
+        if (m[1] === self.refundReason) {
+          refundReasonIndex = m[0]
+        }
+      }
+      wepy.showLoading({title: '加载中'})
+      let checkParam = {
+        act: self.actType,
+        order_id: self.orderId,
+        reason: refundReasonIndex,
+        money: self.refundMoney,
+        note: self.remarkRefund
+      }
+      if (self.actType !== 'order_refund' && self.actType !== 'order_returned') {
+        checkParam.action_id = self.actId
+      }
+      // 请求数据
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/user.php`,
+        data: checkParam
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          wepy.hideLoading()
+          self.showErrorModel('申请成功，请联系客服沟通退换货事宜')
+          wepy.navigateBack()
+          // self.$router.replace({path: '/shopOrdDet', query: {orderId: self.orderId}})
+          wepy.hideLoading()
+        } else {
+          self.showErrorModel(msg)
+        }
+      }).catch((error) => {
+        console.log('请求失败', error)
+      })
+    }
+    searchReason(reasonId) {
+      let self = this
+      for (let m of self.radioArr) {
+        if (m[0] === reasonId) {
+          self.$apply(() => {
+            self.refundReason = m[1]
+            m[2] = true
+          })
+        }
+      }
+    }
+    toggleModel() {
+      this.$apply(() => {
+        this.showReasonModel = !this.data.showReasonModel
+      })
+    }
+    radioChange(e) {
+      this.$apply(() => {
+        this.refundReason = e.detail.value
+      })
+    }
+    remarkRefundInput(e) {
+      this.$apply(() => {
+        this.remarkRefund = e.detail.value
+      })
+    }
+    showErrorModel(msg) {
+      wepy.showModal({
+        title: '提示',
+        content: msg,
+        showCancel: false
+      })
+    }
+  }
+</script>
