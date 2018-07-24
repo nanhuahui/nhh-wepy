@@ -112,8 +112,7 @@
       this.id = q.id
       this.userId = q.userId
       this.$apply()
-      // this.writeOff()
-      this.loadData()
+      this.writeOff()
     }
     /*
      * 核销优惠券
