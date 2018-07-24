@@ -21,7 +21,7 @@
             <view wx:else class="useCondition">
               订单满{{coupon.min_amount}}元使用
             </view>
-            <view wx:if="{{coupon.index_show === '1' && coupon.status ==='1'}}" class="showTip">
+            <view wx:if="{{status === 'using' && coupon.index_show === '1' && coupon.status ==='1'}}" class="showTip">
               首页展示中
             </view>
           </view>

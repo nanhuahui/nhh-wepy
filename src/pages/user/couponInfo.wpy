@@ -10,8 +10,8 @@
         </view>
         <view class="h3 c7 couponType">
           <text wx:if="{{couponInfo.coupon_type === '1'}}">通用券</text>
-          <text wx:elif="{{couponInfo.coupon_type === '2'}}">通用券</text>
-          <text wx:else>通用券</text>
+          <text wx:elif="{{couponInfo.coupon_type === '2'}}">店铺券</text>
+          <text wx:else>商品券</text>
           <text class="h7" style="color: #ffccd0;padding-left: 10rpx;">{{couponInfo.start_time}} - {{couponInfo.end_time}}</text>
         </view>
         <view class="couponValue clearfix" style="overflow: hidden;">
@@ -45,7 +45,7 @@
         </view>
       </view>
       <view class="couponBottom">
-        <view class="storeInfo">
+        <view wx:if="{{couponInfo.store_address}}" class="storeInfo">
           <view class="h5 infoTitle">
             <image src="{{imgUrl}}/coupon/dw.png"></image>
             店铺地址
@@ -54,14 +54,14 @@
             {{couponInfo.store_address}}
           </view>
         </view>
-        <view class="storeInfo" style="padding: 0 33px;">
+        <view wx:if="{{couponInfo.mobile}}" class="storeInfo" style="padding: 0 66rpx;margin-top: 52rpx;">
           <view class="h5 infoTitle">
             <image src="{{imgUrl}}/coupon/dh.png"></image>
             联系电话
           </view>
           <view class="h5 infoContent">
             +86
-            <text class="h5 c7" bindtap="calling" data-tel="{{couponInfo.mobile}}" style="margin-left: 3px;">{{couponInfo.mobile ? couponInfo.mobile : ''}}</text>
+            <text class="h5 c7" bindtap="calling" data-tel="{{couponInfo.mobile}}" style="margin-left: 6rpx;">{{couponInfo.mobile ? couponInfo.mobile : ''}}</text>
           </view>
         </view>
       </view>
@@ -130,6 +130,12 @@
         if (errcode === 0) {
           this.imgDomain = data.img_domain
           this.couponInfo = data.coupon_info
+          if (this.couponInfo.start_time) {
+            this.couponInfo.start_time = this.formatTime(this.couponInfo.start_time)
+          }
+          if (this.couponInfo.end_time) {
+            this.couponInfo.end_time = this.formatTime(this.couponInfo.end_time)
+          }
           if (this.couponInfo.mobile) {
             this.couponInfo.mobile = this.formatNumber(this.couponInfo.mobile)
           }
@@ -185,6 +191,12 @@
           console.error('获取小程序码失败', msg)
         }
       })
+    }
+    /**
+     * 格式化时间
+     */
+    formatTime(time) {
+      return time.replace(/-/g, '.')
     }
   }
 </script>
@@ -258,7 +270,6 @@
     height: 346rpx;
   }
   .storeInfo {
-    margin-bottom: 56rpx;
     padding: 52rpx 66rpx 0;
   }
   .storeInfo .infoTitle {
