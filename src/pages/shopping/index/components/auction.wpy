@@ -78,8 +78,19 @@
         })
       }
     }
-    onLoad() {
-      this.$apply()
+    onLoad() {}
+    initSwiper() {
+      let self = this
+      // 查找拍卖当前进行中的下标
+      let ai = this.auctionList.findIndex((v) => v.status === '2')
+      self.swiper = {
+        slideLength: this.auctionList.length,
+        width: Math.floor(650 * wepy.getSystemInfoSync().windowWidth / 750),
+        direction: 'horizontal',
+        initialSlide: ai > -1 ? ai : 0 // 查找到活动下标则突出显示,否则默认展示第一个
+      }
+      self.$apply()
+      self.$invoke('weSwiper', 'onLoad', self.swiper)
     }
   }
 </script>
