@@ -65,31 +65,31 @@
         <text>店铺管理</text>
       </view>
       <view class="clearfix storeManager">
-        <view class="{{shopManageStyle}}" style="{{viewWidth}}">
+        <view class="{{shopManageStyle}}">
           <navigator class="feature" url="./sellerIncome">
             <image src="{{imgUrl}}/newIcon/shouru.png"></image>
             <text class="text_font">我的收入</text>
           </navigator>
         </view>
-        <view class="{{shopManageStyle}}" style="{{viewWidth}}">
+        <view class="{{shopManageStyle}}">
           <navigator class="feature" url="./orderManage">
             <image src="{{imgUrl}}/newIcon/dingdan.png"></image>
             <text class="text_font">订单管理</text>
           </navigator>
         </view>
-        <view class="{{shopManageStyle}}" style="{{viewWidth}}">
+        <view class="{{shopManageStyle}}">
           <navigator class="feature" url="../shopping/promotion">
             <image src="{{imgUrl}}/newIcon/fenxiang.png"></image>
             <text class="text_font">推广运营</text>
           </navigator>
         </view>
-        <view class="{{shopManageStyle}}" style="{{viewWidth}}">
+        <view class="{{shopManageStyle}}">
           <navigator class="feature" url="./personnelsManage">
             <image src="{{imgUrl}}/newIcon/userManage.png"></image>
             <text class="text_font">客户管理</text>
           </navigator>
         </view>
-        <view class="{{shopManageStyle}}" wx:if="{{shop_type !== '2'}}" style="{{viewWidth}}">
+        <view class="{{shopManageStyle}}" wx:if="{{shop_type !== '2'}}">
           <navigator class="feature" url="./myIncome">
             <image src="{{imgUrl}}/newIcon/yongjin.png"></image>
             <text class="text_font">佣金提现</text>
@@ -101,7 +101,7 @@
             <text class="text_font">新手必读</text>
           </navigator>
         </view> -->
-        <view class="{{shopManageStyle}}" wx:if="{{userObj.is_shop && shop_style !== '1'}}" style="{{viewWidth}}">
+        <view class="{{shopManageStyle}}" wx:if="{{userObj.is_shop && shop_style !== '1'}}">
           <navigator wx:if="{{shop_style === '2'}}" class="feature" url="/pages/branchOffice/manageBranch">
             <!--  url="/shopping/posterShare" -->
             <image src="{{imgUrl}}/branchManage.png"></image>
@@ -113,7 +113,7 @@
             <text class="text_font">分店管理</text>
           </navigator>
         </view>
-        <view class="{{shopManageStyle}}" wx:if="{{shop_style === '3'}}" style="{{viewWidth}}">
+        <view class="{{shopManageStyle}}" wx:if="{{shop_style === '3'}}">
           <navigator class="feature" url="../coupon/couponList">
             <image src="{{imgUrl}}/newIcon/yhq.png"></image>
             <text class="text_font">优惠券</text>
@@ -285,7 +285,6 @@
       imgUrl: null,
       headImg: null,
       userObj: null,
-      viewWidth: null,
       shop_type: '',  // 店铺类型，总店还是分店 0 未开店 1 总店 2 分店
       shop_style: '',  // 1 单店 2连锁店 3联盟店
       shopManageStyle: 'col-xs-3' // 店铺管理里的模块入口样式 单店或者连锁店的分店: 'col-xs-3'
@@ -368,7 +367,6 @@
             self.shopManageStyle = 'col-xs-4'
           } else {
             self.shopManageStyle = 'col-xs-3'
-            self.viewWidth = 'width: 25%'
           }
           self.userObj = data
           self.headImg = hi
@@ -695,6 +693,9 @@
   width: 33.33333333%;
 }
 
+.storeManager .col-xs-3 {
+  width: 25%;
+}
 .iconroom .feature {
   text-align: center;
   display: block;
