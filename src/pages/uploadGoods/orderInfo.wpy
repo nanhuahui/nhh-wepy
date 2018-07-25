@@ -638,8 +638,8 @@
     to{left: 100%; transform: rotate(360deg)}
 }
 /*底部发货和自提*/
-.bottomCon{background: #fff; line-height: 90rpx; position: fixed; width: 100%; bottom: 0; box-shadow: 1px -10px 50px #fff; padding: 0 30rpx}
-.bottomCon a{float: right; width:140rpx; margin: 15rpx 5px 15rpx 0; text-align: center; height: 40rpx; line-height: 40rpx; border-radius: 28rpx; border: 1px solid #f55b29; color: #f55b29}
+.bottomCon{background: #fff; line-height: 90rpx; position: fixed; width: 700rpx; bottom: 0; box-shadow: 1px -10px 50px #fff; padding: 0 30rpx}
+.bottomCon a, .bottomCon navigator{float: right; width:140rpx; margin: 15rpx 5px 15rpx 0; text-align: center; height: 40rpx; line-height: 40rpx; border-radius: 28rpx; border: 1px solid #f55b29; color: #f55b29}
 .bottomCon .grayTone{border: 1px solid #eee; color: #333}
 .bottomCon .floatLeft{float: left;}
 .returnProcess {
