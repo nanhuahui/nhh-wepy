@@ -130,6 +130,10 @@
           <view class="list-item">应付金额：{{orderDet.order.formated_order_amount}}</view>
         </view>
       </view>
+      <!-- 让店主扫的自提二维码 -->
+      <view wx:if="{{orderDet.order.order_type === '5' && orderDet.order.shipping_time === 0}}" class="takeQrCode">
+        <image src="{{imgPath}}"></image>
+      </view>
     </view>
     <!-- 订单操作 -->
     <view class="bottomCon">
@@ -187,7 +191,8 @@
       id: null, // 订单id
       orderType: 0, // 订单类型:0->普通订单;1->销售订单
       showWxCode: false, // 是否展示店主微信二维码
-      order_action: []
+      order_action: [],
+      imgPath: null // 自提二维码图片路径
     }
     onLoad(q) {
       this.imgUrl = this.$parent.globalData.imgUrl
@@ -199,6 +204,7 @@
     }
     onShow(e) {
       this.loadOrder()
+      this.getQrCode()
     }
     /**
      * 获取订单信息
@@ -457,6 +463,25 @@
         }
       })
     }
+    getQrCode() {
+      let self = this
+      // 获取二维码图片地址
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/wx_app/get_qrcode.php?act=get_qrcode`,
+        data: {
+          scene: `?id=${this.id}&type=scanTake`, // 长按图片识别小程序码1048
+          page: 'pages/uploadGoods/orderInfo'
+        }
+      }).then(({data: {errcode, data, msg}}) => {
+        if (errcode === 0) {
+          self.$apply(() => {
+            self.imgPath = data
+          })
+        } else {
+          console.error('获取小程序码失败', msg)
+        }
+      })
+    }
   }
 </script>
 
@@ -638,4 +663,16 @@
 }
 .returnAndExchangeBg .rightInfo{position: absolute; top: 0; bottom: 0; margin: auto; right: 0.8rem; color: #fff; text-align: right; padding-top: 0.8rem}
 .rightInfo text{display: block;}
+.takeQrCode {
+  background-color: #fff;
+  text-align: center;
+  margin-top: 10rpx;
+  padding-top: 24rpx;
+  padding-bottom: 24rpx;
+}
+.takeQrCode image {
+  width: 160px;
+  height: 160px;
+  vertical-align: middle;
+}
 </style>

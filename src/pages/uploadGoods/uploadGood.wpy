@@ -40,7 +40,7 @@
             <image src="{{imgUrl}}/addImg.png" mode="widthFix"></image>
           </view>
         </view>
-        <view class="c1 h5">商品详情图（最多10张图，图片大小不得超过2M）</view>
+        <view class="c1 h5">商品详情图（最多10张图，图片大小不得超过1M）</view>
       </view>
       <!--运费 价格 库存-->
       <view class="stockFee">

@@ -28,6 +28,18 @@
         </view>
       </view>
     </view>
+    <!-- 店主信息 -->
+    <view wx:if="{{shopInfo}}" class="storeAddress">
+      <view wx:if="{{shopInfo.store_address}}">
+        <image class="icon" src="{{imgUrl}}/newIcon/dizhi.png"></image>
+        <text>{{shopInfo.store_address}}</text>
+      </view>
+      <view wx:if="{{shopInfo.mobile}}" bindtap="calling" data-tel="15811088017">
+        <image class="icon" src="{{imgUrl}}/newIcon/kefu.png"></image>
+        <text>{{shopInfo.mobile}}</text>
+      </view>
+    </view>
+    <!-- 优势 -->
     <view class="info_goods clearfix">
       <view>
         <image src="{{imgUrl}}/zpbz.png"></image>
@@ -49,6 +61,7 @@
     <!--商品详情-->
     <view class="goodsDet">
       <text class="detTitle">#商品详情#</text>
+      <text style="white-space: pre-wrap">{{goodBrief}}</text>
       <block wx:for="{{goodsDecImg}}" wx:for-item="img" wx:key="{{img.img_id}}">
         <image mode = "widthFix" src="{{img_domain + img.goods_img}}"></image>
       </block>
@@ -106,6 +119,7 @@
       imgUrl: null,
       img_domain: null,
       goodsDecImg: null,
+      goodBrief: null, // 详情
       showBall: false,
       currentPageRoute: null,
       goodsInfo: null, // 商品信息
@@ -118,6 +132,8 @@
       cartAnimation: {},
       styleImg: null,
       pageTitle: '',
+      shop_style: wepy.getStorageSync('shop_style'), // 店铺类型
+      shopInfo: null, // 店主信息
       qrShareShow: false,
       qrSize: [ w * 0.64, h - w / 2.5, w / 3 ],
       shareImgs: composeImageForGoods,
@@ -239,6 +255,7 @@
             self.imgUrl = self.$parent.globalData.imgUrl
             self.img_domain = data.img_domain
             self.goodsDecImg = data.goods_detail_img
+            self.goodBrief = data.goods_info.goods_brief
             self.goodsImg = data.goods_img
             self.goodsInfo = data.goods_info
             self.pageTitle = data.goods_info.goods_name
@@ -246,6 +263,7 @@
             self.shareText = self.data.shareText
             self.shareLink = shareLinkV
             self.shareLinkParam = param
+            self.shopInfo = data.shop_info
           })
           wepy.setNavigationBarTitle({ title: self.pageTitle })
           self.shareQR = { link: shareLinkV, param: param, size: self.qrSize[2], x: self.qrSize[0], y: self.qrSize[1] }
@@ -441,6 +459,20 @@
         // 普通跳转
         this.$navigate({url: url})
       }
+    }
+    /**
+     * 拨打电话
+     */
+    calling(e) {
+      wepy.makePhoneCall({
+        phoneNumber: e.currentTarget.dataset.tel,
+        success() {
+          console.log('拨打电话成功！')
+        },
+        fail() {
+          console.log('拨打电话失败！')
+        }
+      })
     }
   }
 </script>
@@ -642,5 +674,9 @@
 .maskShade_right{right: 0;}
 .maskShade_left:before{ top: 0; left: 100%; height: 50%;}
 .maskShade_right:before{ bottom: 0; right: 100%;}
+
+.storeAddress{border-top: 10rpx solid #f8f8f8; padding: 14rpx 30rpx 14rpx 80rpx; color: #555}
+.storeAddress view{line-height: 1.7; padding-top: 10rpx; position: relative;}
+.storeAddress .icon{width:48rpx;height:48rpx;position: absolute; left: -55rpx; top: 1;}
 
 </style>

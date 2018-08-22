@@ -335,6 +335,7 @@ export default class Index extends wepy.page {
         self.$apply(() => {
           self.myAuctionNum = data.my_auction_num
         })
+        self.$invoke('auction', 'initSwiper')
         // 判断是否有未支付拍卖活动
         if (data.my_auction && data.my_auction.length > 0 && self.popShow === false) {
           wepy.showModal({
@@ -424,7 +425,6 @@ export default class Index extends wepy.page {
         let storeCoupon = data.store_coupon
         let moneyLength
         for (var i = 0; i < storeCoupon.length; i++) {
-          storeCoupon[i].coupon_money = 100
           moneyLength = storeCoupon[i].coupon_money.toString().length
           storeCoupon[i].cellWidth = moneyLength > 2 ? (300 + 66 * moneyLength - 94) : 300
         }

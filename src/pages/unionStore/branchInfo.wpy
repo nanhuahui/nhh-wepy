@@ -1,0 +1,289 @@
+<template>
+	<view class="branchInfo">
+    <view class="row branchHeader">
+  	  <view class="shopInfoTitle">
+    		<view class="{{incomeType === 'shop_support_detail' ? 'branchSelected' : ''}}" bindtap="changeIncome('shop_support_detail')">自营商品收入</view>
+    		<view class="{{incomeType === 'shop_union_detail' ? 'branchSelected' : ''}}" bindtap="changeIncome('shop_union_detail')">联盟代销收入</view>
+    		<view class="{{incomeType === 'shop_commission_detail' ? 'branchSelected' : ''}}" bindtap="changeIncome('shop_commission_detail')">平台分佣收入</view>
+  	  </view>
+  	  <!-- 合计收入 -->
+  	  <view class="float_block" style="background-image: url(http://wxassets.xf66.com/unionStore/branchBg.png); ">
+        <view class="month-income">
+          <navigator url="../user/sellerIncome">
+            <view class="income" wx:if="{{total}}">
+              <text class="total_revenue">合计   ¥{{total.total_all}}</text>
+            </view>
+          </navigator>
+        </view>
+        <view class="row month-order" wx:if="{{total}}">
+          <view class="col-xs-3">
+            <text class="number_font">¥{{total.total_all}}</text>
+            <text class="text_font">累计总收入</text>
+          </view>
+          <view class="col-xs-3">
+            <text class="number_font">¥{{total.total_month}}</text>
+            <text class="text_font">本月总收入</text>
+          </view>
+          <view class="col-xs-3">
+            <text class="number_font">¥{{total.total_lastmonth}}</text>
+            <text class="text_font">上月总收入</text>
+          </view>
+          <view class="col-xs-3">
+            <text class="number_font">¥{{total.total_today}}</text>
+            <text class="text_font">今日收入</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <!-- 各分店收入 -->
+    <view class="branchIncome row">
+      <view class="h3 c3" style="text-align:center;font-weight:bold;">{{detialTitle}}</view>
+      <view class="timeChoise">
+        <view class="pick" style="text-align:right">
+          <picker mode="date" value="{{startTime}}" start="1978-01-01" end="{{end}}" bindchange="getStartTime">
+            <text style="padding-right:20rpx">{{startTime}}</text>
+            <!-- <image src="/assets/image/unionStore/sx.png"></image> --> — 
+          </picker>
+        </view>
+        <view class="pick" style="text-align:left">
+          <picker mode="date" value="{{endTime}}" start="1973-01-01" end="{{end}}" bindchange="getEndTime">
+            —<text style="padding-left:20rpx">{{endTime}}</text>
+            <!-- <image src="/assets/image/unionStore/sx.png"></image> -->
+          </picker>
+        </view>
+        <text bindtap="selectByTime" class="selectData h5">筛选</text>
+      </view>
+      <!-- 滚动加载 -->
+      <scroll-view scroll-y="true" scroll-top="0"
+      bindscrolltolower="loadDetail" bindscroll="scroll"
+      class="goods-lists data-list clearfix"
+      style="height: 100%;display: block;overflow: hidden;">
+        <view style="background:#fff;margin:0 30rpx;padding-bottom:30rpx;">
+          <view class="orderHead" style="margin:0 20rpx;">
+            <view class="h5" wx:if="{{incomeType !== 'shop_commission_detail'}}">店铺名称</view>
+            <view class="h5">订单数量</view>
+            <view class="h5">订单金额</view>
+            <view class="h5">本店收益</view>
+          </view>
+          <view id="dataList" style="margin:0 20rpx;">
+            <repeat wx:for="{{detailed}}" wx:for-item="item" wx:key="*this">
+              <view class="orderList">
+                <view class="h7" wx:if="{{incomeType !== 'shop_commission_detail'}}">{{item.store_name}}</view>
+                <view class="h7">{{item.order_total}}</view>
+                <view class="h7">{{item.order_amount}}</view>
+                <view class="h7">¥{{item.income}}</view>
+              </view>
+            </repeat>
+            <!-- <view class="orderList">
+              <view class="h7" wx:if="{{incomeType !== 'shop_commission_detail'}}">联盟店</view>
+              <view class="h7">56</view>
+              <view class="h7">¥564.23</view>
+              <view class="h7">¥56</view>
+            </view>
+            <view class="orderList">
+              <view class="h7" wx:if="{{incomeType !== 'shop_commission_detail'}}">联盟店</view>
+              <view class="h7">56</view>
+              <view class="h7">¥564.23</view>
+              <view class="h7">¥56</view>
+            </view>
+            <view class="orderList">
+              <view class="h7" wx:if="{{incomeType !== 'shop_commission_detail'}}">联盟店</view>
+              <view class="h7">56</view>
+              <view class="h7">¥564.23</view>
+              <view class="h7">¥56</view>
+            </view> -->
+          </view>
+        </view>
+      </scroll-view>
+      <!-- 滚动加载结束 -->
+    </view>
+    <view class="row fixed_bottom h3">
+      合计收益
+      <view class="incomeInfo">
+        <text class="h6">¥</text>{{total ? total.income_total : ''}}
+        <navigator class="h5" url="./orderInfoList?actType={{incomeType}}&store_id={{store_id}}">
+          明细
+        </navigator>
+      </view>
+    </view>
+	</view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  export default class branchInfo extends wepy.page {
+    config = {
+      navigationBarTitleText: ''
+    }
+    data = {
+      pageNum: 0,
+      end: '',
+      imgUrl: '',
+      income: '',
+      startTime: '',
+      endTime: '',
+      mouthStartTime: '',
+      mouthEndTime: '',
+      store_id: '',
+      detailed: [],
+      total: null,
+      detialTitle: '各分店销售本店自营商品',
+      incomeType: 'shop_support_detail'
+    }
+    onLoad(options) {
+      let getTime = new Date()
+      let nowMonth = getTime.getMonth() + 1
+      this.end = getTime.getFullYear() + '-' + nowMonth + '-' + getTime.getDate()
+      // this.endTime = this.end
+      this.$apply(() => {
+        this.store_id = options.store_id
+        this.imgUrl = this.$parent.globalData.imgUrl
+      })
+      this.loadDetail()
+    }
+    loadDetail() {
+      let self = this
+      if (self.pageNum === -1) {
+        // 分页条码为负均不加载
+        return
+      }
+      let num = self.pageNum + 1
+      self.$apply(() => {
+        self.pageNum = num
+        self.hidden = false
+      })
+      console.log('当前加载页码:' + self.pageNum)
+      wepy.request({
+        url: `${self.$parent.globalData.apiUrl}/shop/union_shop/union_shop.php`,
+        data: {
+          act: self.incomeType,
+          store_id: self.store_id,
+          start_time: self.startTime + ' 00:00:00',
+          end_time: self.endTime + ' 23:59:59',
+          page: self.pageNum
+        }
+      }).then(({ data: { errcode, data, msg } }) => {
+        if (errcode === 0) {
+          console.log('查询结果为:', data)
+          if (data.detailed.length === 0) {
+            // 返回数据长度为0时,设置页码为-1
+            self.$apply(() => {
+              self.pageNum = -1
+              self.hidden = true
+            })
+            return
+          }
+          let list = self.detailed
+          for (var i = 0; i < data.detailed.length; i++) {
+            list.push(data.detailed[i])
+          }
+          // 赋值
+          self.$apply(() => {
+            self.detailed = list
+            self.total = data.total
+            self.hidden = true
+          })
+          wepy.setNavigationBarTitle({ title: this.detialTitle })
+        } else {
+          console.log(123312, msg)
+          wepy.showModal({
+            content: msg,
+            showCancel: false
+          })
+        }
+      })
+    }
+    /**
+     * [changeIncome 切换列表]
+     * @param  {[type]} type [description]
+     * @return {[type]}      [description]
+     */
+    changeIncome(e) {
+      let shopType = e.currentTarget.dataset.wpychangeincomeA
+      this.incomeType = shopType
+      console.log(123, shopType)
+      this.$apply()
+      if (shopType === 'shop_support_detail') {
+        this.detialTitle = '各分店销售本店自营商品'
+        this.$apply()
+      } else if (shopType === 'shop_union_detail') {
+        this.detialTitle = '代销联盟各分店商品'
+        this.$apply()
+      } else {
+        this.detialTitle = '平台分佣收入'
+        this.$apply()
+      }
+      this.detailed = []
+      this.loadDetail()
+    }
+    /*
+     * 时间筛选
+     */
+    selectByTime(cid) {
+      let startDate = new Date(Date.parse(this.startTime.replace(/-/g, '/')))
+      let endDate = new Date(Date.parse(this.endTime.replace(/-/g, '/')))
+      if (startDate.getTime() > endDate.getTime()) {
+        wepy.showModal({
+          title: '提示',
+          content: '开始时间不能大于结束时间',
+          showCancel: false
+        })
+        return false
+      }
+      this.detailed = []
+      this.loadDetail()
+    }
+    methods = {
+      getStartTime: function(e) {
+        this.$apply(() => {
+          this.startTime = e.detail.value
+        })
+      },
+      getEndTime: function(e) {
+        this.$apply(() => {
+          this.endTime = e.detail.value
+        })
+      }
+    }
+  }
+</script>
+
+<style scoped>
+.row{margin:0;}
+.branchHeader{background: #333;border-bottom-right-radius:8rpx;
+border-bottom-left-radius:8rpx;}
+.shopInfoTitle{display: flex; height: 70rpx; line-height: 70rpx; margin: 56rpx 30rpx 0; border-radius: 8rpx; border: 1px solid #ac9c81;}
+.shopInfoTitle view{flex: 1; text-align: center; color: #ac9c81; font-size: 24rpx; border-right: 1px solid #ac9c81}
+.shopInfoTitle .branchSelected{background: #ac9c81; color: #654f2b}
+.branchInfo .float_block{background-size: cover; height: 395rpx; bottom: -78rpx; position: relative;}
+.branchInfo .float_block:before{position: absolute; content: ''; width: 80%; left: 0; right: 0; margin: auto; bottom: 0; height: 4px; -webkit-filter: blur(10px); /* Chrome, Opera */
+       -moz-filter: blur(10px);
+        -ms-filter: blur(10px);    
+            filter: blur(10px);
+    filter: progid:DXImageTransform.Microsoft.Blur(PixelRadius=10, MakeShadow=false); /* IE6~IE9 */}
+.branchIncome{padding-top: 75rpx;padding-bottom:80rpx;}
+.branchIncome .timeChoise{background: #333; height: 70rpx; line-height: 70rpx; width:92%;
+text-align: center; color: #fff; position: relative;margin:0 auto;margin-top:20rpx;display:flex;}
+.selectData{position: absolute; right: 20rpx; background: #756139; text-decoration: none; border-radius: 36rpx; color: #fff; height: 42rpx; line-height: 42rpx; width: 103rpx; top: 0; bottom: 0; margin: auto 0}
+.timeChoise image{width: 18.75rpx;height:12rpx;}
+.pick{flex:1;}
+.branchInfo .month-income a, .branchInfo .month-order{background: none}
+.branchInfo .month-order .text_font{color: #666; font-size: 24rpx}
+.branchInfo .month-order .number_font{color: #ccb997;}
+.branchInfo .month-income .income{ text-align: left; padding: 50rpx 65rpx}
+.branchInfo .month-order { padding: 55rpx 30rpx 0;display:flex;}
+.branchInfo .month-order .col-xs-3{padding: 0;flex:1;text-align: center;}
+.branchInfo .month-order .col-xs-3 text{display:block;}
+.orderHead, .orderList{display:flex;height:80rpx;line-height:80rpx;}
+.orderHead view, .orderList view{flex:1;text-align: center}
+.orderList:nth-child(odd){background: #eaeef1}
+.branchInfo .month-income .total_revenue{font-size:46rpx; color: #fff; font-weight: normal;}
+.fixed_bottom{position: fixed; background: #ccb997; height: 98rpx; line-height: 98rpx; bottom: 0; width: 100%; padding-left:30rpx}
+.fixed_bottom .incomeInfo{position: absolute; top: 0; bottom: 0; margin: auto; right: 160rpx; font-size: 38rpx}
+navigator{display:inline-block;}
+.mingxi{background: #756139;text-align:center; text-decoration: none; border-radius: 36rpx; color: #fff; height: 42rpx; line-height: 42rpx; width: 103rpx; top: 0; bottom: 0; margin: auto 0;position:absolute;}
+/*展示上拉加载的数据列表*/
+.data-list {
+  display: none;
+}
+</style>

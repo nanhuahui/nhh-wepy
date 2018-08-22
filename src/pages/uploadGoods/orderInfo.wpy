@@ -203,7 +203,8 @@
       index: 0,
       orderDet: {},
       mailName: DEFAULT_NAME,
-      order_action: []
+      order_action: [],
+      typeText: ''
     }
     onLoad(q) {
       console.log(q.scene) // 场景值：用于二维码携带参数
@@ -211,6 +212,7 @@
         this.imgUrl = this.$parent.globalData.imgUrl
         this.id = q.id || decodeURIComponent(q.scene)
         this.orderType = parseFloat(q.type) || 0
+        this.typeText = q.type ? q.type : ''
       })
     }
     onShow(e) {
@@ -249,6 +251,9 @@
             self.shippingArray = shippingArray
             self.order_action = data.action_list
           })
+          if (self.typeText === 'scanTake' && self.orderDet.order.is_show_shipping === 1) { // 通过扫码进入页面 且 订单未发货
+            self.scanTake()
+          }
         } else {
           wepy.showModal({
             title: '提示',
@@ -382,9 +387,9 @@
           })
           let preOrderDet = self.data.orderDet
           preOrderDet.order.is_show_shipping = 0 // 不显示发货和自提按钮
-          preOrderDet.order.shipping_time = true // 显示订单已发货
+          preOrderDet.order.shipping_time = data.shipping_time // 显示订单已发货
           self.$apply(() => {
-            self.order_state = '已签收'
+            self.order_state = '订单已发货'
             self.orderDet = preOrderDet
           })
         } else {
@@ -442,6 +447,21 @@
     refuseReturn(e) {
       let actType = this.orderDet.order.shipping_time ? 'order_returned' : 'order_refund'
       wepy.navigateTo({url: `./refuseRefund?orderId=${this.orderDet.order.order_id}&actType=${actType}`})
+    }
+    /*
+     * 扫码自提
+     */
+    scanTake() {
+      wepy.showModal({
+        title: '提示',
+        content: '确定此订单的发货方式为自提？'
+      }).then((res) => {
+        if (res.confirm) {
+          this.userTake()
+        } else if (res.cancel) {
+          return false
+        }
+      })
     }
   }
 </script>
@@ -638,8 +658,8 @@
     to{left: 100%; transform: rotate(360deg)}
 }
 /*底部发货和自提*/
-.bottomCon{background: #fff; line-height: 90rpx; position: fixed; width: 100%; bottom: 0; box-shadow: 1px -10px 50px #fff; padding: 0 30rpx}
-.bottomCon a{float: right; width:140rpx; margin: 15rpx 5px 15rpx 0; text-align: center; height: 40rpx; line-height: 40rpx; border-radius: 28rpx; border: 1px solid #f55b29; color: #f55b29}
+.bottomCon{background: #fff; line-height: 90rpx; position: fixed; width: 700rpx; bottom: 0; box-shadow: 1px -10px 50px #fff; padding: 0 30rpx}
+.bottomCon a, .bottomCon navigator{float: right; width:140rpx; margin: 15rpx 5px 15rpx 0; text-align: center; height: 40rpx; line-height: 40rpx; border-radius: 28rpx; border: 1px solid #f55b29; color: #f55b29}
 .bottomCon .grayTone{border: 1px solid #eee; color: #333}
 .bottomCon .floatLeft{float: left;}
 .returnProcess {

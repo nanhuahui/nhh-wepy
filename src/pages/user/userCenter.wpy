@@ -64,7 +64,7 @@
       <view class="title">
         <text>店铺管理</text>
       </view>
-      <view class="clearfix">
+      <view class="clearfix storeManager">
         <view class="{{shopManageStyle}}">
           <navigator class="feature" url="./sellerIncome">
             <image src="{{imgUrl}}/newIcon/shouru.png"></image>
@@ -101,14 +101,19 @@
             <text class="text_font">新手必读</text>
           </navigator>
         </view> -->
-        <view class="{{shopManageStyle}}" wx-if="{{userObj.is_shop}}">
-          <navigator class="feature" url="/pages/branchOffice/manageBranch">
+        <view class="{{shopManageStyle}}" wx:if="{{userObj.is_shop && shop_style !== '1'}}">
+          <navigator wx:if="{{shop_style === '2'}}" class="feature" url="/pages/branchOffice/manageBranch">
+            <!--  url="/shopping/posterShare" -->
+            <image src="{{imgUrl}}/branchManage.png"></image>
+            <text class="text_font">分店管理</text>
+          </navigator>
+          <navigator wx:elif="{{shop_style==='3'}}" class="feature" url="/pages/unionStore/storeManage">
             <!--  url="/shopping/posterShare" -->
             <image src="{{imgUrl}}/branchManage.png"></image>
             <text class="text_font">分店管理</text>
           </navigator>
         </view>
-        <view class="{{shopManageStyle}}" wx:if="{{shop_type === '3'}}">
+        <view class="{{shopManageStyle}}" wx:if="{{shop_style === '3'}}">
           <navigator class="feature" url="../coupon/couponList">
             <image src="{{imgUrl}}/newIcon/yhq.png"></image>
             <text class="text_font">优惠券</text>
@@ -124,29 +129,35 @@
         <text class="word">待发货订单</text><text class="number">{{userObj.order_unship_count}}</text>
       </navigator>
         <view class="title">
-          <text style="float: left;">自营商品</text><text style="font-weight: bolder;color: #c8975c;float: left;padding-left: 10rpx;">(Beta 1.0）</text>
+          <text style="float: left;">自营商品</text>
           <navigator url="./storeInstruction" class="uploadStoreDet h5 c11" style="float: right;">用户须知</navigator>
         </view>
-        <view class="clearfix" style="padding-bottom:39rpx;overflow:hidden;">
-          <view class="col-xs-3" style="width:25%;">
+        <view class="shoperControl clearfix" style="padding-bottom:39rpx;overflow:hidden;">
+          <view class="col-xs-3" wx:if="{{shop_style === '3' || shop_type === '1'}}">
             <navigator class="feature" url="../uploadGoods/uploadGood">
               <image src="{{imgUrl}}/storeGoods/addGoods.png"></image>
               <text class="text_font">添加商品</text>
             </navigator>
           </view>
-          <view class="col-xs-3" style="width:25%;">
+          <view class="col-xs-3" wx:if="{{shop_type === '2' && shop_style === '2'}}">
+            <navigator class="feature" url="../branchOffice/goodsManage">
+              <image src="{{imgUrl}}/storeGoods/goodsManage.png"></image>
+              <text class="text_font">商品管理</text>
+            </navigator>
+          </view>
+          <view class="col-xs-3" wx:else>
             <navigator class="feature" url="../uploadGoods/goodList">
               <image src="{{imgUrl}}/storeGoods/goodsManage.png"></image>
               <text class="text_font">商品管理</text>
             </navigator>
           </view>
-          <view class="col-xs-3" style="width:25%;">
+          <view class="col-xs-3">
             <navigator class="feature" url="../uploadGoods/uploadBanner">
               <image src="{{imgUrl}}/storeGoods/skin.png"></image>
               <text class="text_font">图片更换</text>
             </navigator>
           </view>
-          <view class="col-xs-3" style="width:25%;">
+          <view class="col-xs-3">
             <navigator class="feature" url="../uploadGoods/orderList">
               <image src="{{imgUrl}}/storeGoods/orderManage.png"></image>
               <text class="text_font">订单管理</text>
@@ -196,6 +207,13 @@
           <image class="smallIcon" src="{{imgUrl}}/newIcon/dizhi.png" wx:if="{{imgUrl}}"></image>
           <navigator class="text_font link" url="./addressList">
             <text>地址管理</text>
+            <label class="iconfont-yzg icon-yzg-arrow"></label>
+          </navigator>
+        </view>
+        <view class="arrow_position">
+          <image class="smallIcon" src="{{imgUrl}}/newIcon/shoucang.png" wx:if="{{imgUrl}}"></image>
+          <navigator class="text_font link" url="./myCollect">
+            <text>我的收藏</text>
             <label class="iconfont-yzg icon-yzg-arrow"></label>
           </navigator>
         </view>
@@ -337,6 +355,10 @@
           let shopInfor = {'is_shop': data.is_shop, 'is_consumers': data.is_distribution}
           // 追加数据至缓存
           wepy.setStorageSync('user_nhh', Object.assign(wepy.getStorageSync('user_nhh'), shopInfor))
+          console.log(123456, wepy.getStorageSync('user_nhh'))
+          wepy.setStorageSync('shop_type', data.shop_type)
+          wepy.setStorageSync('shop_style', data.store_detail.shop_style)  // 1：单店；2：连锁店 3：异业联盟店
+          console.log(123, wepy.getStorageSync('shop_style'))
           // 用户头像
           let hi = data.storeinfo ? data.storeinfo.avatar : wepy.getStorageSync('user_wx').avatarUrl
           self.shop_type = data.shop_type
@@ -349,6 +371,7 @@
           self.userObj = data
           self.headImg = hi
           self.$apply()
+          console.log('这是data', self.userObj)
         } else {
           wepy.showModal({
             content: msg,
@@ -376,7 +399,9 @@
 
 <style lang="less">
 /**user.wxss**/
-
+.storeManager view{
+  padding-bottom:20px;
+}
 .index-title {
   background: url(http://wxassets.xf66.com/index_bigbg.jpg) no-repeat center top;
   background-size: 100%;
@@ -668,6 +693,9 @@
   width: 33.33333333%;
 }
 
+.storeManager .col-xs-3 {
+  width: 25%;
+}
 .iconroom .feature {
   text-align: center;
   display: block;
@@ -901,5 +929,10 @@
   color:#fff;
   font-weight:normal;
   margin-left:8rpx;
+}
+.shoperControl{display: flex;}
+.shoperControl > view{flex: 1; -webkit-box-flex: 1; -webkit-flex: 1;}
+.iconroom .col-xs-3 {
+  margin-top: 10rpx;
 }
 </style>

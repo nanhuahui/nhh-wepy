@@ -1,89 +1,81 @@
 <template>
   <view style="padding:0 20rpx">
-    <ul class="branchManage">
-      <li>
-        <table>
-          <tr>
-            <th>合计收入</th>
-          </tr>
-          <tr class="incomeTitle">
-            <td class="h5">累计总收入</td>
-            <td class="h5">上月总收入</td>
-            <td class="h5">本月总收入</td>
-            <td class="h5">今日收入</td>
-          </tr>
-          <tr>
-            <td class="h5">¥{{total_income ? total_income.total_income : '0.00'}}</td>
-            <td class="h5">¥{{total_income ? total_income.lastmonth_income : '0.00'}}</td>
-            <td class="h5">¥{{total_income ? total_income.themonth_income : '0.00'}}</td>
-            <td class="h5">¥{{total_income ? total_income.today_income : '0.00'}}</td>
-          </tr>
-        </table>
-      </li>
-      <li>
-        <table>
-          <tr>
-            <td style="text-align: left">分店总数：{{shop_number_total}}</td> 
-            <td style="text-align: right">已激活分店：{{shop_number_use}}</td>
-          </tr>
-        </table>
-      </li>
-      <li wx:for="{{branceList}}" wx:for-item = "branch" wx:key="branch">
-        <table>
-          <tr>
-            <th>{{branch.store_name}}</th>
-          </tr>
-          <tr>
-            <td><span class="titleMoney h5">销售自营商品金额</span></td>
-          </tr>
-          <tr class="incomeTitle">
-            <td class="h5">累计订单金额</td>
-            <td class="h5">上月订单金额</td>
-            <td class="h5">本月订单金额</td>
-            <td class="h5">今日订单金额</td>
-          </tr>
-          <tr>
-            <td class="h5">¥{{branch.total_income ? branch.total_income : '0.00'}}</td>
-            <td class="h5">¥{{branch.lastmonth_income ? branch.lastmonth_income : '0.00'}}</td>
-            <td class="h5">¥{{branch.themonth_income ? branch.themonth_income : '0.00'}}</td>
-            <td class="h5">¥{{branch.today_income ? branch.today_income : '0.00'}}</td>
-          </tr>
-          <tr>
-            <td><span class="titleMoney h5">销售平台商品分店佣金</span></td>
-          </tr>
-          <tr class="incomeTitle">
-            <td class="h5">分店累计佣金</td>
-            <td class="h5">分店上月佣金</td>
-            <td class="h5">分店本月佣金</td>
-            <td class="h5">分店今日佣金</td>
-          </tr>
-          <tr>
-            <td class="h5">¥{{branch.chain_shop_commission_total ? branch.chain_shop_commission_total : '0.00'}}</td>
-            <td class="h5">¥{{branch.lastmonth_chain_shop_commission_total ? branch.lastmonth_chain_shop_commission_total : '0.00'}}</td>
-            <td class="h5">¥{{branch.themonth_chain_shop_commission_total ? branch.themonth_chain_shop_commission_total : '0.00'}}</td>
-            <td class="h5">¥{{branch.today_chain_shop_commission_total ? branch.today_chain_shop_commission_total : '0.00'}}</td>
-          </tr>
-          <tr>
-            <td><span class="titleMoney h5">销售平台商品总店佣金</span></td>
-          </tr>
-          <tr class="incomeTitle">
-            <td class="h5">总店累计佣金</td>
-            <td class="h5">总店上月佣金</td>
-            <td class="h5">总店本月佣金</td>
-            <td class="h5">总店今日佣金</td>
-          </tr>
-          <tr>
-            <td class="h5">¥{{branch.shop_commission_total ? branch.shop_commission_total : '0.00'}}</td>
-            <td class="h5">¥{{branch.lastmonth_shop_commission_total ? branch.lastmonth_shop_commission_total : '0.00'}}</td>
-            <td class="h5">¥{{branch.themonth_shop_commission_total ? branch.themonth_shop_commission_total : '0.00'}}</td>
-            <td class="h5">¥{{branch.today_shop_commission_total ? branch.today_shop_commission_total : '0.00'}}</td>
-          </tr>
-        </table>
-      </li>
-    </ul>
-    <a class="addShop" bindtap="addBrance">开设分店
-      <span v-if = "unused_qrcode_count !== '0'" class="h5" style="display:block; color:#888">(您还有 <i style="color: #c8975c;font-style: normal;font-size: 14px;">{{unused_qrcode_count}}</i> 家分店未开设)</span>
-    </a>
+    <view class="branchManage">
+      <view class="top">
+        <view class="head">
+          <text>合计收入</text>
+        </view>
+        <view class="incomeTitle">
+          <view class="h5">累计总收入</view>
+          <view class="h5">上月总收入</view>
+          <view class="h5">本月总收入</view>
+          <view class="h5">今日收入</view>
+        </view>
+        <view class="incomeTitle">
+          <view class="h5">¥{{total_income ? total_income.total_income : '0.00'}}</view>
+          <view class="h5">¥{{total_income ? total_income.lastmonth_income : '0.00'}}</view>
+          <view class="h5">¥{{total_income ? total_income.themonth_income : '0.00'}}</view>
+          <view class="h5">¥{{total_income ? total_income.today_income : '0.00'}}</view>
+        </view>
+      </view>
+      <view class="branchNum">
+        <view style="text-align: left">分店总数：{{shop_number_total}}</view> 
+        <view style="text-align: right">已激活分店：{{shop_number_use}}</view>
+      </view>
+      <repeat wx:for="{{branceList}}" wx:for-item = "branch" wx:key="branch">
+        <view class="bottom">
+          <view class="head">{{branch.store_name}}</view>
+          <view class="storeTit">
+            <text class="titleMoney h5">销售自营商品金额</text>
+          </view>
+          <view class="incomeTitle">
+            <view class="h5">累计订单金额</view>
+            <view class="h5">上月订单金额</view>
+            <view class="h5">本月订单金额</view>
+            <view class="h5">今日订单金额</view>
+          </view>
+          <view class="incomeTitle">
+            <view class="h5">¥{{branch.total_income ? branch.total_income : '0.00'}}</view>
+            <view class="h5">¥{{branch.lastmonth_income ? branch.lastmonth_income : '0.00'}}</view>
+            <view class="h5">¥{{branch.themonth_income ? branch.themonth_income : '0.00'}}</view>
+            <view class="h5">¥{{branch.today_income ? branch.today_income : '0.00'}}</view>
+          </view>
+          <view class="storeTit">
+            <text class="titleMoney h5">销售平台商品分店佣金</text>
+          </view>
+          <view class="incomeTitle">
+            <view class="h5">分店累计佣金</view>
+            <view class="h5">分店上月佣金</view>
+            <view class="h5">分店本月佣金</view>
+            <view class="h5">分店今日佣金</view>
+          </view>
+          <view class="incomeTitle">
+            <view class="h5">¥{{branch.chain_shop_commission_total ? branch.chain_shop_commission_total : '0.00'}}</view>
+            <view class="h5">¥{{branch.lastmonth_chain_shop_commission_total ? branch.lastmonth_chain_shop_commission_total : '0.00'}}</view>
+            <view class="h5">¥{{branch.themonth_chain_shop_commission_total ? branch.themonth_chain_shop_commission_total : '0.00'}}</view>
+            <view class="h5">¥{{branch.today_chain_shop_commission_total ? branch.today_chain_shop_commission_total : '0.00'}}</view>
+          </view>
+          <view class="storeTit">
+            <text class="titleMoney h5">销售平台商品总店佣金</text>
+          </view>
+          <view class="incomeTitle">
+            <view class="h5">总店累计佣金</view>
+            <view class="h5">总店上月佣金</view>
+            <view class="h5">总店本月佣金</view>
+            <view class="h5">总店今日佣金</view>
+          </view>
+          <view class="incomeTitle">
+            <view class="h5">¥{{branch.shop_commission_total ? branch.shop_commission_total : '0.00'}}</view>
+            <view class="h5">¥{{branch.lastmonth_shop_commission_total ? branch.lastmonth_shop_commission_total : '0.00'}}</view>
+            <view class="h5">¥{{branch.themonth_shop_commission_total ? branch.themonth_shop_commission_total : '0.00'}}</view>
+            <view class="h5">¥{{branch.today_shop_commission_total ? branch.today_shop_commission_total : '0.00'}}</view>
+          </view>
+        </view>
+      </repeat>
+    </view>
+    <view class="addShop" bindtap="addBrance">开设分店
+      <text wx:if = "{{unused_qrcode_count !== '0'}}" class="h5" style="display:block; color:#888">(您还有 <text style="color: #c8975c;font-style: normal;font-size: 14px;">{{unused_qrcode_count}}</text> 家分店未开设)</text>
+    </view>
   </view>
 </template>
 
@@ -139,13 +131,14 @@
         }
       }).then(({ data: { errcode, data, msg } }) => {
         if (errcode === 0) {
+          console.log(123, data)
           if (data.is_qrcode === 0) {
             // 无可用分店二维码信息 直接支付
             this.submitOrder()
           } else {
             // 有未开店的二维码信息，跳转页面去分享
             wepy.navigateTo({
-              url: `../shareBranchQr?code_id=${data.chain_info.code_id}`
+              url: `./shareBranchQr?code_id=${data.chain_info.code_id}`
             })
           }
         } else {
@@ -165,6 +158,7 @@
         }
       }).then(({ data: { errcode, data, msg } }) => {
         if (errcode === 0) {
+          console.log(123, data)
           if (data.order_sn) {
             this.payNow(data.order_sn)
           } else {
@@ -184,11 +178,16 @@
     payNow(orderSn) {
       wepy.request({
         url: `${this.$parent.globalData.apiUrl}/flow.php?step=chain_wx_pay`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
         data: {
           order_sn: orderSn
         }
       }).then(({ data: { errcode, data, msg } }) => {
         if (errcode === 0) {
+          console.log(123, data)
           if (data.jsApiParameters) {
             let payJson = JSON.parse(data.jsApiParameters)
             wepy.requestPayment({
@@ -239,13 +238,13 @@
 </script>
 
 <style lang="less">
-.branchManage li{background: #fff; box-shadow: 3px 3px 33px #999; border-radius: 4px; padding: 20rpx; margin-top: 0.5rem; display:block;}
-.branchManage li table th{border-bottom: 1px dashed #999; text-align: center; height: 1.6rem; line-height: 1.6rem}
-.branchManage li table td{height: 1.4rem; line-height: 1.4rem; text-align: center;}
-.branchManage li table{width: 100%}
+.head{text-align: center;border-bottom: 1px dashed #666;padding-bottom:20rpx;}
+.incomeTitle, .branchNum{display:flex;}
+.incomeTitle{padding-top:15rpx;}
+.incomeTitle view{flex:1;text-align:center;}
+.branchNum view{flex:1;}
+.storeTit{text-align:center;margin-top:5px;}
+.top, .bottom, .branchNum{background: #fff; box-shadow: 3px 3px 33px #999; border-radius: 4px; padding: 20rpx; margin-top: 0.5rem;}
 .addShop{ display: block; width: 80%; color: #c8975c; background: #333; line-height: 1rem; text-align: center; margin: 0 auto; margin-top: 1rem; border-radius: 4px; padding:0.4rem 0 0.2rem;}
-.titleMoney{background: #999; color: #fff; padding:1px 5px; border-radius: 4px }
-
-.branchManage tr{display: flex}
-.branchManage tr td, .branchManage tr th{flex: 1;}
+.titleMoney{background: #999; color: #fff; padding:1px 5px; border-radius: 4px;}
 </style>

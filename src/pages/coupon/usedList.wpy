@@ -15,7 +15,7 @@
       <image src="{{imgUrl + '/coupon/' + (sortFiled!=='use_time'?'cksy_mr.png':(sortType?'cksy_px.png':'cksy_px_h.png'))}}"></image>
     </view>
   </view>
-  <view class="useList">
+  <view class="useList" style="padding-bottom: 10px;">
     <scroll-view scroll-y="true" height="100%" bindscrolltolower="loadMore" bindscroll="scroll" scroll-y="true" lower-threshold="100" style="height:100%;">
       <view class="c1 useInfo" wx:for="{{useList}}" wx:for-item="use" wx:key="index">
         <view>

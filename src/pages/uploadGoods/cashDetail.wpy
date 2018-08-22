@@ -19,7 +19,7 @@
 
 <script>
   import wepy from 'wepy'
-  export default class cashRecord extends wepy.page {
+  export default class cashDetail extends wepy.page {
     config = {
       navigationBarTitleText: '提现明细'
     }
